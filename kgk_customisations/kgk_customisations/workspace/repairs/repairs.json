@@ -1,0 +1,68 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"Eq6A-Ux1sG\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Repair Reports</span>\",\"col\":12}},{\"id\":\"GUVfWohH18\",\"type\":\"card\",\"data\":{\"card_name\":\"Polishing\",\"col\":4}},{\"id\":\"dmFgYXTx56\",\"type\":\"card\",\"data\":{\"card_name\":\"Grading\",\"col\":4}}]",
+ "creation": "2025-09-02 11:26:06.574218",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "getting-started",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Repairs",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Grading",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Grading Report",
+   "link_count": 0,
+   "link_to": "Grading Repairs",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Polishing",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Polishing Report",
+   "link_count": 0,
+   "link_to": "Polishing Repairs",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-09-09 11:22:20.737360",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Repairs",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "Production",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 4.0,
+ "shortcuts": [],
+ "title": "Repairs"
+}

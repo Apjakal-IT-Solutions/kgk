@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-02 10:21:38.550958",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "pieces_section",
+  "colory_piece",
+  "column_break_ydax",
+  "clarity_piece",
+  "column_break_btki",
+  "cut_piece",
+  "column_break_kwbt",
+  "polish_piece",
+  "column_break_clks",
+  "symmetry_piece",
+  "column_break_wgnc",
+  "fluency_piece"
+ ],
+ "fields": [
+  {
+   "fieldname": "pieces_section",
+   "fieldtype": "Section Break",
+   "label": "Pieces"
+  },
+  {
+   "fieldname": "colory_piece",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Color"
+  },
+  {
+   "fieldname": "column_break_ydax",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "clarity_piece",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Clarity"
+  },
+  {
+   "fieldname": "column_break_btki",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cut_piece",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Cut"
+  },
+  {
+   "fieldname": "column_break_kwbt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "polish_piece",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Polish"
+  },
+  {
+   "fieldname": "column_break_clks",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "symmetry_piece",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Symmetry"
+  },
+  {
+   "fieldname": "column_break_wgnc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fluency_piece",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Fluency"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-02 10:50:10.705057",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Grading Report Pieces Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

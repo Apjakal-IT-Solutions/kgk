@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{MM}-{YY}-###",
+ "creation": "2025-09-02 13:53:50.184768",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "work_date",
+  "column_break_ljhp",
+  "section",
+  "section_break_hrmb",
+  "table_nbxi"
+ ],
+ "fields": [
+  {
+   "fieldname": "section",
+   "fieldtype": "Link",
+   "label": "Section",
+   "options": "Section"
+  },
+  {
+   "fieldname": "work_date",
+   "fieldtype": "Date",
+   "label": "Work Date"
+  },
+  {
+   "fieldname": "column_break_ljhp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_hrmb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "table_nbxi",
+   "fieldtype": "Table",
+   "options": "Factory Entry Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-04 15:18:20.428536",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Factory Entry",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

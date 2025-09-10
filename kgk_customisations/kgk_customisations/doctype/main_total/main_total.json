@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{MM}-{YY}-###",
+ "creation": "2025-09-04 10:29:35.956513",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "planning_main_section",
+  "date",
+  "round_actual",
+  "fancy_actual",
+  "total",
+  "reason",
+  "column_break_ibme",
+  "round_target",
+  "fancy_target",
+  "factory_main_section",
+  "table_tovk"
+ ],
+ "fields": [
+  {
+   "fieldname": "planning_main_section",
+   "fieldtype": "Section Break",
+   "label": "Planning Main"
+  },
+  {
+   "fieldname": "round_actual",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "ROUND (Actual)",
+   "options": "Department"
+  },
+  {
+   "fieldname": "fancy_actual",
+   "fieldtype": "Float",
+   "label": "FANCY (Actual)"
+  },
+  {
+   "fieldname": "column_break_ibme",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "round_target",
+   "fieldtype": "Read Only",
+   "label": "ROUND (Target)"
+  },
+  {
+   "fieldname": "fancy_target",
+   "fieldtype": "Read Only",
+   "label": "FANCY (Target)",
+   "read_only_depends_on": "1"
+  },
+  {
+   "fieldname": "factory_main_section",
+   "fieldtype": "Section Break",
+   "label": "Factory Main"
+  },
+  {
+   "fieldname": "table_tovk",
+   "fieldtype": "Table",
+   "options": "Factory Main Item"
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Read Only",
+   "label": "TOTAL",
+   "precision": "2"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Link",
+   "label": "REASON",
+   "options": "Reason"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Datetime",
+   "label": "Date"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-04 15:15:27.205612",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Main Total",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

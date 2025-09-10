@@ -1,0 +1,103 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{MM}-{YY}-###",
+ "creation": "2025-09-02 09:52:14.638284",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "column_break_khif",
+  "week",
+  "section_break_bpnm",
+  "grp_rep",
+  "column_break_jfoi",
+  "gia_rep",
+  "section_break_wpva",
+  "table_qese",
+  "percentages_section",
+  "table_zlqf"
+ ],
+ "fields": [
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "column_break_khif",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "week",
+   "fieldtype": "Int",
+   "label": "Week"
+  },
+  {
+   "fieldname": "section_break_bpnm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "grp_rep",
+   "fieldtype": "Int",
+   "label": "GRP Rep"
+  },
+  {
+   "fieldname": "column_break_jfoi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gia_rep",
+   "fieldtype": "Int",
+   "label": "GIA Rep"
+  },
+  {
+   "fieldname": "section_break_wpva",
+   "fieldtype": "Section Break",
+   "label": "Pieces"
+  },
+  {
+   "fieldname": "table_qese",
+   "fieldtype": "Table",
+   "options": "Grading Report Pieces Item"
+  },
+  {
+   "fieldname": "percentages_section",
+   "fieldtype": "Section Break",
+   "label": "Percentages"
+  },
+  {
+   "fieldname": "table_zlqf",
+   "fieldtype": "Table",
+   "options": "Grading Report Percentage Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-04 15:17:35.770186",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Grading Repairs",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

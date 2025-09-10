@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-02 10:58:43.060374",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "polishing_c",
+  "column_break_jnbs",
+  "polishing_p",
+  "column_break_wiqt",
+  "polishing_s"
+ ],
+ "fields": [
+  {
+   "fieldname": "polishing_c",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "C"
+  },
+  {
+   "fieldname": "column_break_jnbs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "polishing_p",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "P"
+  },
+  {
+   "fieldname": "column_break_wiqt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "polishing_s",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "S"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-02 11:00:10.091167",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Polishing Report Piece Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,60 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-02 11:00:32.831448",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "percent_c",
+  "column_break_buip",
+  "percent_p",
+  "column_break_lyqf",
+  "percent_s"
+ ],
+ "fields": [
+  {
+   "fieldname": "percent_c",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "C",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_buip",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "percent_p",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "P",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_lyqf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "percent_s",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "S",
+   "precision": "2"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-02 12:07:50.315655",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Polishing Report Percentage Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

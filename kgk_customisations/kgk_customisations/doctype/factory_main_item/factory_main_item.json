@@ -1,0 +1,88 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{MM}-{YY}-###",
+ "creation": "2025-09-04 10:25:35.098302",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "department",
+  "column_break_mtiu",
+  "type",
+  "column_break_uccv",
+  "target",
+  "column_break_mqxf",
+  "actual",
+  "column_break_atzx",
+  "reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "column_break_mtiu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "PCS\nPOL.ct"
+  },
+  {
+   "fieldname": "column_break_uccv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "target",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Target",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_mqxf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "actual",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Actual",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_atzx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reason",
+   "options": "Reason"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-04 15:17:01.862381",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Factory Main Item",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

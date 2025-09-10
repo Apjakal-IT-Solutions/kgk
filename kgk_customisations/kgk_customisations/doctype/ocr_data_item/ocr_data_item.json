@@ -1,0 +1,213 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-05 12:45:50.155945",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sequence",
+  "column_break_lqdp",
+  "created_on",
+  "column_break_ockb",
+  "scan_data",
+  "column_break_buql",
+  "image_data",
+  "column_break_dhpg",
+  "batch_name",
+  "column_break_oqec",
+  "text_data",
+  "column_break_jbde",
+  "lot_id_1",
+  "column_break_ixid",
+  "lot_id_2",
+  "column_break_gwps",
+  "sub_lot_id",
+  "column_break_yafo",
+  "result",
+  "column_break_hvha",
+  "color",
+  "column_break_uxwd",
+  "blue_uv",
+  "column_break_szos",
+  "yellow_uv",
+  "column_break_katd",
+  "brown",
+  "column_break_bwrn",
+  "type",
+  "column_break_ycqe",
+  "fancy_yellow"
+ ],
+ "fields": [
+  {
+   "fieldname": "sequence",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sequence"
+  },
+  {
+   "fieldname": "column_break_lqdp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "created_on",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Created On"
+  },
+  {
+   "fieldname": "column_break_dhpg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "batch_name",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Batch Name"
+  },
+  {
+   "fieldname": "column_break_oqec",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "text_data",
+   "fieldtype": "Long Text",
+   "in_list_view": 1,
+   "label": "Text Data"
+  },
+  {
+   "fieldname": "column_break_jbde",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lot_id_1",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Lot ID 1"
+  },
+  {
+   "fieldname": "column_break_ixid",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lot_id_2",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Lot ID 2"
+  },
+  {
+   "fieldname": "column_break_gwps",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sub_lot_id",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Sub Lot ID"
+  },
+  {
+   "fieldname": "column_break_yafo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Result"
+  },
+  {
+   "fieldname": "column_break_hvha",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Color"
+  },
+  {
+   "fieldname": "column_break_uxwd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "blue_uv",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Blue UV"
+  },
+  {
+   "fieldname": "column_break_szos",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "yellow_uv",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Yellow UV"
+  },
+  {
+   "fieldname": "column_break_katd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "brown",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Brown"
+  },
+  {
+   "fieldname": "column_break_bwrn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Type"
+  },
+  {
+   "fieldname": "column_break_ycqe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fancy_yellow",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Fancy Yellow"
+  },
+  {
+   "fieldname": "column_break_ockb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "scan_data",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Scan Data"
+  },
+  {
+   "fieldname": "column_break_buql",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "image_data",
+   "fieldtype": "Long Text",
+   "in_list_view": 1,
+   "label": "Image Data"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-10 09:29:05.757567",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "OCR Data Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

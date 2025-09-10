@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-02 13:54:48.467444",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_ukan",
+  "employee",
+  "column_break_cbab",
+  "factory_process",
+  "column_break_rutb",
+  "target",
+  "column_break_gzoh",
+  "actual",
+  "column_break_ynju",
+  "reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "factory_process",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Factory Process",
+   "options": "Factory Process"
+  },
+  {
+   "fieldname": "section_break_ukan",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_cbab",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_rutb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "target",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Target",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_gzoh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "actual",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Actual",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_ynju",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reason",
+   "options": "Reason"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-02 14:51:26.190504",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Factory Entry Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

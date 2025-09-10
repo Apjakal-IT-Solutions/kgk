@@ -1,0 +1,116 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"fGkEuF-cak\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Production</span>\",\"col\":12}},{\"id\":\"N1VKLNy--7\",\"type\":\"card\",\"data\":{\"card_name\":\"Main Totals\",\"col\":4}},{\"id\":\"iRSI-jEt39\",\"type\":\"card\",\"data\":{\"card_name\":\"Repairs\",\"col\":4}},{\"id\":\"H8_ieNfUn-\",\"type\":\"card\",\"data\":{\"card_name\":\"Planning\",\"col\":4}},{\"id\":\"2xWk2znBNd\",\"type\":\"card\",\"data\":{\"card_name\":\"Factory Entry\",\"col\":4}}]",
+ "creation": "2025-09-02 11:37:02.870470",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "tool",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Production",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Repairs",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Polishing Repairs",
+   "link_count": 0,
+   "link_to": "Polishing Repairs",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Grading Repairs",
+   "link_count": 0,
+   "link_to": "Grading Repairs",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Planning",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Planning Entry",
+   "link_count": 0,
+   "link_to": "Planning Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Factory Entry",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Factory Entry",
+   "link_count": 0,
+   "link_to": "Factory Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Main Totals",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Main Totals",
+   "link_count": 0,
+   "link_to": "Main Total",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-09-09 11:22:20.682734",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Production",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 3.0,
+ "shortcuts": [],
+ "title": "Production"
+}

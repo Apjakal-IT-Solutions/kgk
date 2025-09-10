@@ -1,0 +1,68 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"_bYp16PwWk\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">OCR Data Management</span>\",\"col\":12}},{\"id\":\"_DQ-3OfKPM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"OCR Data Upload\",\"col\":6}},{\"id\":\"_I6JMg2jNJ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"OCR Data Consolidated\",\"col\":6}},{\"id\":\"_r8HlJ1bTh\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"_bnrZEKoAk\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h5\\\">Quick Actions</span>\",\"col\":12}},{\"id\":\"_w8LGqNOmE\",\"type\":\"paragraph\",\"data\":{\"text\":\"<p>Upload daily OCR Excel files and process them to get refined data results.</p>\",\"col\":12}}]",
+ "creation": "2025-09-05 10:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "scan",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "OCR Management",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "OCR Data Upload",
+   "link_name": "OCR Data Upload",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "OCR Data Consolidated",
+   "link_name": "OCR Data Consolidated",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-09-05 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "KGK Customisations",
+ "name": "OCR Management",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "OCR Manager"
+  }
+ ],
+ "sequence_id": 6.0,
+ "shortcuts": [
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "OCR Data Upload",
+   "link_to": "OCR Data Upload",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "label": "OCR Data Consolidated",
+   "link_to": "OCR Data Consolidated",
+   "type": "Report"
+  }
+ ],
+ "title": "OCR Management"
+}
