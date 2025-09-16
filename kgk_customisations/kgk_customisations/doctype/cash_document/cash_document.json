@@ -1,0 +1,289 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:CD-{YYYY}-{MM}-{#####}",
+ "creation": "2024-01-01 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_1",
+  "document_number",
+  "column_break_2",
+  "status",
+  "section_break_3",
+  "transaction_type",
+  "transaction_date",
+  "column_break_4",
+  "amount",
+  "currency",
+  "section_break_5",
+  "description",
+  "section_break_6",
+  "party_type",
+  "party",
+  "column_break_7",
+  "contact_person",
+  "contact_number",
+  "section_break_8",
+  "supporting_files",
+  "section_break_9",
+  "document_flags",
+  "section_break_10",
+  "created_by_user",
+  "created_by_role",
+  "column_break_11",
+  "last_modified_by",
+  "last_modified_date",
+  "section_break_12",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Document Information"
+  },
+  {
+   "fieldname": "document_number",
+   "fieldtype": "Data",
+   "label": "Document Number",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nPending Review\nApproved\nRejected\nProcessed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "Transaction Details"
+  },
+  {
+   "fieldname": "transaction_type",
+   "fieldtype": "Select",
+   "label": "Transaction Type",
+   "options": "Payment\nReceipt",
+   "reqd": 1
+  },
+  {
+   "fieldname": "transaction_date",
+   "fieldtype": "Date",
+   "label": "Transaction Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "default": "BWP",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Long Text",
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "Party Information"
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Select",
+   "label": "Party Type",
+   "options": "Customer\nSupplier\nEmployee\nOther"
+  },
+  {
+   "fieldname": "party",
+   "fieldtype": "Dynamic Link",
+   "label": "Party",
+   "options": "party_type"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_person",
+   "fieldtype": "Data",
+   "label": "Contact Person"
+  },
+  {
+   "fieldname": "contact_number",
+   "fieldtype": "Data",
+   "label": "Contact Number"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break",
+   "label": "Supporting Documents"
+  },
+  {
+   "fieldname": "supporting_files",
+   "fieldtype": "Table",
+   "label": "Supporting Files",
+   "options": "Cash Document Supporting File"
+  },
+  {
+   "fieldname": "section_break_9",
+   "fieldtype": "Section Break",
+   "label": "Review and Approval"
+  },
+  {
+   "fieldname": "document_flags",
+   "fieldtype": "Table",
+   "label": "Document Flags",
+   "options": "Cash Document Flag"
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break",
+   "label": "Audit Information"
+  },
+  {
+   "fieldname": "created_by_user",
+   "fieldtype": "Link",
+   "label": "Created By User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "created_by_role",
+   "fieldtype": "Data",
+   "label": "Created By Role",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_modified_by",
+   "fieldtype": "Link",
+   "label": "Last Modified By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_modified_date",
+   "fieldtype": "Datetime",
+   "label": "Last Modified Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break",
+   "label": "Additional Information"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Long Text",
+   "label": "Remarks"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Cash Document",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Super User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Accountant",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Checker",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Basic User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "document_number",
+ "track_changes": 1
+}

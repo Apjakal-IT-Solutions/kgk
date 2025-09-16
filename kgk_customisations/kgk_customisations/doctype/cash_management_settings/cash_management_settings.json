@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-16 12:37:07.134798",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "variance_threshold",
+  "auto_reconcile",
+  "notification_settings",
+  "notify_on_variance"
+ ],
+ "fields": [
+  {
+   "default": "5",
+   "description": "Threshold percentage for marking reconciliation required",
+   "fieldname": "variance_threshold",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Variance Threshold (%)",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "Automatically mark as reconciled when variance is zero",
+   "fieldname": "auto_reconcile",
+   "fieldtype": "Check",
+   "label": "Auto Reconcile Zero Variance"
+  },
+  {
+   "fieldname": "notification_settings",
+   "fieldtype": "Section Break",
+   "label": "Notification Settings"
+  },
+  {
+   "default": "1",
+   "description": "Send notifications when variance exceeds threshold",
+   "fieldname": "notify_on_variance",
+   "fieldtype": "Check",
+   "label": "Notify on Variance"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-16 12:37:07.134798",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Cash Management Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Super User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Accountant",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

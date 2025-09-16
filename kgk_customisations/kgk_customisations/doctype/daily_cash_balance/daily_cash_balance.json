@@ -1,0 +1,352 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:DCB-{YYYY}-{MM}-{DD}",
+ "creation": "2024-01-01 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_1",
+  "balance_date",
+  "currency",
+  "column_break_2",
+  "status",
+  "created_by_user",
+  "section_break_3",
+  "basic_user_count",
+  "basic_user_balance",
+  "column_break_4",
+  "checker_count",
+  "checker_balance",
+  "section_break_5",
+  "accountant_count",
+  "accountant_balance",
+  "column_break_6",
+  "super_user_count",
+  "super_user_balance",
+  "section_break_7",
+  "total_manual_count",
+  "total_manual_balance",
+  "column_break_8",
+  "erp_transaction_count",
+  "erp_balance",
+  "section_break_9",
+  "variance_count",
+  "variance_amount",
+  "column_break_10",
+  "variance_percentage",
+  "reconciliation_required",
+  "section_break_11",
+  "notes",
+  "section_break_12",
+  "last_updated_by",
+  "last_updated_date",
+  "column_break_13",
+  "reconciled_by",
+  "reconciliation_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Balance Information"
+  },
+  {
+   "fieldname": "balance_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Balance Date",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "BWP",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nPending Review\nReconciled\nVariance Identified",
+   "reqd": 1
+  },
+  {
+   "fieldname": "created_by_user",
+   "fieldtype": "Link",
+   "label": "Created By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "Basic User Counts"
+  },
+  {
+   "default": "0",
+   "fieldname": "basic_user_count",
+   "fieldtype": "Int",
+   "label": "Basic User Count"
+  },
+  {
+   "default": "0",
+   "fieldname": "basic_user_balance",
+   "fieldtype": "Currency",
+   "label": "Basic User Balance",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "checker_count",
+   "fieldtype": "Int",
+   "label": "Checker Count"
+  },
+  {
+   "default": "0",
+   "fieldname": "checker_balance",
+   "fieldtype": "Currency",
+   "label": "Checker Balance",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "Accountant & Super User Counts"
+  },
+  {
+   "default": "0",
+   "fieldname": "accountant_count",
+   "fieldtype": "Int",
+   "label": "Accountant Count"
+  },
+  {
+   "default": "0",
+   "fieldname": "accountant_balance",
+   "fieldtype": "Currency",
+   "label": "Accountant Balance",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "super_user_count",
+   "fieldtype": "Int",
+   "label": "Super User Count"
+  },
+  {
+   "default": "0",
+   "fieldname": "super_user_balance",
+   "fieldtype": "Currency",
+   "label": "Super User Balance",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break",
+   "label": "Manual Totals"
+  },
+  {
+   "fieldname": "total_manual_count",
+   "fieldtype": "Int",
+   "label": "Total Manual Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_manual_balance",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Manual Balance",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "erp_transaction_count",
+   "fieldtype": "Int",
+   "label": "ERP Transaction Count",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "erp_balance",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "ERP Balance",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_9",
+   "fieldtype": "Section Break",
+   "label": "Variance Analysis"
+  },
+  {
+   "fieldname": "variance_count",
+   "fieldtype": "Int",
+   "label": "Variance Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "variance_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Variance Amount",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "variance_percentage",
+   "fieldtype": "Percent",
+   "label": "Variance Percentage",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "reconciliation_required",
+   "fieldtype": "Check",
+   "label": "Reconciliation Required"
+  },
+  {
+   "fieldname": "section_break_11",
+   "fieldtype": "Section Break",
+   "label": "Notes and Comments"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Long Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break",
+   "label": "Update Information"
+  },
+  {
+   "fieldname": "last_updated_by",
+   "fieldtype": "Link",
+   "label": "Last Updated By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_updated_date",
+   "fieldtype": "Datetime",
+   "label": "Last Updated Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_13",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reconciled_by",
+   "fieldtype": "Link",
+   "label": "Reconciled By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reconciliation_date",
+   "fieldtype": "Datetime",
+   "label": "Reconciliation Date",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Daily Cash Balance",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Super User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Accountant",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Checker",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Basic User",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "balance_date",
+ "track_changes": 1
+}

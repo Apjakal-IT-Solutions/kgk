@@ -242,3 +242,19 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+# Fixtures
+# --------
+# Installed during app installation
+fixtures = [
+	{
+		"doctype": "Role",
+		"filters": [
+			["name", "in", ["Cash Basic User", "Cash Checker", "Cash Accountant", "Cash Super User"]]
+		]
+	}
+]
+
+# Installation hooks
+# ------------------
+# after_install = "kgk_customisations.kgk_customisations.setup.cash_management_setup.execute"
+

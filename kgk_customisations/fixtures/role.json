@@ -1,0 +1,54 @@
+[
+ {
+  "desk_access": 0,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "modified": "2025-09-16 10:19:44.447027",
+  "name": "Cash Basic User",
+  "restrict_to_domain": null,
+  "role_name": "Cash Basic User",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 0,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "modified": "2025-09-16 10:19:44.493960",
+  "name": "Cash Checker",
+  "restrict_to_domain": null,
+  "role_name": "Cash Checker",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 0,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "modified": "2025-09-16 10:19:44.500613",
+  "name": "Cash Accountant",
+  "restrict_to_domain": null,
+  "role_name": "Cash Accountant",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 0,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "modified": "2025-09-16 10:19:44.507199",
+  "name": "Cash Super User",
+  "restrict_to_domain": null,
+  "role_name": "Cash Super User",
+  "two_factor_auth": 0
+ }
+]
