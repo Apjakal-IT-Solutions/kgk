@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-24 11:15:01.254739",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "advisor_name",
+  "advisor_file",
+  "notes",
+  "upload_date",
+  "predictions_section",
+  "predicted_carat",
+  "predicted_shape",
+  "predicted_color",
+  "predicted_clarity",
+  "predicted_quality",
+  "predicted_rapaport_price",
+  "predicted_back_percent",
+  "predicted_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "advisor_name",
+   "fieldtype": "Data",
+   "label": "Advisor Name"
+  },
+  {
+   "fieldname": "advisor_file",
+   "fieldtype": "Attach",
+   "label": "Advisor File"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "upload_date",
+   "fieldtype": "Date",
+   "label": "Upload Date"
+  },
+  {
+   "fieldname": "predictions_section",
+   "fieldtype": "Section Break",
+   "label": "Predictions"
+  },
+  {
+   "fieldname": "predicted_carat",
+   "fieldtype": "Float",
+   "label": "Predicted Carat"
+  },
+  {
+   "fieldname": "predicted_shape",
+   "fieldtype": "Data",
+   "label": "Predicted Shape"
+  },
+  {
+   "fieldname": "predicted_color",
+   "fieldtype": "Data",
+   "label": "Predicted Color"
+  },
+  {
+   "fieldname": "predicted_clarity",
+   "fieldtype": "Data",
+   "label": "Predicted Clarity"
+  },
+  {
+   "fieldname": "predicted_quality",
+   "fieldtype": "Data",
+   "label": "Predicted Quality"
+  },
+  {
+   "fieldname": "predicted_rapaport_price",
+   "fieldtype": "Currency",
+   "label": "Predicted Rapaport Price"
+  },
+  {
+   "fieldname": "predicted_back_percent",
+   "fieldtype": "Percent",
+   "label": "Predicted Back Percent"
+  },
+  {
+   "fieldname": "predicted_amount",
+   "fieldtype": "Currency",
+   "label": "Predicted Amount"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-24 11:21:49.497301",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Advisor",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

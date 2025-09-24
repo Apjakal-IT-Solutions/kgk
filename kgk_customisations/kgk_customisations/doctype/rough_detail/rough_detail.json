@@ -1,0 +1,140 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-24 11:09:38.731784",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "qty",
+  "column_break_mtfi",
+  "carat_org",
+  "column_break_rcvf",
+  "carat_exp",
+  "column_break_ungl",
+  "shape",
+  "column_break_zixn",
+  "color",
+  "column_break_vxtc",
+  "clarity",
+  "column_break_xfxl",
+  "quality",
+  "column_break_bqom",
+  "rapaport_price",
+  "column_break_ghdj",
+  "back_percent",
+  "column_break_sxpz",
+  "amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "carat_org",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Carat (Org)"
+  },
+  {
+   "fieldname": "carat_exp",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Carat (Exp)"
+  },
+  {
+   "fieldname": "shape",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Shape"
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Color"
+  },
+  {
+   "fieldname": "clarity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Clarity"
+  },
+  {
+   "fieldname": "quality",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quality"
+  },
+  {
+   "fieldname": "rapaport_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Rapaport Price"
+  },
+  {
+   "fieldname": "back_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Back Percent"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "column_break_mtfi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_rcvf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ungl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_zixn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_vxtc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xfxl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_bqom",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ghdj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_sxpz",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-09-24 11:14:10.443977",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Rough Detail",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

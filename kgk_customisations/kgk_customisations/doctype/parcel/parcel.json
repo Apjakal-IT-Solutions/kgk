@@ -1,0 +1,145 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:parcel_name",
+ "creation": "2025-09-24 11:03:27.998422",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "parcel_information_section",
+  "parcel_name",
+  "batch_reference",
+  "barcode",
+  "status",
+  "column_break_nrtp",
+  "sight",
+  "source",
+  "planner",
+  "grader",
+  "remarks",
+  "rough_details_section",
+  "rough_details",
+  "advisor_details_section",
+  "advisor_details",
+  "polished_details_section",
+  "table_unro"
+ ],
+ "fields": [
+  {
+   "fieldname": "parcel_information_section",
+   "fieldtype": "Section Break",
+   "label": "Parcel Information"
+  },
+  {
+   "fieldname": "parcel_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Parcel Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "barcode",
+   "fieldtype": "Data",
+   "label": "Barcode"
+  },
+  {
+   "fieldname": "batch_reference",
+   "fieldtype": "Data",
+   "label": "Batch Reference"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "ROUGH\nPOLISHED\nIN PROCESS\nMIXED"
+  },
+  {
+   "fieldname": "sight",
+   "fieldtype": "Data",
+   "label": "Sight"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Data",
+   "label": "Source"
+  },
+  {
+   "fieldname": "planner",
+   "fieldtype": "Data",
+   "label": "Planner"
+  },
+  {
+   "fieldname": "grader",
+   "fieldtype": "Data",
+   "label": "Grader"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "rough_details_section",
+   "fieldtype": "Section Break",
+   "label": "Rough Details"
+  },
+  {
+   "fieldname": "advisor_details_section",
+   "fieldtype": "Section Break",
+   "label": "Advisor Details"
+  },
+  {
+   "fieldname": "polished_details_section",
+   "fieldtype": "Section Break",
+   "label": "Polished Details"
+  },
+  {
+   "fieldname": "table_unro",
+   "fieldtype": "Table",
+   "options": "Polished Detail"
+  },
+  {
+   "fieldname": "column_break_nrtp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rough_details",
+   "fieldtype": "Table",
+   "label": "Rough Detail",
+   "options": "Rough Detail"
+  },
+  {
+   "fieldname": "advisor_details",
+   "fieldtype": "Table",
+   "options": "Advisor"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-24 12:42:11.366427",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Parcel",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
