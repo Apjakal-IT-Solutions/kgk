@@ -11,6 +11,7 @@
   "batch_reference",
   "barcode",
   "status",
+  "import_file",
   "column_break_nrtp",
   "sight",
   "source",
@@ -22,7 +23,7 @@
   "advisor_details_section",
   "advisor_details",
   "polished_details_section",
-  "table_unro"
+  "polished_stones"
  ],
  "fields": [
   {
@@ -95,11 +96,6 @@
    "label": "Polished Details"
   },
   {
-   "fieldname": "table_unro",
-   "fieldtype": "Table",
-   "options": "Polished Detail"
-  },
-  {
    "fieldname": "column_break_nrtp",
    "fieldtype": "Column Break"
   },
@@ -113,12 +109,22 @@
    "fieldname": "advisor_details",
    "fieldtype": "Table",
    "options": "Advisor"
+  },
+  {
+   "fieldname": "import_file",
+   "fieldtype": "Attach",
+   "label": "Import File"
+  },
+  {
+   "fieldname": "polished_stones",
+   "fieldtype": "Table",
+   "options": "Polished Detail"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-24 12:42:11.366427",
+ "modified": "2025-09-25 09:31:43.956433",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Parcel",
