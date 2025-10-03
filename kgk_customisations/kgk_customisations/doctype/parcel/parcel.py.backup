@@ -1,0 +1,1182 @@
+# Copyright (c) 2025, Apjakal IT Solutions and contributors
+# For license information, please see license.txt
+
+# import frappe
+from frappe.model.document import Document
+import frappe
+import pandas as pd
+import os
+from frappe.utils.file_manager import get_file_path
+from frappe.utils import flt, cstr
+import time
+
+class Parcel(Document):
+	pass
+
+# Enhanced import script with barcode hierarchy - add to your parcel.py
+
+
+
+@frappe.whitelist()
+def import_stones_from_file(parcel_name: str, file_url: str):
+    """
+    Import stones from Excel file with proper hierarchy handling (restored working version)
+    """
+    try:
+
+        
+        # Validate inputs
+        if not parcel_name or not file_url:
+            frappe.throw("Parcel name and file URL are required")
+        
+        # Initialize progress
+        frappe.publish_progress(
+            percent=0,
+            title="Stone Import",
+            description="Starting import process..."
+        )
+        
+        # Get file path and validate existence
+        file_path = get_file_path(file_url)
+        if not os.path.exists(file_path):
+            frappe.throw(f"File not found: {file_path}")
+        
+        frappe.publish_progress(
+            percent=5,
+            title="Stone Import",
+            description="Reading Excel file..."
+        )
+        
+        # Read Excel file with improved error handling
+        try:
+            df = pd.read_excel(file_path, engine="pyxlsb")
+
+        except Exception as read_error:
+            # Try with openpyxl as fallback
+            try:
+                df = pd.read_excel(file_path, engine="openpyxl") 
+
+            except Exception as fallback_error:
+                frappe.throw(f"Failed to read Excel file. Please check the file format and try again.")
+        
+        if df.empty:
+            frappe.throw("No data found in the Excel file")
+        
+        frappe.publish_progress(
+            percent=10,
+            title="Stone Import",
+            description="Analyzing file structure..."
+        )
+        
+        # Find the correct column name for stone/parcel name
+        column_names = list(df.columns)
+
+        
+        parcel_name_column = _find_name_column(column_names)
+        
+        if not parcel_name_column:
+            frappe.throw(f"Could not find a column for stone/parcel names. Found {len(column_names)} columns total.")
+        
+
+        
+        # Clean dataframe - remove completely empty rows (but don't reset index to avoid confusion)
+        df = df.dropna(how='all')
+        total_rows = len(df)
+        
+
+        
+        frappe.publish_progress(\n            percent=15,\n            title=\"Stone Import\",\n            description=f\"Found {total_rows} rows to process. Preparing for batch processing...\"\n        )\n        \n        # Optimized: Skip complex hierarchy analysis for large datasets\n        stones_hierarchy = _analyze_and_create_hierarchy(df, parcel_name_column, parcel_name)\n        \n        frappe.publish_progress(\n            percent=20,\n            title=\"Stone Import\",\n            description=f\"Ready to process {total_rows} stones. Starting batch processing...\"\n        )
+        
+        import time
+        start_time = time.time()
+        frappe.publish_progress(
+            percent=25,
+            title="Stone Import",
+            description=f"Starting batch processing of {total_rows} stones in batches of {batch_size}..."
+        )
+        
+        # Process stones in smaller batches for better performance
+        batch_size = 50  # Reduced batch size for better responsiveness
+        processed_count = 0
+        skipped_count = 0
+        error_count = 0
+        
+
+        
+        for batch_start in range(0, total_rows, batch_size):
+            batch_end = min(batch_start + batch_size, total_rows)
+            batch_df = df.iloc[batch_start:batch_end]
+            
+
+            
+            # Process current batch
+            batch_processed, batch_skipped, batch_errors = _process_batch(
+                batch_df, parcel_name_column, parcel_name, batch_start, stones_hierarchy
+            )
+            
+            processed_count += batch_processed
+            skipped_count += batch_skipped
+            error_count += batch_errors
+            
+            # Update progress more frequently with detailed information
+            progress_percent = 25 + ((batch_end / total_rows) * 70)  # 25% to 95%
+            elapsed_time = time.time() - start_time
+            current_batch = (batch_start // batch_size) + 1
+            total_batches = (total_rows + batch_size - 1) // batch_size
+            
+            frappe.publish_progress(
+                percent=progress_percent,
+                title="Stone Import",
+                description=f"Batch {current_batch}/{total_batches}: Processed {batch_end}/{total_rows} rows ({elapsed_time:.1f}s). Created: {processed_count}, Skipped: {skipped_count}, Errors: {error_count}"
+            )
+            
+            # Commit after each batch to avoid timeout
+            frappe.db.commit()
+            
+            # Smaller delay for better performance\n            time.sleep(0.05)        # Final progress update with timing
+        total_elapsed = time.time() - start_time
+        frappe.publish_progress(
+            percent=100,
+            title="Stone Import",
+            description=f"Import completed successfully in {total_elapsed:.1f}s! Created {processed_count} stones."
+        )
+        
+        # Prepare result message
+        message_parts = [f"Import completed! Created {processed_count} stones for parcel {parcel_name}"]
+        if skipped_count > 0:
+            message_parts.append(f"Skipped {skipped_count} empty/invalid rows")
+        if error_count > 0:
+            message_parts.append(f"Failed to process {error_count} rows (check Error Log)")
+        
+        result_message = ". ".join(message_parts)
+        frappe.msgprint(result_message)
+        
+        return {
+            "status": "success",
+            "message": result_message,
+            "processed": processed_count,
+            "skipped": skipped_count,
+            "errors": error_count,
+            "total_rows": total_rows,
+            "hierarchy_created": len(stones_hierarchy)
+        }
+        
+    except Exception as e:
+        frappe.publish_progress(
+            percent=100,
+            title="Stone Import",
+            description=f"Import failed: {str(e)}"
+        )
+        
+        # Create persistent error message that won't disappear
+        if "file url" in str(e).lower() or "file path" in str(e).lower():
+            user_msg = "❌ FILE PATH ERROR: The uploaded file path is incorrect. Please ensure the file was uploaded properly through Frappe's file manager."
+            detailed_msg = f"Technical details: {str(e)}"
+        elif "file not found" in str(e).lower():
+            user_msg = "❌ FILE NOT FOUND: Please check that the file was uploaded correctly."
+            detailed_msg = f"File path issue: {str(e)}"
+        elif "permission" in str(e).lower():
+            user_msg = "❌ PERMISSION ERROR: Please check file access permissions."
+            detailed_msg = f"Permission issue: {str(e)}"
+        elif "excel" in str(e).lower() or "xlsb" in str(e).lower():
+            user_msg = "❌ EXCEL READ ERROR: Please check the file format and ensure it's a valid .xlsb or .xlsx file."
+            detailed_msg = f"Excel error: {str(e)}"
+        else:
+            user_msg = f"❌ IMPORT FAILED: {str(e)}"
+            detailed_msg = str(e)
+        
+        # Log the full error for debugging with shorter title
+        frappe.log_error(
+            f"User Import Error for {frappe.session.user}:\\n{user_msg}\\n{detailed_msg}\\n\\nFull traceback:\\n{frappe.get_traceback()}", 
+            "Import Error"
+        )
+        
+        # Show persistent error message that won't auto-disappear
+        frappe.msgprint(
+            msg=f"<div style='color: #d32f2f; font-size: 14px;'>{user_msg}</div><br><br><b>Technical Details:</b><br><code>{detailed_msg}</code><br><br><i>Check Error Log in Desk → Tools → Error Log for full details</i>",
+            title="Stone Import Error",
+            indicator="red",
+            wide=True,
+            raise_exception=False  # Don't throw, just show message
+        )
+        
+        # Return error result instead of throwing
+        return {
+            "success": False,
+            "error": user_msg,
+            "technical_details": detailed_msg,
+            "message": "Import failed - check Error Log for details"
+        }
+
+
+def _find_name_column(column_names):
+    """Find the correct column name for stone/parcel names"""
+    possible_names = ["Parcel Name", "ParcelName", "Parcel_Name", "Stone Name", "StoneName", "Stone_Name", "Name"]
+    
+    # Try exact matches first
+    for col_name in possible_names:
+        if col_name in column_names:
+            return col_name
+    
+    # Try case-insensitive search
+    for col_name in column_names:
+        if any(possible.lower() in col_name.lower() for possible in ["parcel", "stone", "name"]):
+            return col_name
+    
+    return None
+
+
+def _analyze_and_create_hierarchy(df, parcel_name_column, parcel_name):
+    """
+    Optimized hierarchy analysis for large datasets - Skip complex hierarchy for now
+    Returns empty set since we'll process all stones in batches instead
+    """
+
+    
+    # For large datasets, skip the complex hierarchy pre-creation
+    # We'll create parent stones on-demand during batch processing instead
+    return set()  # Return empty set - no stones pre-created
+
+
+def _create_minimal_parent_stone(parent_stone_name, parcel_name):
+    """Create a minimal parent stone when it doesn't exist in the data"""
+    try:
+        parent_level = parent_stone_name.count("/")
+        grandparent = get_parent_stone(parent_stone_name)
+        
+        # Ensure grandparent exists recursively
+        if grandparent and not frappe.db.exists("Stone", grandparent):
+            _create_minimal_parent_stone(grandparent, parcel_name)
+        
+        # Create minimal parent stone
+        parent_data = {
+            "doctype": "Stone",
+            "stone_name": parent_stone_name,
+            "parcel": parcel_name,
+            "parent_stone": grandparent,
+            "stone_type": "ROUGH",  # Default to ROUGH for parent stones
+            "qty": 0,
+            "carat_org": 0,
+            "carat_exp": 0,
+        }
+        
+        parent_doc = frappe.get_doc(parent_data)
+        parent_doc.insert(ignore_permissions=True)
+        
+
+        
+    except Exception as e:
+        frappe.log_error(f"Error creating minimal parent stone {parent_stone_name}: {str(e)}", "Parent Creation Error")
+
+
+def _prepare_stone_data(row, stone_name, parcel_name, parent_stone, level):
+    """Prepare stone data dictionary from row - Updated for current Excel structure"""
+    
+    # Helper function to safely get values
+    def safe_get(col_name, default=None):
+        if col_name in row.index and not pd.isna(row.get(col_name)):
+            return row.get(col_name)
+        return default
+    
+    # Try to extract basic stone information from available columns
+    stone_data = {
+        "doctype": "Stone",
+        "stone_name": stone_name,
+        "parcel": parcel_name,
+        "parent_stone": parent_stone,
+    }
+    
+    # Set basic fields - try multiple column name variations
+    # Original weight
+    org_weight = safe_get("Org Wght") or safe_get("Original Weight") or safe_get("Carat Org") or 0
+    stone_data["org_wght"] = flt(org_weight) if org_weight else 0
+    stone_data["carat_org"] = stone_data["org_wght"]  # Legacy field
+    
+    # Proposed weight  
+    prop_weight = safe_get("Prop. Cts") or safe_get("Proposed Cts") or safe_get("Carat Exp") or 0
+    stone_data["prop_cts"] = flt(prop_weight) if prop_weight else 0
+    stone_data["carat_exp"] = stone_data["prop_cts"]  # Legacy field
+    
+    # Barcodes
+    stone_data["main_barcode"] = cstr(safe_get("Main barcode") or "").strip() or None
+    stone_data["barcode"] = cstr(safe_get("Barcode") or "").strip() or None
+    
+    # Basic identification
+    stone_data["seria_id"] = cstr(safe_get("Seria ID") or "").strip() or None
+    stone_data["sight"] = cstr(safe_get("Sight") or "").strip() or None
+    stone_data["article"] = cstr(safe_get("Article") or "").strip() or None
+    stone_data["r_size"] = cstr(safe_get("R_Size") or "").strip() or None
+    
+    # Quality specs - try both original and Lab versions
+    stone_data["shape"] = cstr(safe_get("Shape L") or safe_get("Shape") or "").strip() or None
+    stone_data["color"] = cstr(safe_get("Color L") or safe_get("Color") or "").strip() or None  
+    stone_data["clarity"] = cstr(safe_get("Clarity L") or safe_get("Clarity") or "").strip() or None
+    stone_data["quality"] = cstr(safe_get("Quality") or "").strip() or None
+    
+    # Lab information
+    stone_data["lab"] = cstr(safe_get("Lab") or "").strip() or None
+    
+    # Weight information - prefer Lab weight if available
+    current_weight = safe_get("Wght L") or safe_get("Weight L") or stone_data["org_wght"] or 0
+    stone_data["current_weight"] = flt(current_weight) if current_weight else 0
+    
+    # Supplier info
+    stone_data["s_part"] = cstr(safe_get("S_PART") or "").strip() or None
+    
+    # Pricing - try to get the most recent/accurate pricing
+    list_price = safe_get("List L") or safe_get("List Price") or safe_get("Rapaport Price") or 0
+    stone_data["rapaport_price"] = flt(list_price) if list_price else 0
+    
+    amount = safe_get("ESP Amt. L") or safe_get("Amount") or 0  
+    stone_data["amount"] = flt(amount) if amount else 0
+    stone_data["current_value"] = stone_data["amount"]
+    
+    # Determine stone type based on available data
+    qty = safe_get("Qty") or 0
+    if flt(qty) > 0:
+        stone_data["stone_type"] = "ROUGH"
+        stone_data["qty"] = int(flt(qty))
+    else:
+        stone_data["stone_type"] = "POLISHED" 
+        stone_data["qty"] = 0
+    
+    # Set current stage based on available data
+    if stone_data.get("lab"):
+        stone_data["current_stage"] = "Lab"
+    elif safe_get("Wght IG"):
+        stone_data["current_stage"] = "IG"  
+    elif safe_get("Wght E"):
+        stone_data["current_stage"] = "Estimation"
+    else:
+        stone_data["current_stage"] = "Original"
+    
+    # Additional fields for compatibility
+    stone_data["back_percent"] = flt(safe_get("Back Percent") or 0)
+    stone_data["remark"] = cstr(safe_get("Remark") or "").strip() or None
+    
+    return stone_data
+
+
+def _process_batch(batch_df, parcel_name_column, parcel_name, batch_start_idx, already_created_stones):
+    """Optimized batch processing - creates stones directly without complex hierarchy"""
+    processed = 0
+    skipped = 0
+    errors = 0
+    
+    for idx, row in batch_df.iterrows():
+        try:
+            # Get stone name using the discovered column
+            raw_stone_name = row[parcel_name_column]
+            
+            # Skip if stone name is None, NaN, empty, or just whitespace
+            if pd.isna(raw_stone_name):
+                skipped += 1
+                continue
+            
+            stone_name = str(raw_stone_name).strip()
+            
+            # Only skip if actually empty after conversion
+            if not stone_name or stone_name.lower() in ['none', 'null', 'nan']:
+                skipped += 1
+                continue
+            
+            # Skip if stone already exists
+            if frappe.db.exists("Stone", stone_name):
+                processed += 1  # Count as processed since it exists
+                continue
+            
+            # For performance, skip complex hierarchy - just create stones directly
+            # Most stones in diamond processing are individual stones anyway
+            parent_stone = None  # Simplified - no parent hierarchy for now
+            
+            # Prepare stone data
+            stone_data = _prepare_stone_data(row, stone_name, parcel_name, parent_stone, 0)
+            
+            # Create the stone
+            try:
+                stone_doc = frappe.get_doc(stone_data)
+                stone_doc.insert(ignore_permissions=True)
+                processed += 1
+                
+            except Exception as insert_error:
+                frappe.log_error(f"Error inserting stone {stone_name}: {str(insert_error)}", "Stone Insert Error")
+                errors += 1
+            
+        except Exception as row_error:
+            frappe.log_error(f"Error processing row {batch_start_idx + idx + 1}: {str(row_error)}", "Row Processing Error")
+            errors += 1
+            continue
+    
+    return processed, skipped, errors
+
+
+def get_parent_stone(stone_name: str):
+    """
+    Extract parent stone from stone_name based on hierarchy markers.
+    """
+    if not stone_name:
+        return None
+        
+    try:
+        if "/" in stone_name:
+            parent = stone_name.rsplit("/", 1)[0]
+            return parent if parent else None
+        elif "-" in stone_name and stone_name.count("-") > 2:
+            parent = "-".join(stone_name.split("-")[:-1])
+            return parent if parent else None
+        return None
+    except Exception:
+        return None
+
+
+def _build_enhanced_hierarchy(df, column_map):
+    """
+    Build hierarchy considering both stone name paths and main barcode groupings
+    """
+
+    
+    stones_by_level = {}
+    all_stones = set()
+    stone_data_map = {}
+    main_barcode_groups = {}
+    barcode_to_stone = {}
+    
+    # First pass: collect all stone data
+    processed_rows = 0
+    for idx, row in df.iterrows():
+        try:
+            processed_rows += 1
+            # Get stone name
+            stone_name_raw = None
+            for excel_col, field_name in column_map.items():
+                if excel_col in df.columns and field_name == "stone_name":
+                    stone_name_raw = row[excel_col]
+                    break
+            
+            if pd.isna(stone_name_raw) or not str(stone_name_raw).strip():
+                continue
+                
+            stone_name = str(stone_name_raw).strip()
+            
+            # Extract barcode information
+            main_barcode = None
+            barcode = None
+            
+            for excel_col, field_name in column_map.items():
+                if excel_col in df.columns and not pd.isna(row[excel_col]):
+                    if field_name == "main_barcode":
+                        main_barcode = str(row[excel_col]).strip()
+                    elif field_name == "barcode":
+                        barcode = str(row[excel_col]).strip()
+            
+            # Calculate hierarchy level from stone name
+            level = stone_name.count("/")
+            
+            # Add to level grouping
+            if level not in stones_by_level:
+                stones_by_level[level] = set()
+            stones_by_level[level].add(stone_name)
+            all_stones.add(stone_name)
+            
+            # Store row data for this stone
+            stone_data = _extract_stone_data_enhanced(row, column_map, df.columns)
+            stone_data_map[stone_name] = stone_data
+            
+            # Group by main barcode
+            if main_barcode:
+                if main_barcode not in main_barcode_groups:
+                    main_barcode_groups[main_barcode] = []
+                main_barcode_groups[main_barcode].append(stone_name)
+            
+            # Map barcode to stone
+            if barcode:
+                barcode_to_stone[barcode] = stone_name
+                
+        except Exception as row_error:
+            frappe.log_error(f"Error processing row {idx}: {str(row_error)}", "Hierarchy Row Error")
+            continue
+    
+
+    
+    # Add missing parent stones based on stone name hierarchy
+    _add_missing_parents(all_stones, stones_by_level)
+    
+    return {
+        "levels": sorted(stones_by_level.keys()),
+        "stones_by_level": stones_by_level,
+        "all_stones": all_stones,
+        "stone_data_map": stone_data_map,
+        "main_barcode_groups": main_barcode_groups,
+        "main_barcodes": list(main_barcode_groups.keys()),
+        "barcode_to_stone": barcode_to_stone
+    }
+
+
+def _add_missing_parents(all_stones, stones_by_level):
+    """
+    Add parent stones that don't exist in the Excel but are needed for hierarchy
+    """
+    stones_to_add = set()
+    
+    for stone_name in list(all_stones):
+        current_stone = stone_name
+        
+        # Walk up the hierarchy
+        while "/" in current_stone:
+            parent = current_stone.rsplit("/", 1)[0]
+            
+            if parent not in all_stones:
+                stones_to_add.add(parent)
+                # Add to appropriate level
+                parent_level = parent.count("/")
+                if parent_level not in stones_by_level:
+                    stones_by_level[parent_level] = set()
+                stones_by_level[parent_level].add(parent)
+            
+            current_stone = parent
+    
+    all_stones.update(stones_to_add)
+
+
+def _extract_stone_data_enhanced(row, column_map, df_columns):
+    """
+    Extract stone data from DataFrame row with enhanced diamond processing handling
+    """
+    stone_data = {}
+    
+    # Extract all basic fields first
+    for excel_col, field_name in column_map.items():
+        if excel_col in df_columns and not pd.isna(row[excel_col]):
+            value = row[excel_col]
+            
+            # Enhanced type conversion based on field type
+            weight_fields = ['carat_org', 'carat_exp', 'org_wght', 'prop_cts', 'weight_e', 'weight_ig', 'weight_l']
+            currency_fields = ['list_e', 'esp_rate_e', 'est_amount', 'list_ig', 'esp_rate_ig', 'esp_amount_ig', 'list_l', 'esp_rate_l', 'esp_amount_l']
+            percent_fields = ['esp_percent_e', 'esp_percent_ig', 'esp_percent_l']
+            
+            if field_name in weight_fields:
+                stone_data[field_name] = flt(value)
+            elif field_name in currency_fields:
+                stone_data[field_name] = flt(value)  # Currency fields
+            elif field_name in percent_fields:
+                # Handle percentage
+                val = flt(value)
+                stone_data[field_name] = val if val <= 1 else val / 100
+            elif field_name == 'qty':
+                stone_data[field_name] = int(flt(value)) if flt(value) > 0 else 0
+            elif field_name in ['shape_l', 'color_l', 'clarity_l', 'polish_l', 'sym_l', 'fluro_l', 
+                               'stone_type', 'main_barcode', 'barcode', 'lab']:
+                stone_data[field_name] = cstr(value).strip() or None
+            else:
+                # Default string handling for legacy fields
+                stone_data[field_name] = cstr(value).strip() if cstr(value).strip() else None
+    
+    # Set stone_name from parcel_name if not already set
+    if not stone_data.get('stone_name') and stone_data.get('parcel_name'):
+        stone_data['stone_name'] = stone_data['parcel_name']
+    
+    # Build processing stages data
+    stone_data['processing_stages'] = []
+    
+    # Original stage (from rough stone data)
+    if stone_data.get('org_wght') and stone_data['org_wght'] > 0:
+        original_stage = {
+            'processing_stage': 'Original',
+            'weight': stone_data['org_wght'],
+            'proposed_weight': stone_data.get('prop_cts', 0),
+            'stage_notes': 'Original rough stone data'
+        }
+        stone_data['processing_stages'].append(original_stage)
+    
+    # Estimation stage
+    if stone_data.get('weight_e') and stone_data['weight_e'] > 0:
+        estimation_stage = {
+            'processing_stage': 'Estimation',
+            'weight': stone_data['weight_e'],
+            'shape': stone_data.get('shape_e'),
+            'color': stone_data.get('color_e'),
+            'clarity': stone_data.get('clarity_e'),
+            'cut_grade': stone_data.get('cut_e'),
+            'polish': stone_data.get('polish_e'),
+            'symmetry': stone_data.get('symmetry_e'),
+            'fluorescence': stone_data.get('fluorescence_e'),
+            'list_price': stone_data.get('list_e', 0),
+            'esp_percent': stone_data.get('esp_percent_e', 0),
+            'esp_rate': stone_data.get('esp_rate_e', 0),
+            'esp_amount': stone_data.get('est_amount', 0)
+        }
+        stone_data['processing_stages'].append(estimation_stage)
+    
+    # IG stage
+    if stone_data.get('weight_ig') and stone_data['weight_ig'] > 0:
+        ig_stage = {
+            'processing_stage': 'IG',
+            'weight': stone_data['weight_ig'],
+            'color': stone_data.get('color_ig'),
+            'clarity': stone_data.get('clarity_ig'),
+            'cut_grade': stone_data.get('cut_ig'),
+            'polish': stone_data.get('polish_ig'),
+            'symmetry': stone_data.get('symmetry_ig'),
+            'fluorescence': stone_data.get('fluorescence_ig'),
+            'list_price': stone_data.get('list_ig', 0),
+            'esp_percent': stone_data.get('esp_percent_ig', 0),
+            'esp_rate': stone_data.get('esp_rate_ig', 0),
+            'esp_amount': stone_data.get('esp_amount_ig', 0)
+        }
+        stone_data['processing_stages'].append(ig_stage)
+    
+    # Lab stage
+    if stone_data.get('weight_l') and stone_data['weight_l'] > 0:
+        lab_stage = {
+            'processing_stage': 'Lab',
+            'weight': stone_data['weight_l'],
+            'shape': stone_data.get('shape_l'),
+            'color': stone_data.get('color_l'),
+            'clarity': stone_data.get('clarity_l'),
+            'cut_grade': stone_data.get('cut_l'),
+            'polish': stone_data.get('polish_l'),
+            'symmetry': stone_data.get('symmetry_l'),
+            'fluorescence': stone_data.get('fluorescence_l'),
+            'list_price': stone_data.get('list_l', 0),
+            'esp_percent': stone_data.get('esp_percent_l', 0),
+            'esp_rate': stone_data.get('esp_rate_l', 0),
+            'esp_amount': stone_data.get('esp_amount_l', 0),
+            'lab_certification': stone_data.get('lab')
+        }
+        stone_data['processing_stages'].append(lab_stage)
+    
+    return stone_data
+
+
+def _create_stones_with_barcode_hierarchy(hierarchy_data, parcel_name):
+    """
+    Create stones considering both name hierarchy and barcode relationships
+    """
+    processed_count = 0
+    error_count = 0
+    
+    total_stones = len(hierarchy_data['all_stones'])
+    current_idx = 0
+    
+    # Process each hierarchy level (name-based hierarchy first)
+    for level in hierarchy_data['levels']:
+        stones_at_level = hierarchy_data['stones_by_level'][level]
+        
+        frappe.publish_progress(
+            percent=20 + ((current_idx / total_stones) * 75),
+            title="Stone Import",
+            description=f"Creating level {level} stones ({len(stones_at_level)} stones)..."
+        )
+        
+        # Group stones at this level by main barcode
+        level_stones_by_barcode = {}
+        for stone_name in stones_at_level:
+            stone_data = hierarchy_data['stone_data_map'].get(stone_name, {})
+            main_barcode = stone_data.get('main_barcode', 'NO_BARCODE')
+            
+            if main_barcode not in level_stones_by_barcode:
+                level_stones_by_barcode[main_barcode] = []
+            level_stones_by_barcode[main_barcode].append(stone_name)
+        
+        # Process each barcode group
+        for main_barcode, stones_in_group in level_stones_by_barcode.items():
+            for stone_name in sorted(stones_in_group):  # Sort for consistent ordering
+                try:
+                    current_idx += 1
+                    
+                    # Get parent stone (name-based hierarchy)
+                    parent_stone = None
+                    if "/" in stone_name:
+                        parent_stone = stone_name.rsplit("/", 1)[0]
+                    
+                    # Get stone data from Excel (if available)
+                    row_data = hierarchy_data['stone_data_map'].get(stone_name, {})
+                    
+                    # Extract processing stages from row_data
+                    processing_stages = row_data.pop('processing_stages', [])
+                    
+                    # Prepare stone document data
+                    stone_doc_data = {
+                        "doctype": "Stone",
+                        "stone_name": stone_name,
+                        "parcel": parcel_name,
+                        "parent_stone": parent_stone,
+                        **row_data
+                    }
+                    
+                    # Set default stone_type if not provided
+                    if "stone_type" not in stone_doc_data or not stone_doc_data["stone_type"]:
+                        # Determine type based on qty (if qty > 0, it's ROUGH, else POLISHED)
+                        qty = stone_doc_data.get("qty", 0)
+                        stone_doc_data["stone_type"] = "ROUGH" if qty > 0 else "POLISHED"
+                    
+                    # Validate barcode uniqueness
+                    barcode = stone_doc_data.get("barcode")
+                    if barcode:
+                        existing_stone_with_barcode = frappe.db.get_value("Stone", {"barcode": barcode}, "name")
+                        if existing_stone_with_barcode and existing_stone_with_barcode != stone_name:
+                            frappe.log_error(f"Duplicate barcode: {barcode}", "Barcode Duplicate")
+                    
+                    # Create or update stone
+                    existing = frappe.db.exists("Stone", stone_name)
+                    
+                    if existing:
+                        # Update existing stone
+                        stone_doc = frappe.get_doc("Stone", stone_name)
+                        
+                        # Only update fields that have values
+                        for field, value in stone_doc_data.items():
+                            if field != "doctype" and value is not None:
+                                stone_doc.set(field, value)
+                        
+                        stone_doc.save(ignore_permissions=True)
+                        processed_count += 1
+                        
+                    else:
+                        # Create new stone
+                        stone_doc = frappe.get_doc(stone_doc_data)
+                        
+                        # Add processing stages
+                        for stage_data in processing_stages:
+                            stage_row = stone_doc.append('processing_stages', {})
+                            for field, value in stage_data.items():
+                                if value is not None and value != "":
+                                    setattr(stage_row, field, value)
+                        
+                        stone_doc.insert(ignore_permissions=True)
+                        processed_count += 1
+                    
+                    # Commit periodically to avoid timeouts
+                    if current_idx % 100 == 0:  # Reduced frequency for performance
+                        frappe.db.commit()
+                        time.sleep(0.02)  # Minimal delay
+                    
+                except Exception as e:
+                    error_count += 1
+                    frappe.log_error(f"Error processing stone {stone_name}: {str(e)}", "Stone Creation Error")
+                    continue
+    
+    return {
+        "processed": processed_count,
+        "skipped": 0,
+        "errors": error_count
+    }
+
+
+@frappe.whitelist() 
+def search_diamond_by_any_id(search_term):
+    """
+    Search for diamonds by any identifier and return family tree
+    """
+    if not search_term:
+        return {"found": False, "message": "Please provide a search term"}
+    
+    search_term = search_term.strip()
+    
+    # Search in Stone records by multiple fields
+    diamonds = frappe.db.sql("""
+        SELECT name, stone_name, seria_id, parcel_name, main_barcode, barcode, 
+               parent_stone, org_wght, current_weight, current_stage, current_value
+        FROM `tabStone`
+        WHERE stone_name LIKE %(search)s 
+           OR seria_id LIKE %(search)s
+           OR parcel_name LIKE %(search)s
+           OR main_barcode LIKE %(search)s
+           OR barcode LIKE %(search)s
+        ORDER BY stone_name
+    """, {"search": f"%{search_term}%"}, as_dict=True)
+    
+    if not diamonds:
+        return {"found": False, "message": "No diamonds found matching your search"}
+    
+    # Build family trees for found diamonds
+    family_trees = []
+    processed_main_barcodes = set()
+    
+    for diamond in diamonds:
+        main_barcode = diamond.get('main_barcode')
+        if main_barcode and main_barcode not in processed_main_barcodes:
+            family_tree = _build_diamond_family_tree(main_barcode)
+            family_trees.append(family_tree)
+            processed_main_barcodes.add(main_barcode)
+    
+    return {
+        "found": True,
+        "search_term": search_term,
+        "total_matches": len(diamonds),
+        "diamonds": diamonds,
+        "family_trees": family_trees
+    }
+
+def _build_diamond_family_tree(main_barcode):
+    """
+    Build complete family tree for a main barcode group
+    """
+    if not main_barcode:
+        return {"error": "No main barcode provided"}
+    
+    # Get all stones with this main barcode
+    family_stones = frappe.db.sql("""
+        SELECT name, stone_name, seria_id, parcel_name, main_barcode, barcode, 
+               parent_stone, org_wght, current_weight, current_stage, current_value,
+               sight, article, r_size, s_part
+        FROM `tabStone`
+        WHERE main_barcode = %s
+        ORDER BY parcel_name, stone_name
+    """, main_barcode, as_dict=True)
+    
+    if not family_stones:
+        return {"error": f"No stones found with main barcode: {main_barcode}"}
+    
+    # Organize into tree structure
+    tree = {
+        "main_barcode": main_barcode, 
+        "total_stones": len(family_stones),
+        "stones": []
+    }
+    
+    total_original_weight = 0
+    total_current_weight = 0
+    total_current_value = 0
+    
+    for stone in family_stones:
+        # Get processing stages for each stone
+        stages = frappe.db.sql("""
+            SELECT processing_stage, weight, shape, color, clarity, cut_grade, 
+                   polish, symmetry, fluorescence, list_price, esp_percent, 
+                   esp_rate, esp_amount, lab_certification, stage_notes
+            FROM `tabStone Processing Stage`
+            WHERE parent = %s
+            ORDER BY idx
+        """, stone.name, as_dict=True)
+        
+        stone['processing_stages'] = stages
+        stone['total_stages'] = len(stages)
+        
+        # Calculate totals
+        if stone.get('org_wght'):
+            total_original_weight += stone['org_wght']
+        if stone.get('current_weight'):
+            total_current_weight += stone['current_weight']
+        if stone.get('current_value'):
+            total_current_value += stone['current_value']
+        
+        tree["stones"].append(stone)
+    
+    # Add summary statistics
+    tree["summary"] = {
+        "total_original_weight": total_original_weight,
+        "total_current_weight": total_current_weight,
+        "total_current_value": total_current_value,
+        "weight_recovery_percent": (total_current_weight / total_original_weight * 100) if total_original_weight > 0 else 0
+    }
+    
+    return tree
+
+@frappe.whitelist()
+def get_stone_processing_timeline(stone_name):
+    """
+    Get complete processing timeline for a stone
+    """
+    if not stone_name:
+        return {"error": "Stone name is required"}
+    
+    # Get stone details
+    stone = frappe.db.get_value("Stone", stone_name, [
+        "stone_name", "seria_id", "parcel_name", "main_barcode", "barcode",
+        "parent_stone", "org_wght", "current_weight", "current_stage", "current_value"
+    ], as_dict=True)
+    
+    if not stone:
+        return {"error": f"Stone {stone_name} not found"}
+    
+    # Get processing stages timeline
+    stages = frappe.db.sql("""
+        SELECT processing_stage, stage_date, weight, shape, color, clarity, 
+               cut_grade, polish, symmetry, fluorescence, list_price, 
+               esp_percent, esp_rate, esp_amount, lab_certification, 
+               stage_notes, remarks
+        FROM `tabStone Processing Stage`
+        WHERE parent = %s
+        ORDER BY idx
+    """, stone_name, as_dict=True)
+    
+    return {
+        "stone_info": stone,
+        "processing_stages": stages,
+        "total_stages": len(stages)
+    }
+
+@frappe.whitelist()
+def get_family_statistics(main_barcode):
+    """
+    Get statistical analysis for a stone family
+    """
+    family_tree = _build_diamond_family_tree(main_barcode)
+    
+    if "error" in family_tree:
+        return family_tree
+    
+    # Enhanced statistics
+    stats = {
+        "main_barcode": main_barcode,
+        "basic_stats": family_tree["summary"],
+        "stage_analysis": {},
+        "value_progression": []
+    }
+    
+    # Analyze stages across the family
+    stage_counts = {}
+    stage_weights = {}
+    stage_values = {}
+    
+    for stone in family_tree["stones"]:
+        for stage in stone["processing_stages"]:
+            stage_name = stage["processing_stage"]
+            
+            # Count stages
+            stage_counts[stage_name] = stage_counts.get(stage_name, 0) + 1
+            
+            # Sum weights and values
+            if stage.get("weight"):
+                stage_weights[stage_name] = stage_weights.get(stage_name, 0) + stage["weight"]
+            if stage.get("esp_amount"):
+                stage_values[stage_name] = stage_values.get(stage_name, 0) + stage["esp_amount"]
+    
+    stats["stage_analysis"] = {
+        "stage_counts": stage_counts,
+        "stage_weights": stage_weights,
+        "stage_values": stage_values
+    }
+    
+    return stats
+
+@frappe.whitelist()
+def test_import_fix():
+    """
+    Test the import function with a sample parcel to ensure it works
+    """
+    try:
+
+        
+        # Try to import using the existing file
+        result = import_stones_from_file("BDAUC+10/05-25", "/private/files/we_go.xlsb")
+        
+
+        
+        return {
+            "success": True,
+            "message": "Import test successful",
+            "result": result
+        }
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        frappe.log_error(f"Test import failed: {str(e)}\n{error_details}", "Test Import Failed")
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Import test failed",
+            "details": error_details
+        }
+
+@frappe.whitelist()
+def get_recent_import_errors():
+    """
+    Get recent import-related errors from Error Log
+    """
+    try:
+        # Get Error Log structure first
+        error_log_meta = frappe.get_meta("Error Log")
+        field_names = [field.fieldname for field in error_log_meta.fields if field.fieldtype in ["Data", "Text", "Long Text", "Small Text"]]
+        
+        # Common Error Log fields to try
+        possible_fields = ["name", "error", "creation", "method", "traceback"]
+        available_fields = ["name", "creation"]  # These should always exist
+        
+        for field in possible_fields:
+            if frappe.db.has_column("tabError Log", field):
+                available_fields.append(field)
+        
+        # Get recent errors
+        errors = frappe.get_all("Error Log", 
+            fields=available_fields,
+            order_by="creation desc",
+            limit=20
+        )
+        
+        # Filter for import-related errors
+        import_errors = []
+        for error in errors:
+            error_text = ""
+            if hasattr(error, 'error') and error.error:
+                error_text = str(error.error).lower()
+            if hasattr(error, 'method') and error.method:
+                error_text += " " + str(error.method).lower()
+            if hasattr(error, 'traceback') and error.traceback:
+                error_text += " " + str(error.traceback).lower()
+            
+            if any(keyword in error_text for keyword in ['import', 'stone', 'parcel', 'excel', 'xlsb']):
+                import_errors.append(error)
+        
+        return {
+            "success": True,
+            "available_fields": available_fields,
+            "total_errors": len(errors),
+            "import_errors": import_errors[:10],
+            "message": f"Found {len(import_errors)} import-related errors"
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Failed to fetch error logs"
+        }
+
+@frappe.whitelist()
+def find_uploaded_files(search_term=""):
+    """
+    Find uploaded files to help with correct file URL
+    """
+    try:
+        filters = {}
+        if search_term:
+            filters["file_name"] = ["like", f"%{search_term}%"]
+        
+        files = frappe.get_all("File", 
+            fields=["name", "file_name", "file_url", "is_private", "creation"], 
+            filters=filters,
+            order_by="creation desc",
+            limit=20
+        )
+        
+        return {
+            "success": True,
+            "files": files,
+            "total": len(files),
+            "message": f"Found {len(files)} files"
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Failed to fetch files"
+        }
+
+@frappe.whitelist()
+def debug_import_issue(parcel_name: str, file_url: str):
+    """
+    Simple debug function to identify import issues step by step
+    """
+    debug_results = {"steps": [], "error": None}
+    
+    try:
+        debug_results["steps"].append("1. Starting debug process")
+        
+        # Step 1: Validate inputs
+        if not parcel_name or not file_url:
+            debug_results["error"] = f"Missing parameters: parcel_name={parcel_name}, file_url={file_url}"
+            return debug_results
+        debug_results["steps"].append("2. Parameters validated")
+        
+        # Step 2: Check file path
+        try:
+            file_path = get_file_path(file_url)
+            debug_results["steps"].append(f"3. File path resolved: {file_path}")
+        except Exception as e:
+            debug_results["error"] = f"File path resolution failed: {str(e)}"
+            return debug_results
+        
+        # Step 3: Check file exists
+        if not os.path.exists(file_path):
+            debug_results["error"] = f"File does not exist: {file_path}"
+            return debug_results
+        debug_results["steps"].append("4. File exists")
+        
+        # Step 4: Try to read Excel
+        try:
+            df = pd.read_excel(file_path, engine="pyxlsb")
+            debug_results["steps"].append(f"5. Excel read with pyxlsb: {df.shape}")
+        except Exception as e:
+            debug_results["steps"].append(f"5a. pyxlsb failed: {str(e)}")
+            try:
+                df = pd.read_excel(file_path, engine="openpyxl")
+                debug_results["steps"].append(f"5b. Excel read with openpyxl: {df.shape}")
+            except Exception as e2:
+                debug_results["error"] = f"Both Excel engines failed: pyxlsb={str(e)}, openpyxl={str(e2)}"
+                return debug_results
+        
+        # Step 5: Check data
+        if df.empty:
+            debug_results["error"] = "Excel file is empty"
+            return debug_results
+        debug_results["steps"].append(f"6. Data validated: {len(df)} rows, {len(df.columns)} columns")
+        
+        # Step 6: Check columns
+        df.columns = [str(c).strip() for c in df.columns]
+        debug_results["steps"].append(f"7. Columns: {list(df.columns)[:10]}...")  # Show first 10 columns
+        
+        debug_results["steps"].append("8. Debug completed successfully")
+        return debug_results
+        
+    except Exception as e:
+        import traceback
+        debug_results["error"] = f"Debug failed: {str(e)}\\n{traceback.format_exc()}"
+        return debug_results
+
+@frappe.whitelist()
+def get_barcode_analysis(file_url: str):
+    """
+    Analyze barcode relationships in the file before import
+    """
+    try:
+        file_path = get_file_path(file_url)
+        if not os.path.exists(file_path):
+            return {"error": "File not found"}
+        
+        df = pd.read_excel(file_path, engine="pyxlsb")
+        df.columns = [str(c).strip() for c in df.columns]
+        
+        # Analyze barcode relationships
+        analysis = {
+            "total_rows": len(df),
+            "main_barcode_groups": {},
+            "barcode_conflicts": [],
+            "stones_without_barcode": 0
+        }
+        
+        main_barcode_col = "Main barcode" if "Main barcode" in df.columns else None
+        barcode_col = "Barcode" if "Barcode" in df.columns else None
+        stone_name_col = "Parcel Name" if "Parcel Name" in df.columns else None
+        
+        if main_barcode_col and barcode_col and stone_name_col:
+            barcode_usage = {}
+            
+            for _, row in df.iterrows():
+                stone_name = str(row[stone_name_col]).strip()
+                main_barcode = str(row[main_barcode_col]).strip() if not pd.isna(row[main_barcode_col]) else None
+                barcode = str(row[barcode_col]).strip() if not pd.isna(row[barcode_col]) else None
+                
+                if main_barcode:
+                    if main_barcode not in analysis["main_barcode_groups"]:
+                        analysis["main_barcode_groups"][main_barcode] = []
+                    analysis["main_barcode_groups"][main_barcode].append(stone_name)
+                
+                if barcode:
+                    if barcode in barcode_usage:
+                        analysis["barcode_conflicts"].append({
+                            "barcode": barcode,
+                            "stones": [barcode_usage[barcode], stone_name]
+                        })
+                    else:
+                        barcode_usage[barcode] = stone_name
+                else:
+                    analysis["stones_without_barcode"] += 1
+        
+        return analysis
+        
+    except Exception as e:
+        return {"error": str(e)}
+

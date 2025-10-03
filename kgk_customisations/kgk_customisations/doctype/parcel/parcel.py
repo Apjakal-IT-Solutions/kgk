@@ -1,506 +1,429 @@
 # Copyright (c) 2025, Apjakal IT Solutions and contributors
 # For license information, please see license.txt
 
-# import frappe
 from frappe.model.document import Document
 import frappe
 import pandas as pd
 from frappe.utils import cstr, flt
 import os
 from frappe.utils.file_manager import get_file_path
+import time
 
 class Parcel(Document):
-	pass
+    pass
+
+# Column mapping - EXACT match to Stone DocType field names
+COLUMN_MAP = {
+    # Basic identification (matches DocType exactly)
+    "Parcel Name": "stone_name",
+    "Barcode": "barcode",
+    "Main barcode": "main_barcode",
+    "Seria ID": "seria_id",
+    "Sight": "sight",
+    "Article": "article",
+    "Lab": "lab",
+    "R_Size": "r_size",
+    "S_PART": "s_part",
+    
+    # Basic measurements (matches DocType exactly)
+    "Org Wght": "org_weight",
+    "Prop. Cts": "prop_cts",
+    "EST AMT": "est_amt",
+    
+    # Expected (E) measurements (matches DocType exactly)
+    "Wght E": "weight_e",
+    "Shape E": "shape_e",
+    "Color E": "color_e",
+    "Clarity E": "clarity_e",
+    "Cut E": "cut_e",
+    "Polish E": "polish_e",
+    "Sym. E": "sym_e",
+    "Fluro. E": "fluro_e",
+    "List E": "list_e",
+    "ESP % E": "esp_percent_e",  # Corrected to match DocType
+    "ESP @ E": "esp_at_e",  # Corrected to match DocType
+    
+    # Lab (L) measurements (matches DocType exactly)
+    "Wght L": "weight_l",
+    "Shape L": "shape_l",
+    "Color L": "color_l",
+    "Clarity L": "clarity_l",
+    "Cut L": "cut_l",
+    "Polish L": "polish_l",
+    "Sym. L": "sym_l",
+    "Fluro. L": "fluro_l",
+    "List L": "list_l",
+    "ESP % L": "esp_percent_l",
+    "ESP @ L": "esp_at_l",
+    "ESP Amt. L": "esp_amount_l",
+    
+    # Internal Grading (IG) measurements (matches DocType exactly)
+    "Wght IG": "weight_ig",
+    "Shape IG": "shape_ig",  # Added - was missing
+    "Color IG": "color_ig",
+    "Clarity IG": "clarity_ig",
+    "Cut IG": "cut_ig",
+    "Polish IG": "polish_ig",
+    "Sym. IG": "sym_ig",
+    "Fluro. IG": "fluro_ig",
+    "ESP % IG": "esp_percent_ig",
+    "ESP @ IG": "esp_at_ig",
+    "ESP Amt. IG": "esp_amount_ig",
+    "List IG": "list_ig",
+}
 
 @frappe.whitelist()
 def import_from_file(parcel_name: str, file_url: str):
     """
-    Import stones from Excel file into Stone doctype with hierarchy.
-    Enhanced with progress tracking and proper parent-child relationship handling.
+    Import stones from Excel file with proper hierarchy and data mapping
     """
+    function_start = time.time()
+    
     try:
+        frappe.publish_progress(0, "Stone Import", "Starting import...")
+        
         # Validate inputs
         if not parcel_name or not file_url:
             frappe.throw("Parcel name and file URL are required")
         
-        # Initialize progress
-        frappe.publish_progress(
-            percent=0,
-            title="Stone Import",
-            description="Starting import process..."
-        )
-        
-        # Get file path and validate existence
+        # Get and validate file
         file_path = frappe.get_site_path(file_url.strip("/"))
         if not os.path.exists(file_path):
             frappe.throw(f"File not found: {file_path}")
         
-        frappe.publish_progress(
-            percent=5,
-            title="Stone Import",
-            description="Reading Excel file..."
-        )
+        frappe.publish_progress(5, "Stone Import", "Reading Excel file...")
         
-        # Read Excel file
+        # Read Excel
         df = pd.read_excel(file_path, sheet_name="Single Stone", engine="pyxlsb")
         
         if df.empty:
-            frappe.throw("No data found in the Excel file")
+            frappe.throw("No data found in Excel file")
         
-        frappe.publish_progress(
-            percent=10,
-            title="Stone Import",
-            description="Analyzing file structure..."
-        )
+        # Clean column names
+        df.columns = [str(c).strip() for c in df.columns]
         
-        # Find the correct column name for stone/parcel name
-        column_names = list(df.columns)
-        parcel_name_column = _find_name_column(column_names)
+        frappe.publish_progress(10, "Stone Import", "Finding stone name column...")
         
-        if not parcel_name_column:
-            frappe.throw(f"Could not find a column for stone/parcel names. Available columns: {column_names}")
+        # Find stone name column
+        stone_name_col = _find_name_column(df.columns)
+        if not stone_name_col:
+            frappe.throw(f"Could not find stone name column. Available: {list(df.columns)}")
         
-        # Clean dataframe - remove completely empty rows
+        # Remove empty rows
         df = df.dropna(how='all').reset_index(drop=True)
         total_rows = len(df)
         
-        frappe.publish_progress(
-            percent=15,
-            title="Stone Import",
-            description=f"Found {total_rows} rows to process. Analyzing hierarchy..."
-        )
+        frappe.publish_progress(15, "Stone Import", f"Processing {total_rows} rows...")
         
-        # CRITICAL: Create parent stones first based on hierarchy
-        stones_hierarchy = _analyze_and_create_hierarchy(df, parcel_name_column, parcel_name)
+        # Build hierarchy map
+        hierarchy_map = _build_hierarchy_map(df, stone_name_col)
         
-        frappe.publish_progress(
-            percent=25,
-            title="Stone Import",
-            description=f"Created {len(stones_hierarchy)} parent stones. Processing child stones..."
-        )
+        frappe.publish_progress(20, "Stone Import", "Creating stones in hierarchical order...")
         
-        # Process remaining stones in batches
-        batch_size = 100
-        processed_count = len(stones_hierarchy)  # Start with already created parent stones
-        skipped_count = 0
-        error_count = 0
+        # Create stones hierarchically
+        result = _create_stones_hierarchically(df, stone_name_col, parcel_name, hierarchy_map)
         
-        for batch_start in range(0, total_rows, batch_size):
-            batch_end = min(batch_start + batch_size, total_rows)
-            batch_df = df.iloc[batch_start:batch_end]
-            
-            # Process current batch
-            batch_processed, batch_skipped, batch_errors = _process_batch(
-                batch_df, parcel_name_column, parcel_name, batch_start, stones_hierarchy
-            )
-            
-            # Only count new stones (not already created parents)
-            new_processed = batch_processed - len([s for s in stones_hierarchy if batch_start <= s < batch_end])
-            processed_count += new_processed
-            skipped_count += batch_skipped
-            error_count += batch_errors
-            
-            # Update progress
-            progress_percent = 25 + ((batch_end / total_rows) * 70)  # 25% to 95%
-            frappe.publish_progress(
-                percent=progress_percent,
-                title="Stone Import",
-                description=f"Processed {batch_end}/{total_rows} rows. Total created: {processed_count}, Skipped: {skipped_count}, Errors: {error_count}"
-            )
-            
-            # Commit after each batch to avoid timeout
-            frappe.db.commit()
-            
-            # Add small delay to prevent overwhelming the system
-            import time
-            time.sleep(0.1)
+        frappe.publish_progress(100, "Stone Import", "Import completed!")
+        frappe.db.commit()
         
-        # Final progress update
-        frappe.publish_progress(
-            percent=100,
-            title="Stone Import",
-            description="Import completed successfully!"
-        )
+        message = f"Import completed! Created/Updated {result['processed']} stones"
+        if result['errors'] > 0:
+            message += f". {result['errors']} errors occurred (check Error Log)"
         
-        # Prepare result message
-        message_parts = [f"Import completed! Created {processed_count} stones for parcel {parcel_name}"]
-        if skipped_count > 0:
-            message_parts.append(f"Skipped {skipped_count} empty/invalid rows")
-        if error_count > 0:
-            message_parts.append(f"Failed to process {error_count} rows (check Error Log)")
-        
-        result_message = ". ".join(message_parts)
-        frappe.msgprint(result_message)
+        frappe.msgprint(message)
         
         return {
             "status": "success",
-            "message": result_message,
-            "processed": processed_count,
-            "skipped": skipped_count,
-            "errors": error_count,
+            "message": message,
+            "processed": result['processed'],
+            "errors": result['errors'],
             "total_rows": total_rows,
-            "hierarchy_created": len(stones_hierarchy)
+            "execution_time": time.time() - function_start
         }
         
     except Exception as e:
-        frappe.publish_progress(
-            percent=100,
-            title="Stone Import",
-            description=f"Import failed: {str(e)}"
-        )
-        frappe.log_error(frappe.get_traceback(), "Import From File Error")
-        frappe.throw(f"Import failed: {str(e)}")
+        error_msg = f"Import failed: {str(e)}"
+        frappe.log_error(frappe.get_traceback(), "Stone Import Error")
+        frappe.throw(error_msg)
 
 
-def _analyze_and_create_hierarchy(df, parcel_name_column, parcel_name):
-    """
-    Analyze the stone hierarchy and create parent stones first.
-    Returns a set of row indices that were already processed (parent stones).
-    """
-    stone_hierarchy = {}  # stone_name -> {"level": int, "parent": str, "row_idx": int}
-    created_stones = set()  # Row indices of stones that were already created
+def _find_name_column(columns):
+    """Find the stone name column"""
+    possible = ["Parcel Name", "ParcelName", "Stone Name", "StoneName", "Name"]
     
-    # First pass: analyze all stone names and build hierarchy map
-    for idx, row in df.iterrows():
-        try:
-            raw_stone_name = row[parcel_name_column]
-            if pd.isna(raw_stone_name):
-                continue
-                
-            stone_name = str(raw_stone_name).strip()
-            if not stone_name or stone_name.lower() in ['none', 'null', 'nan']:
-                continue
-            
-            parent_stone = get_parent_stone(stone_name)
-            level = stone_name.count("/")
-            
-            stone_hierarchy[stone_name] = {
-                "level": level,
-                "parent": parent_stone,
-                "row_idx": idx,
-                "row_data": row
-            }
-            
-        except Exception:
-            continue
+    for col in possible:
+        if col in columns:
+            return col
     
-    # Sort stones by hierarchy level (parents first)
-    sorted_stones = sorted(stone_hierarchy.items(), key=lambda x: x[1]["level"])
-    
-    # Second pass: create stones in proper order (parents before children)
-    for stone_name, stone_info in sorted_stones:
-        try:
-            # Skip if stone already exists
-            if frappe.db.exists("Stone", stone_name):
-                created_stones.add(stone_info["row_idx"])
-                continue
-            
-            # Ensure parent exists before creating child
-            parent_stone = stone_info["parent"]
-            if parent_stone and not frappe.db.exists("Stone", parent_stone):
-                # If parent doesn't exist but should, create a minimal parent stone
-                _create_minimal_parent_stone(parent_stone, parcel_name)
-            
-            # Create the stone
-            row = stone_info["row_data"]
-            stone_data = _prepare_stone_data(row, stone_name, parcel_name, parent_stone, stone_info["level"])
-            
-            stone_doc = frappe.get_doc(stone_data)
-            stone_doc.insert(ignore_permissions=True)
-            created_stones.add(stone_info["row_idx"])
-            
-        except Exception as e:
-            frappe.log_error(f"Error creating stone in hierarchy {stone_name}: {str(e)}", "Hierarchy Creation Error")
-            continue
-    
-    return created_stones
-
-
-def _create_minimal_parent_stone(parent_stone_name, parcel_name):
-    """Create a minimal parent stone when it doesn't exist in the data"""
-    try:
-        parent_level = parent_stone_name.count("/")
-        grandparent = get_parent_stone(parent_stone_name)
-        
-        # Ensure grandparent exists recursively
-        if grandparent and not frappe.db.exists("Stone", grandparent):
-            _create_minimal_parent_stone(grandparent, parcel_name)
-        
-        # Create minimal parent stone
-        parent_data = {
-            "doctype": "Stone",
-            "stone_name": parent_stone_name,
-            "parcel": parcel_name,
-            "parent_stone": grandparent,
-            "level": parent_level,
-            "stone_type": "ROUGH",  # Default to ROUGH for parent stones
-            "qty": 0,
-            "carat_org": 0,
-            "carat_exp": 0,
-        }
-        
-        parent_doc = frappe.get_doc(parent_data)
-        parent_doc.insert(ignore_permissions=True)
-        
-        frappe.log_error(f"Created minimal parent stone: {parent_stone_name}", "Parent Stone Creation")
-        
-    except Exception as e:
-        frappe.log_error(f"Error creating minimal parent stone {parent_stone_name}: {str(e)}", "Parent Creation Error")
-
-
-def _prepare_stone_data(row, stone_name, parcel_name, parent_stone, level):
-    """Prepare stone data dictionary from row"""
-    return {
-        "doctype": "Stone",
-        "stone_name": stone_name,
-        "parcel": parcel_name,
-        "parent_stone": parent_stone,
-        "level": level,
-        "stone_type": "ROUGH" if not pd.isna(row.get("Qty")) and flt(row.get("Qty")) > 0 else "POLISHED",
-        "qty": flt(row.get("Qty", 0)) if not pd.isna(row.get("Qty")) else 0,
-        "carat_org": flt(row.get("Carat Org", 0)) if not pd.isna(row.get("Carat Org")) else 0,
-        "carat_exp": flt(row.get("Carat Exp", 0)) if not pd.isna(row.get("Carat Exp")) else 0,
-        "shape": cstr(row.get("Shape", "")).strip() or None,
-        "color": cstr(row.get("Color", "")).strip() or None,
-        "clarity": cstr(row.get("Clarity", "")).strip() or None,
-        "quality": cstr(row.get("Quality", "")).strip() or None,
-        "rapaport_price": flt(row.get("Rapaport Price", 0)) if not pd.isna(row.get("Rapaport Price")) else 0,
-        "back_percent": flt(row.get("Back Percent", 0)) if not pd.isna(row.get("Back Percent")) else 0,
-        "amount": flt(row.get("Amount", 0)) if not pd.isna(row.get("Amount")) else 0,
-        "remark": cstr(row.get("Remark", "")).strip() or None
-    }
-
-
-def _find_name_column(column_names):
-    """Find the correct column name for stone/parcel names"""
-    possible_names = ["Parcel Name", "ParcelName", "Parcel_Name", "Stone Name", "StoneName", "Stone_Name", "Name"]
-    
-    # Try exact matches first
-    for col_name in possible_names:
-        if col_name in column_names:
-            return col_name
-    
-    # Try case-insensitive search
-    for col_name in column_names:
-        if any(possible.lower() in col_name.lower() for possible in ["parcel", "stone", "name"]):
-            return col_name
+    # Case insensitive fallback
+    for col in columns:
+        if any(p.lower() in col.lower() for p in ["parcel", "stone", "name"]):
+            return col
     
     return None
 
 
-def _process_batch(batch_df, parcel_name_column, parcel_name, batch_start_idx, already_created_stones):
-    """Process a batch of rows and return counts. Skip stones already created in hierarchy phase."""
+def _build_hierarchy_map(df, stone_name_col):
+    """Build a map of all stones and their hierarchy"""
+    hierarchy = {}
+    all_parents = set()
+    
+    for idx, row in df.iterrows():
+        stone_name_raw = row[stone_name_col]
+        
+        if pd.isna(stone_name_raw):
+            continue
+        
+        stone_name = str(stone_name_raw).strip()
+        if not stone_name or stone_name.lower() in ['none', 'null', 'nan']:
+            continue
+        
+        parent = _get_parent_stone(stone_name)
+        level = stone_name.count("/")
+        
+        hierarchy[stone_name] = {
+            "level": level,
+            "parent": parent,
+            "row_idx": idx,
+            "has_data": True
+        }
+        
+        # Track all parents
+        if parent:
+            all_parents.add(parent)
+    
+    # Add missing parents to hierarchy
+    for parent in all_parents:
+        if parent not in hierarchy:
+            current = parent
+            while current:
+                if current not in hierarchy:
+                    hierarchy[current] = {
+                        "level": current.count("/"),
+                        "parent": _get_parent_stone(current),
+                        "row_idx": None,
+                        "has_data": False
+                    }
+                current = _get_parent_stone(current)
+    
+    return hierarchy
+
+
+def _create_stones_hierarchically(df, stone_name_col, parcel_name, hierarchy_map):
+    """Create stones level by level"""
     processed = 0
-    skipped = 0
     errors = 0
     
-    for idx, row in batch_df.iterrows():
+    # Sort by level
+    sorted_stones = sorted(hierarchy_map.items(), key=lambda x: x[1]["level"])
+    total = len(sorted_stones)
+    
+    print(f"Starting hierarchical creation of {total} stones")
+    
+    for i, (stone_name, info) in enumerate(sorted_stones):
         try:
-            # Skip if this stone was already created in hierarchy phase
-            if idx in already_created_stones:
-                continue
+            # Update progress
+            if i % 50 == 0:
+                progress = 20 + ((i / total) * 75)
+                frappe.publish_progress(
+                    progress,
+                    "Stone Import",
+                    f"Creating stone {i+1}/{total}: {stone_name[:40]}..."
+                )
             
-            # Get stone name using the discovered column
-            raw_stone_name = row[parcel_name_column]
-            
-            # Skip if stone name is None, NaN, empty, or just whitespace
-            if pd.isna(raw_stone_name):
-                skipped += 1
-                continue
-            
-            stone_name = str(raw_stone_name).strip()
-            
-            # Only skip if actually empty after conversion
-            if not stone_name or stone_name.lower() in ['none', 'null', 'nan']:
-                skipped += 1
-                continue
-            
-            # Skip if stone already exists (might have been created in hierarchy phase)
+            # Skip if exists
             if frappe.db.exists("Stone", stone_name):
-                processed += 1  # Count as processed since it exists
+                processed += 1
+                if i < 3:
+                    print(f"Stone {i+1} already exists: {stone_name}")
                 continue
-            
-            # Determine parent stone and level
-            parent_stone = get_parent_stone(stone_name)
-            level = stone_name.count("/")
-            
-            # Ensure parent exists (should have been created in hierarchy phase, but double-check)
-            if parent_stone and not frappe.db.exists("Stone", parent_stone):
-                _create_minimal_parent_stone(parent_stone, parcel_name)
             
             # Prepare stone data
-            stone_data = _prepare_stone_data(row, stone_name, parcel_name, parent_stone, level)
+            if info["has_data"] and info["row_idx"] is not None:
+                # Has Excel data
+                row = df.iloc[info["row_idx"]]
+                stone_data = _extract_stone_data(row, stone_name, parcel_name, info["parent"], info["level"])
+                
+                # Debug first stone with data
+                if i < 3 and info["has_data"]:
+                    print(f"\n=== Stone {i+1}: {stone_name} ===")
+                    print(f"Has Excel data: Yes (row {info['row_idx']})")
+                    print(f"Parent: {info['parent']}")
+                    print(f"Level: {info['level']}")
+                    print(f"Fields populated: {len([k for k, v in stone_data.items() if v not in [None, 0, '', 'POLISHED']])}")
+                    print(f"Sample data:")
+                    print(f"  org_weight: {stone_data.get('org_weight', 'NOT SET')}")
+                    print(f"  main_barcode: {stone_data.get('main_barcode', 'NOT SET')}")
+                    print(f"  weight_e: {stone_data.get('weight_e', 'NOT SET')}")
+                    print(f"  weight_l: {stone_data.get('weight_l', 'NOT SET')}")
+                    print(f"  weight_ig: {stone_data.get('weight_ig', 'NOT SET')}")
+                    print(f"  shape_l: {stone_data.get('shape_l', 'NOT SET')}")
+            else:
+                # Parent stone without data
+                stone_data = _create_minimal_stone_data(stone_name, parcel_name, info["parent"], info["level"])
+                if i < 3:
+                    print(f"\n=== Stone {i+1}: {stone_name} ===")
+                    print(f"Has Excel data: No (auto-generated parent)")
+                    print(f"Parent: {info['parent']}")
+                    print(f"Level: {info['level']}")
             
-            # Create the stone
-            try:
-                stone_doc = frappe.get_doc(stone_data)
-                stone_doc.insert(ignore_permissions=True)
-                processed += 1
-            except Exception as insert_error:
-                frappe.log_error(f"Error inserting stone {stone_name}: {str(insert_error)}", "Stone Insert Error")
-                errors += 1
+            # Create stone
+            stone_doc = frappe.get_doc(stone_data)
+            stone_doc.insert(ignore_permissions=True, ignore_mandatory=True)
+            processed += 1
             
-        except Exception as row_error:
-            frappe.log_error(f"Error processing row {batch_start_idx + idx + 1}: {str(row_error)}", "Row Processing Error")
+            # Verify first stone was saved correctly
+            if i < 3:
+                saved_stone = frappe.get_doc("Stone", stone_name)
+                print(f"Verification after save:")
+                print(f"  org_weight: {saved_stone.org_weight}")
+                print(f"  main_barcode: {saved_stone.main_barcode or 'EMPTY'}")
+                print(f"  weight_e: {saved_stone.weight_e}")
+                print(f"  weight_l: {saved_stone.weight_l}")
+                print(f"=== End Debug ===\n")
+            
+            # Periodic commit
+            if i % 100 == 0:
+                frappe.db.commit()
+                time.sleep(0.02)
+            
+        except Exception as e:
             errors += 1
+            error_msg = str(e)[:200]
+            print(f"Error creating stone {stone_name}: {error_msg}")
+            frappe.log_error(f"Error creating stone {stone_name}: {str(e)}", "Stone Creation Error")
             continue
     
-    return processed, skipped, errors
+    print(f"Hierarchical creation complete: {processed} processed, {errors} errors")
+    return {"processed": processed, "errors": errors}
 
 
-def get_parent_stone(stone_name: str):
-    """
-    Extract parent stone from stone_name based on hierarchy markers.
-    """
-    if not stone_name:
-        return None
+def _extract_stone_data(row, stone_name, parcel_name, parent_stone, level):
+    """Extract all stone data from Excel row using centralized column map"""
+    stone_data = {
+        "doctype": "Stone",
+        "stone_name": stone_name,
+        "parcel": parcel_name,
+        "parcel_name": stone_name,  # Set parcel_name to stone_name as per DocType
+        "parent_stone": parent_stone,
+        "level": level,
+        "stone_type": "POLISHED",  # Default
+        "is_group": 0  # Default to not a group
+    }
+    
+    # Map all fields from Excel using COLUMN_MAP
+    for excel_col, field_name in COLUMN_MAP.items():
+        if excel_col not in row.index:
+            continue
         
-    try:
-        if "/" in stone_name:
-            parent = stone_name.rsplit("/", 1)[0]
-            return parent if parent else None
-        elif "-" in stone_name and stone_name.count("-") > 2:
-            parent = "-".join(stone_name.split("-")[:-1])
-            return parent if parent else None
+        value = row[excel_col]
+        
+        if pd.isna(value):
+            continue
+        
+        # Type conversion based on field patterns and DocType field types
+        if field_name in ['org_weight', 'prop_cts', 'weight_e', 'weight_l', 'weight_ig']:
+            # Float fields with 3 decimal precision
+            stone_data[field_name] = flt(value, 3)
+        elif field_name in ['est_amt', 'list_e', 'esp_at_e', 'list_l', 'esp_at_l', 
+                           'esp_amount_l', 'list_ig', 'esp_at_ig', 'esp_amount_ig']:
+            # Currency fields
+            stone_data[field_name] = flt(value)
+        elif field_name in ['esp_percent_e', 'esp_percent_l', 'esp_percent_ig']:
+            # Percent fields - handle both decimal (0.15) and whole number (15) formats
+            val = flt(value)
+            # If value is > 1, assume it's in percentage format (e.g., 15%), convert to decimal
+            stone_data[field_name] = val / 100 if val > 1 else val
+        elif field_name == 'level':
+            # Integer field
+            stone_data[field_name] = int(value)
+        else:
+            # String/Data fields
+            str_val = cstr(value).strip()
+            if str_val:
+                stone_data[field_name] = str_val
+    
+    # Set is_group based on whether this stone has children (if parent stone)
+    # For now, we'll set it to 0 and let Frappe's tree logic handle it
+    
+    return stone_data
+
+
+def _create_minimal_stone_data(stone_name, parcel_name, parent_stone, level):
+    """Create minimal data for parent stones without Excel data"""
+    return {
+        "doctype": "Stone",
+        "stone_name": stone_name,
+        "parcel": parcel_name,
+        "parcel_name": stone_name,  # Set parcel_name to stone_name
+        "parent_stone": parent_stone,
+        "level": level,
+        "stone_type": "ROUGH",  # Parent stones default to ROUGH
+        "is_group": 1,  # Parent stones are groups
+        "org_weight": 0.0,
+        "prop_cts": 0.0
+    }
+
+
+def _get_parent_stone(stone_name):
+    """Extract parent stone from name"""
+    if not stone_name or "/" not in stone_name:
         return None
-    except Exception:
-        return None
-
-
-# Additional utility functions for better error handling
-
-@frappe.whitelist()
-def get_import_progress():
-    """
-    Get current import progress - can be called from frontend
-    """
-    # This function can be used to check if an import is still running
-    # You can enhance this based on your needs
-    return {"status": "running", "message": "Check console for progress updates"}
+    
+    return stone_name.rsplit("/", 1)[0]
 
 
 @frappe.whitelist()
 def import_from_file_async(parcel_name: str, file_url: str):
-    """
-    Async version that can be called without blocking the UI
-    """
-    try:
-        # Queue the import job in background
-        frappe.enqueue(
-            method=import_from_file,
-            queue='long',
-            timeout=3600,  # 1 hour timeout
-            parcel_name=parcel_name,
-            file_url=file_url,
-            is_async=True,
-            job_name=f"stone_import_{parcel_name}"
-        )
-        
-        return {
-            "status": "queued",
-            "message": f"Import queued for parcel {parcel_name}. Check progress in background jobs."
-        }
-        
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    """Async import for large files"""
+    frappe.enqueue(
+        method="kgk_customisations.kgk_customisations.doctype.parcel.parcel.import_from_file",
+        queue='long',
+        timeout=7200,
+        parcel_name=parcel_name,
+        file_url=file_url,
+        job_name=f"stone_import_{parcel_name}_{int(time.time())}"
+    )
+    
+    return {
+        "status": "queued",
+        "message": f"Import queued for {parcel_name}. Check Background Jobs."
+    }
 
 
 @frappe.whitelist()
 def inspect_excel_file(file_url: str):
-    """
-    Inspect Excel file structure without importing - for debugging
-    """
+    """Inspect Excel file structure"""
     try:
         file_path = frappe.get_site_path(file_url.strip("/"))
-        
         if not os.path.exists(file_path):
             return {"error": "File not found"}
         
-        # Read Excel file
         df = pd.read_excel(file_path, sheet_name="Single Stone", engine="pyxlsb")
+        df.columns = [str(c).strip() for c in df.columns]
         
-        # Find name column
-        column_names = list(df.columns)
-        name_column = _find_name_column(column_names)
+        stone_name_col = _find_name_column(df.columns)
         
-        # Get file info
-        info = {
+        # Find recognized columns
+        recognized = []
+        unrecognized = []
+        
+        for col in df.columns:
+            if col in COLUMN_MAP:
+                recognized.append(col)
+            else:
+                unrecognized.append(col)
+        
+        return {
+            "success": True,
             "total_rows": len(df),
             "total_columns": len(df.columns),
-            "column_names": column_names,
-            "name_column": name_column,
-            "sample_data": {}
+            "stone_name_column": stone_name_col,
+            "recognized_columns": recognized,
+            "unrecognized_columns": unrecognized,
+            "column_mapping": COLUMN_MAP,
+            "sample_stones": df[stone_name_col].dropna().head(5).tolist() if stone_name_col else []
         }
-        
-        # Get sample data for each column (first 3 non-null values)
-        for col in df.columns:
-            sample_values = df[col].dropna().head(3).tolist()
-            info["sample_data"][col] = sample_values
-        
-        # If name column found, show some stats
-        if name_column:
-            valid_names = df[name_column].dropna().astype(str).str.strip()
-            valid_names = valid_names[valid_names != '']
-            info["valid_stone_names"] = len(valid_names)
-            info["sample_stone_names"] = valid_names.head(5).tolist()
-        
-        return info
         
     except Exception as e:
         return {"error": str(e)}
-
-
-@frappe.whitelist()
-def validate_import_file(file_url: str):
-    """
-    Validate the Excel file before importing
-    """
-    try:
-        file_path = frappe.get_site_path(file_url.strip("/"))
-        
-        if not os.path.exists(file_path):
-            return {"valid": False, "message": "File not found"}
-        
-        # Try to read the file
-        df = pd.read_excel(file_path, sheet_name="Single Stone", engine="pyxlsb")
-        
-        if df.empty:
-            return {"valid": False, "message": "File contains no data"}
-        
-        # Find the name column
-        possible_name_columns = ["Parcel Name", "ParcelName", "Parcel_Name", "Stone Name", "StoneName", "Stone_Name", "Name"]
-        name_column = None
-        
-        for col_name in possible_name_columns:
-            if col_name in df.columns:
-                name_column = col_name
-                break
-        
-        if not name_column:
-            # Try case-insensitive search
-            for col_name in df.columns:
-                if any(possible.lower() in col_name.lower() for possible in ["parcel", "stone", "name"]):
-                    name_column = col_name
-                    break
-        
-        if not name_column:
-            return {
-                "valid": False, 
-                "message": f"Could not find name column. Available columns: {list(df.columns)}"
-            }
-        
-        # Count valid rows
-        valid_rows = df[name_column].dropna().astype(str).str.strip().ne('').sum()
-        
-        return {
-            "valid": True,
-            "message": f"File is valid. Found {valid_rows} valid rows out of {len(df)} total rows",
-            "total_rows": len(df),
-            "valid_rows": valid_rows,
-            "name_column": name_column,
-            "columns": list(df.columns),
-            "sample_names": df[name_column].dropna().head(5).tolist()
-        }
-        
-    except Exception as e:
-        return {"valid": False, "message": f"Error reading file: {str(e)}"}

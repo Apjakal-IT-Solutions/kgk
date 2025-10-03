@@ -1,0 +1,206 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-02 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "stage_info_section",
+  "processing_stage",
+  "stage_date",
+  "column_break_1",
+  "weight",
+  "proposed_weight",
+  "measurements_section",
+  "shape",
+  "color",
+  "column_break_2",
+  "clarity",
+  "cut_grade",
+  "column_break_3",
+  "polish",
+  "symmetry",
+  "column_break_4",
+  "fluorescence",
+  "lab_certification",
+  "valuation_section",
+  "list_price",
+  "esp_percent",
+  "column_break_5",
+  "esp_rate",
+  "esp_amount",
+  "column_break_6",
+  "rapaport_price",
+  "back_percent",
+  "notes_section",
+  "stage_notes",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "stage_info_section",
+   "fieldtype": "Section Break",
+   "label": "Stage Information"
+  },
+  {
+   "fieldname": "processing_stage",
+   "fieldtype": "Select",
+   "label": "Processing Stage",
+   "options": "Original\nEstimation\nIG\nLab\nFinal\nSold",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "stage_date",
+   "fieldtype": "Date",
+   "label": "Stage Date",
+   "default": "Today"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "weight",
+   "fieldtype": "Float",
+   "label": "Weight (Carats)",
+   "precision": 3,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "proposed_weight",
+   "fieldtype": "Float",
+   "label": "Proposed Weight",
+   "precision": 3
+  },
+  {
+   "fieldname": "measurements_section",
+   "fieldtype": "Section Break",
+   "label": "Quality Specifications"
+  },
+  {
+   "fieldname": "shape",
+   "fieldtype": "Data",
+   "label": "Shape"
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Data",
+   "label": "Color"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "clarity",
+   "fieldtype": "Data",
+   "label": "Clarity"
+  },
+  {
+   "fieldname": "cut_grade",
+   "fieldtype": "Data",
+   "label": "Cut Grade"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "polish",
+   "fieldtype": "Data",
+   "label": "Polish"
+  },
+  {
+   "fieldname": "symmetry",
+   "fieldtype": "Data",
+   "label": "Symmetry"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fluorescence",
+   "fieldtype": "Data",
+   "label": "Fluorescence"
+  },
+  {
+   "fieldname": "lab_certification",
+   "fieldtype": "Data",
+   "label": "Lab Certification"
+  },
+  {
+   "fieldname": "valuation_section",
+   "fieldtype": "Section Break",
+   "label": "Valuation Information"
+  },
+  {
+   "fieldname": "list_price",
+   "fieldtype": "Currency",
+   "label": "List Price"
+  },
+  {
+   "fieldname": "esp_percent",
+   "fieldtype": "Percent",
+   "label": "ESP %"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "esp_rate",
+   "fieldtype": "Currency",
+   "label": "ESP Rate"
+  },
+  {
+   "fieldname": "esp_amount",
+   "fieldtype": "Currency",
+   "label": "ESP Amount",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rapaport_price",
+   "fieldtype": "Currency",
+   "label": "Rapaport Price"
+  },
+  {
+   "fieldname": "back_percent",
+   "fieldtype": "Percent",
+   "label": "Back Percent"
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "stage_notes",
+   "fieldtype": "Text",
+   "label": "Stage Notes"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Text",
+   "label": "Remarks"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-02 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Stone Processing Stage",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

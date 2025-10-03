@@ -1,0 +1,521 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:stone_name",
+ "creation": "2025-09-24 11:45:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "stone_information_section",
+  "stone_name",
+  "parcel_name",
+  "column_break_basic1",
+  "parent_stone",
+  "parcel",
+  "stone_type",
+  "level",
+  "identification_section",
+  "main_barcode",
+  "barcode",
+  "column_break_barcode",
+  "sight",
+  "article",
+  "seria_id",
+  "r_size",
+  "s_part",
+  "basic_measurements_section",
+  "org_weight",
+  "prop_cts",
+  "est_amt",
+  "column_break_weight",
+  "expected_measurements_section",
+  "weight_e",
+  "shape_e",
+  "color_e",
+  "clarity_e",
+  "column_break_e1",
+  "cut_e",
+  "polish_e",
+  "sym_e",
+  "fluro_e",
+  "expected_esp_section",
+  "list_e",
+  "esp_percent_e",
+  "esp_at_e",
+  "lab_measurements_section",
+  "weight_l",
+  "shape_l",
+  "color_l",
+  "clarity_l",
+  "column_break_l1",
+  "cut_l",
+  "polish_l",
+  "sym_l",
+  "fluro_l",
+  "lab",
+  "lab_esp_section",
+  "list_l",
+  "esp_percent_l",
+  "esp_at_l",
+  "esp_amount_l",
+  "internal_grading_section",
+  "weight_ig",
+  "shape_ig",
+  "color_ig",
+  "clarity_ig",
+  "column_break_ig1",
+  "cut_ig",
+  "polish_ig",
+  "sym_ig",
+  "fluro_ig",
+  "ig_esp_section",
+  "list_ig",
+  "esp_percent_ig",
+  "esp_at_ig",
+  "esp_amount_ig",
+  "processing_stages_section",
+  "processing_stages",
+  "advisor_files_section",
+  "advisor_files",
+  "lft",
+  "rgt",
+  "is_group",
+  "old_parent",
+  "parent_stone"
+ ],
+ "fields": [
+  {
+   "fieldname": "stone_information_section",
+   "fieldtype": "Section Break",
+   "label": "Stone Information"
+  },
+  {
+   "fieldname": "stone_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Stone Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "parcel_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Parcel Name"
+  },
+  {
+   "fieldname": "column_break_basic1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "parent_stone",
+   "fieldtype": "Link",
+   "label": "Parent Stone",
+   "options": "Stone"
+  },
+  {
+   "fieldname": "parcel",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Parcel",
+   "options": "Parcel"
+  },
+  {
+   "fieldname": "stone_type",
+   "fieldtype": "Select",
+   "label": "Stone Type",
+   "options": "ROUGH\nPOLISHED\nSEMI-POLISHED\nINTERMEDIATE"
+  },
+  {
+   "fieldname": "level",
+   "fieldtype": "Int",
+   "label": "Hierarchy Level",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identification_section",
+   "fieldtype": "Section Break",
+   "label": "Identification"
+  },
+  {
+   "fieldname": "main_barcode",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Main Barcode"
+  },
+  {
+   "fieldname": "barcode",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Barcode"
+  },
+  {
+   "fieldname": "column_break_barcode",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sight",
+   "fieldtype": "Data",
+   "label": "Sight"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Data",
+   "label": "Article"
+  },
+  {
+   "fieldname": "seria_id",
+   "fieldtype": "Data",
+   "label": "Seria ID"
+  },
+  {
+   "fieldname": "r_size",
+   "fieldtype": "Data",
+   "label": "R Size"
+  },
+  {
+   "fieldname": "s_part",
+   "fieldtype": "Data",
+   "label": "S Part"
+  },
+  {
+   "fieldname": "basic_measurements_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Measurements"
+  },
+  {
+   "fieldname": "org_weight",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Org Weight",
+   "precision": "3"
+  },
+  {
+   "fieldname": "prop_cts",
+   "fieldtype": "Float",
+   "label": "Prop. Cts",
+   "precision": "3"
+  },
+  {
+   "fieldname": "est_amt",
+   "fieldtype": "Currency",
+   "label": "Estimated Amount"
+  },
+  {
+   "fieldname": "column_break_weight",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "expected_measurements_section",
+   "fieldtype": "Section Break",
+   "label": "Expected Measurements (E)"
+  },
+  {
+   "fieldname": "weight_e",
+   "fieldtype": "Float",
+   "label": "Weight E",
+   "precision": "3"
+  },
+  {
+   "fieldname": "shape_e",
+   "fieldtype": "Data",
+   "label": "Shape E"
+  },
+  {
+   "fieldname": "color_e",
+   "fieldtype": "Data",
+   "label": "Color E"
+  },
+  {
+   "fieldname": "clarity_e",
+   "fieldtype": "Data",
+   "label": "Clarity E"
+  },
+  {
+   "fieldname": "column_break_e1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cut_e",
+   "fieldtype": "Data",
+   "label": "Cut E"
+  },
+  {
+   "fieldname": "polish_e",
+   "fieldtype": "Data",
+   "label": "Polish E"
+  },
+  {
+   "fieldname": "sym_e",
+   "fieldtype": "Data",
+   "label": "Sym. E"
+  },
+  {
+   "fieldname": "fluro_e",
+   "fieldtype": "Data",
+   "label": "Fluro. E"
+  },
+  {
+   "fieldname": "expected_esp_section",
+   "fieldtype": "Section Break",
+   "label": "Expected ESP"
+  },
+  {
+   "fieldname": "list_e",
+   "fieldtype": "Currency",
+   "label": "List E"
+  },
+  {
+   "fieldname": "esp_percent_e",
+   "fieldtype": "Percent",
+   "label": "ESP % E"
+  },
+  {
+   "fieldname": "esp_at_e",
+   "fieldtype": "Currency",
+   "label": "ESP @ E"
+  },
+  {
+   "fieldname": "lab_measurements_section",
+   "fieldtype": "Section Break",
+   "label": "Lab Measurements (L)"
+  },
+  {
+   "fieldname": "weight_l",
+   "fieldtype": "Float",
+   "label": "Weight L",
+   "precision": "3"
+  },
+  {
+   "fieldname": "shape_l",
+   "fieldtype": "Data",
+   "label": "Shape L"
+  },
+  {
+   "fieldname": "color_l",
+   "fieldtype": "Data",
+   "label": "Color L"
+  },
+  {
+   "fieldname": "clarity_l",
+   "fieldtype": "Data",
+   "label": "Clarity L"
+  },
+  {
+   "fieldname": "column_break_l1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cut_l",
+   "fieldtype": "Data",
+   "label": "Cut L"
+  },
+  {
+   "fieldname": "polish_l",
+   "fieldtype": "Data",
+   "label": "Polish L"
+  },
+  {
+   "fieldname": "sym_l",
+   "fieldtype": "Data",
+   "label": "Sym. L"
+  },
+  {
+   "fieldname": "fluro_l",
+   "fieldtype": "Data",
+   "label": "Fluro. L"
+  },
+  {
+   "fieldname": "lab",
+   "fieldtype": "Data",
+   "label": "Lab"
+  },
+  {
+   "fieldname": "lab_esp_section",
+   "fieldtype": "Section Break",
+   "label": "Lab ESP Values"
+  },
+  {
+   "fieldname": "list_l",
+   "fieldtype": "Currency",
+   "label": "List L"
+  },
+  {
+   "fieldname": "esp_percent_l",
+   "fieldtype": "Percent",
+   "label": "ESP % L"
+  },
+  {
+   "fieldname": "esp_at_l",
+   "fieldtype": "Currency",
+   "label": "ESP @ L"
+  },
+  {
+   "fieldname": "esp_amount_l",
+   "fieldtype": "Currency",
+   "label": "ESP Amount L"
+  },
+  {
+   "fieldname": "internal_grading_section",
+   "fieldtype": "Section Break",
+   "label": "Internal Grading (IG)"
+  },
+  {
+   "fieldname": "weight_ig",
+   "fieldtype": "Float",
+   "label": "Weight IG",
+   "precision": "3"
+  },
+  {
+   "fieldname": "shape_ig",
+   "fieldtype": "Data",
+   "label": "Shape IG"
+  },
+  {
+   "fieldname": "color_ig",
+   "fieldtype": "Data",
+   "label": "Color IG"
+  },
+  {
+   "fieldname": "clarity_ig",
+   "fieldtype": "Data",
+   "label": "Clarity IG"
+  },
+  {
+   "fieldname": "column_break_ig1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cut_ig",
+   "fieldtype": "Data",
+   "label": "Cut IG"
+  },
+  {
+   "fieldname": "polish_ig",
+   "fieldtype": "Data",
+   "label": "Polish IG"
+  },
+  {
+   "fieldname": "sym_ig",
+   "fieldtype": "Data",
+   "label": "Sym. IG"
+  },
+  {
+   "fieldname": "fluro_ig",
+   "fieldtype": "Data",
+   "label": "Fluro. IG"
+  },
+  {
+   "fieldname": "ig_esp_section",
+   "fieldtype": "Section Break",
+   "label": "IG ESP Values"
+  },
+  {
+   "fieldname": "list_ig",
+   "fieldtype": "Currency",
+   "label": "List IG"
+  },
+  {
+   "fieldname": "esp_percent_ig",
+   "fieldtype": "Percent",
+   "label": "ESP % IG"
+  },
+  {
+   "fieldname": "esp_at_ig",
+   "fieldtype": "Currency",
+   "label": "ESP @ IG"
+  },
+  {
+   "fieldname": "esp_amount_ig",
+   "fieldtype": "Currency",
+   "label": "ESP Amount IG"
+  },
+  {
+   "fieldname": "processing_stages_section",
+   "fieldtype": "Section Break",
+   "label": "Processing Stages"
+  },
+  {
+   "fieldname": "processing_stages",
+   "fieldtype": "Table",
+   "label": "Processing Stages",
+   "options": "Stone Processing Stage"
+  },
+  {
+   "fieldname": "advisor_files_section",
+   "fieldtype": "Section Break",
+   "label": "Advisor Files"
+  },
+  {
+   "fieldname": "advisor_files",
+   "fieldtype": "Table",
+   "label": "Advisor Files",
+   "options": "Advisor"
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Left",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Right",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Is Group"
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "label": "Old Parent",
+   "options": "Stone"
+  },
+  {
+   "fieldname": "parent_stone",
+   "fieldtype": "Link",
+   "label": "Parent Stone",
+   "options": "Stone"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_tree": 1,
+ "links": [],
+ "modified": "2025-10-03 11:58:58.563394",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Stone",
+ "naming_rule": "By fieldname",
+ "nsm_parent_field": "parent_stone",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
