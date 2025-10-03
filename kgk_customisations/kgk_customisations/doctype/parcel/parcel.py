@@ -40,8 +40,8 @@ COLUMN_MAP = {
     "Sym. E": "sym_e",
     "Fluro. E": "fluro_e",
     "List E": "list_e",
-    "ESP % E": "esp_percent_e",  # Corrected to match DocType
-    "ESP @ E": "esp_at_e",  # Corrected to match DocType
+    "ESP % ": "esp_percent_e",  # Note: trailing space, no E suffix
+    "ESP @": "esp_at_e",        # Note: no trailing space, no E suffix
     
     # Lab (L) measurements (matches DocType exactly)
     "Wght L": "weight_l",
@@ -101,6 +101,50 @@ def import_from_file(parcel_name: str, file_url: str):
         
         # Clean column names
         df.columns = [str(c).strip() for c in df.columns]
+        
+        # EXCEL COLUMN ANALYSIS FOR DEBUGGING
+        print("=" * 60)
+        print("EXCEL COLUMN ANALYSIS")
+        print(f"Total columns found: {len(df.columns)}")
+        print("All columns with mapping status:")
+        for i, col in enumerate(df.columns):
+            mapped_field = COLUMN_MAP.get(col, "NOT_MAPPED")
+            print(f"  {i+1:2d}. '{col}' -> {mapped_field}")
+        
+        # Check for barcode columns specifically
+        barcode_cols = [col for col in df.columns if 'barcode' in col.lower()]
+        main_barcode_cols = [col for col in df.columns if 'main' in col.lower() and 'barcode' in col.lower()]
+        print(f"\nBarcode-related columns: {barcode_cols}")
+        print(f"Main barcode columns: {main_barcode_cols}")
+        
+        # Check ESP columns
+        esp_cols = [col for col in df.columns if 'ESP' in col]
+        print(f"ESP columns: {esp_cols}")
+        
+        # SAMPLE DATA ANALYSIS - Show first 3 rows of barcode columns
+        print("\nSAMPLE BARCODE DATA (first 3 rows):")
+        for col in df.columns:
+            if 'barcode' in col.lower():
+                sample_values = df[col].head(3).tolist()
+                print(f"  '{col}': {sample_values}")
+        
+        # CRITICAL VALIDATION: Check level distribution in Excel
+        stone_name_col_temp = _find_name_column(df.columns)
+        if stone_name_col_temp:
+            level_counts = {}
+            for idx, row in df.iterrows():
+                stone_name_raw = row[stone_name_col_temp]
+                if pd.isna(stone_name_raw):
+                    continue
+                stone_name = str(stone_name_raw).strip()
+                level = stone_name.count("/")
+                level_counts[level] = level_counts.get(level, 0) + 1
+            
+            print("\nEXCEL LEVEL DISTRIBUTION:")
+            for level in sorted(level_counts.keys()):
+                print(f"  Level {level}: {level_counts[level]} stones")
+        
+        print("=" * 60)
         
         frappe.publish_progress(10, "Stone Import", "Finding stone name column...")
         
@@ -164,10 +208,11 @@ def _find_name_column(columns):
 
 
 def _build_hierarchy_map(df, stone_name_col):
-    """Build a map of all stones and their hierarchy"""
+    """Build a map ONLY for stones that exist in Excel - no auto-generated parents"""
     hierarchy = {}
-    all_parents = set()
+    stones_found_in_excel = 0
     
+    # STEP 1: Add all stones that exist in Excel
     for idx, row in df.iterrows():
         stone_name_raw = row[stone_name_col]
         
@@ -178,6 +223,7 @@ def _build_hierarchy_map(df, stone_name_col):
         if not stone_name or stone_name.lower() in ['none', 'null', 'nan']:
             continue
         
+        stones_found_in_excel += 1
         parent = _get_parent_stone(stone_name)
         level = stone_name.count("/")
         
@@ -188,23 +234,20 @@ def _build_hierarchy_map(df, stone_name_col):
             "has_data": True
         }
         
-        # Track all parents
-        if parent:
-            all_parents.add(parent)
+        if stones_found_in_excel <= 3:  # Debug first 3 stones
+            print(f"HIERARCHY DEBUG: Stone '{stone_name}' -> row {idx}, level {level}, parent '{parent}', has_data=True")
     
-    # Add missing parents to hierarchy
-    for parent in all_parents:
-        if parent not in hierarchy:
-            current = parent
-            while current:
-                if current not in hierarchy:
-                    hierarchy[current] = {
-                        "level": current.count("/"),
-                        "parent": _get_parent_stone(current),
-                        "row_idx": None,
-                        "has_data": False
-                    }
-                current = _get_parent_stone(current)
+    # STEP 2: For stones with parents not in Excel, set parent to None (make them root level)
+    orphaned_count = 0
+    for stone_name, info in hierarchy.items():
+        if info["parent"] and info["parent"] not in hierarchy:
+            print(f"HIERARCHY FIX: Making orphaned stone '{stone_name}' a root stone (parent '{info['parent']}' not in Excel)")
+            hierarchy[stone_name]["parent"] = None
+            orphaned_count += 1
+    
+    print(f"HIERARCHY BUILD FINAL: {stones_found_in_excel} Excel stones only")
+    print(f"  - {orphaned_count} stones made root-level (parents not in Excel)")
+    print(f"  - NO auto-generated parent stones created")
     
     return hierarchy
 
@@ -238,34 +281,38 @@ def _create_stones_hierarchically(df, stone_name_col, parcel_name, hierarchy_map
                     print(f"Stone {i+1} already exists: {stone_name}")
                 continue
             
+            # CRITICAL DEBUG: Check stone data source
+            print(f"\n=== STONE CREATION DEBUG {i+1}: {stone_name} ===")
+            print(f"  has_data flag: {info['has_data']}")
+            print(f"  row_idx: {info['row_idx']}")
+            print(f"  parent: {info['parent']}")
+            print(f"  level: {info['level']}")
+            
             # Prepare stone data
             if info["has_data"] and info["row_idx"] is not None:
                 # Has Excel data
                 row = df.iloc[info["row_idx"]]
+                print(f"  Excel row data available: YES")
+                print(f"  Row index in DataFrame: {info['row_idx']}")
+                print(f"  Stone name in Excel: '{row[stone_name_col]}'")
+                
                 stone_data = _extract_stone_data(row, stone_name, parcel_name, info["parent"], info["level"])
                 
-                # Debug first stone with data
-                if i < 3 and info["has_data"]:
-                    print(f"\n=== Stone {i+1}: {stone_name} ===")
-                    print(f"Has Excel data: Yes (row {info['row_idx']})")
-                    print(f"Parent: {info['parent']}")
-                    print(f"Level: {info['level']}")
-                    print(f"Fields populated: {len([k for k, v in stone_data.items() if v not in [None, 0, '', 'POLISHED']])}")
-                    print(f"Sample data:")
-                    print(f"  org_weight: {stone_data.get('org_weight', 'NOT SET')}")
-                    print(f"  main_barcode: {stone_data.get('main_barcode', 'NOT SET')}")
-                    print(f"  weight_e: {stone_data.get('weight_e', 'NOT SET')}")
-                    print(f"  weight_l: {stone_data.get('weight_l', 'NOT SET')}")
-                    print(f"  weight_ig: {stone_data.get('weight_ig', 'NOT SET')}")
-                    print(f"  shape_l: {stone_data.get('shape_l', 'NOT SET')}")
+                # Count actual populated fields
+                populated_fields = {k: v for k, v in stone_data.items() if v not in [None, 0, '', 'POLISHED', 'Stone', stone_name, parcel_name, info["parent"], info["level"], 0]}
+                print(f"  Fields populated from Excel: {len(populated_fields)}")
+                if populated_fields:
+                    print(f"  Sample populated fields: {dict(list(populated_fields.items())[:5])}")
+                else:
+                    print(f"  WARNING: NO FIELDS POPULATED FROM EXCEL!")
+                    print(f"  Raw Excel data sample:")
+                    for col in list(row.index)[:10]:  # Show first 10 columns
+                        print(f"    '{col}': '{row[col]}'")
+                        
             else:
                 # Parent stone without data
+                print(f"  Excel row data available: NO (creating minimal parent)")
                 stone_data = _create_minimal_stone_data(stone_name, parcel_name, info["parent"], info["level"])
-                if i < 3:
-                    print(f"\n=== Stone {i+1}: {stone_name} ===")
-                    print(f"Has Excel data: No (auto-generated parent)")
-                    print(f"Parent: {info['parent']}")
-                    print(f"Level: {info['level']}")
             
             # Create stone
             stone_doc = frappe.get_doc(stone_data)
@@ -311,12 +358,37 @@ def _extract_stone_data(row, stone_name, parcel_name, parent_stone, level):
         "is_group": 0  # Default to not a group
     }
     
+    # Track if critical fields are missing
+    missing_critical = []
+    fields_processed = 0
+    fields_populated = 0
+    
+    print(f"DATA EXTRACTION DEBUG for {stone_name}:")
+    print(f"  Available Excel columns: {len(row.index)}")
+    print(f"  COLUMN_MAP entries: {len(COLUMN_MAP)}")
+    
     # Map all fields from Excel using COLUMN_MAP
     for excel_col, field_name in COLUMN_MAP.items():
+        fields_processed += 1
         if excel_col not in row.index:
+            # Column doesn't exist in Excel
             continue
         
         value = row[excel_col]
+        
+        # ENHANCED BARCODE DEBUGGING
+        if field_name in ['main_barcode', 'barcode']:
+            print(f"BARCODE DEBUG {stone_name}: Field={field_name}, Excel_Col='{excel_col}', Raw_Value='{value}', Type={type(value)}, IsNA={pd.isna(value)}")
+            if pd.isna(value):
+                print(f"  -> Value is NaN/None for {field_name}")
+            elif str(value).strip() == '':
+                print(f"  -> Value is empty string for {field_name}")
+            else:
+                print(f"  -> Value looks valid: '{str(value).strip()}'")
+        
+        # Check for critical missing values
+        if field_name in ['main_barcode', 'barcode'] and pd.isna(value):
+            missing_critical.append(field_name)
         
         if pd.isna(value):
             continue
@@ -324,24 +396,92 @@ def _extract_stone_data(row, stone_name, parcel_name, parent_stone, level):
         # Type conversion based on field patterns and DocType field types
         if field_name in ['org_weight', 'prop_cts', 'weight_e', 'weight_l', 'weight_ig']:
             # Float fields with 3 decimal precision
-            stone_data[field_name] = flt(value, 3)
+            converted_value = flt(value, 3)
+            if converted_value != 0:  # Only set if non-zero
+                stone_data[field_name] = converted_value
+                fields_populated += 1
         elif field_name in ['est_amt', 'list_e', 'esp_at_e', 'list_l', 'esp_at_l', 
                            'esp_amount_l', 'list_ig', 'esp_at_ig', 'esp_amount_ig']:
             # Currency fields
-            stone_data[field_name] = flt(value)
+            converted_value = flt(value)
+            if converted_value != 0:  # Only set if non-zero
+                stone_data[field_name] = converted_value
+                fields_populated += 1
         elif field_name in ['esp_percent_e', 'esp_percent_l', 'esp_percent_ig']:
             # Percent fields - handle both decimal (0.15) and whole number (15) formats
             val = flt(value)
             # If value is > 1, assume it's in percentage format (e.g., 15%), convert to decimal
             stone_data[field_name] = val / 100 if val > 1 else val
+            fields_populated += 1
         elif field_name == 'level':
             # Integer field
             stone_data[field_name] = int(value)
+            fields_populated += 1
         else:
-            # String/Data fields
+            # String/Data fields - CRITICAL: explicit string conversion and validation
             str_val = cstr(value).strip()
-            if str_val:
+            if str_val and str_val.lower() not in ['none', 'null', 'nan', '']:
                 stone_data[field_name] = str_val
+                fields_populated += 1
+            elif field_name in ['main_barcode', 'barcode']:
+                # Log if critical barcode fields are empty strings
+                missing_critical.append(f"{field_name}_empty_string")
+    
+    # DATA EXTRACTION SUMMARY
+    print(f"EXTRACTION SUMMARY {stone_name}:")
+    print(f"  Processed {fields_processed} column mappings")
+    print(f"  Successfully populated {fields_populated} fields")
+    
+    # COMPREHENSIVE BARCODE FINAL ANALYSIS
+    has_main_barcode = 'main_barcode' in stone_data and stone_data.get('main_barcode')
+    has_barcode = 'barcode' in stone_data and stone_data.get('barcode')
+    
+    print(f"BARCODE FINAL {stone_name}: has_main_barcode={has_main_barcode}, has_barcode={has_barcode}")
+    if has_main_barcode:
+        print(f"  main_barcode = '{stone_data['main_barcode']}'")
+    if has_barcode:
+        print(f"  barcode = '{stone_data['barcode']}'")
+    
+    # Critical analysis: if NO fields populated, something is wrong
+    if fields_populated == 0:
+        print(f"CRITICAL ERROR: NO FIELDS POPULATED for {stone_name}!")
+        print(f"  This suggests column name mismatch or data format issues")
+        print(f"  First 10 Excel columns and values:")
+        for i, col in enumerate(list(row.index)[:10]):
+            print(f"    {i+1}. '{col}' = '{row[col]}' (mapped to: {COLUMN_MAP.get(col, 'NOT MAPPED')})")
+    
+    # ENHANCED BARCODE INHERITANCE - Only for genuine Excel stones
+    if not has_main_barcode:
+        print(f"WARNING: Stone {stone_name} has no main_barcode from Excel data")
+        
+        # Strategy 1: Try to inherit from parent (only if parent exists in database with barcode)
+        if parent_stone:
+            try:
+                parent_barcode = frappe.db.get_value("Stone", parent_stone, "main_barcode")
+                if parent_barcode and parent_barcode.strip():
+                    stone_data['main_barcode'] = parent_barcode
+                    print(f"SUCCESS: Inherited main_barcode '{parent_barcode}' from parent {parent_stone}")
+                else:
+                    print(f"FAILED: Parent {parent_stone} has no valid main_barcode to inherit")
+            except:
+                print(f"FAILED: Parent {parent_stone} does not exist in database")
+        
+        # Strategy 2: Try to use regular barcode if main_barcode is missing
+        if not stone_data.get('main_barcode') and has_barcode:
+            stone_data['main_barcode'] = stone_data['barcode']
+            print(f"FALLBACK: Used barcode '{stone_data['barcode']}' as main_barcode")
+        
+        # Strategy 3: Extract barcode from stone name as last resort
+        if not stone_data.get('main_barcode'):
+            # Look for numeric patterns in stone name that might be barcodes
+            import re
+            barcode_match = re.search(r'\d{7,}', stone_name)  # 7+ digit numbers
+            if barcode_match:
+                extracted_barcode = barcode_match.group()
+                stone_data['main_barcode'] = extracted_barcode
+                print(f"EXTRACTED: Used barcode '{extracted_barcode}' from stone name pattern")
+            else:
+                print(f"CRITICAL: No barcode available for stone {stone_name} - this should not happen with good Excel data")
     
     # Set is_group based on whether this stone has children (if parent stone)
     # For now, we'll set it to 0 and let Frappe's tree logic handle it
@@ -375,20 +515,98 @@ def _get_parent_stone(stone_name):
 
 @frappe.whitelist()
 def import_from_file_async(parcel_name: str, file_url: str):
-    """Async import for large files"""
+    """Async import for large files with main_barcode inheritance fix"""
     frappe.enqueue(
         method="kgk_customisations.kgk_customisations.doctype.parcel.parcel.import_from_file",
         queue='long',
         timeout=7200,
         parcel_name=parcel_name,
         file_url=file_url,
-        job_name=f"stone_import_{parcel_name}_{int(time.time())}"
+        job_name=f"stone_import_{parcel_name}_{int(time.time())}",
+        now=False  # Ensure proper queueing
     )
     
     return {
         "status": "queued",
         "message": f"Import queued for {parcel_name}. Check Background Jobs."
     }
+
+
+@frappe.whitelist()
+def backfill_missing_main_barcodes(parcel_name: str):
+    """
+    Fix stones with missing main_barcodes by inheriting from parent or siblings
+    """
+    try:
+        # Get all stones for this parcel without main_barcode
+        stones_without_barcode = frappe.get_all(
+            "Stone",
+            filters={
+                "parcel": parcel_name,
+                "main_barcode": ["in", [None, ""]]
+            },
+            fields=["name", "parent_stone", "stone_name"],
+            order_by="level asc"
+        )
+        
+        fixed_count = 0
+        
+        for stone in stones_without_barcode:
+            stone_name = stone.name
+            parent_stone = stone.parent_stone
+            
+            main_barcode = None
+            
+            # Strategy 1: Get from parent
+            if parent_stone:
+                main_barcode = frappe.db.get_value("Stone", parent_stone, "main_barcode")
+            
+            # Strategy 2: Get from siblings (stones with same parent)
+            if not main_barcode and parent_stone:
+                sibling_barcode = frappe.db.get_value(
+                    "Stone",
+                    {
+                        "parent_stone": parent_stone,
+                        "main_barcode": ["!=", ""]
+                    },
+                    "main_barcode"
+                )
+                if sibling_barcode:
+                    main_barcode = sibling_barcode
+            
+            # Strategy 3: Get from any child stone
+            if not main_barcode:
+                child_barcode = frappe.db.get_value(
+                    "Stone",
+                    {
+                        "parent_stone": stone_name,
+                        "main_barcode": ["!=", ""]
+                    },
+                    "main_barcode"
+                )
+                if child_barcode:
+                    main_barcode = child_barcode
+            
+            # Update if found
+            if main_barcode:
+                frappe.db.set_value("Stone", stone_name, "main_barcode", main_barcode)
+                fixed_count += 1
+        
+        frappe.db.commit()
+        
+        message = f"Backfill complete: Fixed {fixed_count} out of {len(stones_without_barcode)} stones"
+        frappe.msgprint(message)
+        
+        return {
+            "status": "success",
+            "message": message,
+            "fixed": fixed_count,
+            "total_without_barcode": len(stones_without_barcode)
+        }
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Barcode Backfill Error")
+        frappe.throw(f"Backfill failed: {str(e)}")
 
 
 @frappe.whitelist()
