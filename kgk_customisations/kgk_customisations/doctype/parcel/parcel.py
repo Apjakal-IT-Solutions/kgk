@@ -208,8 +208,9 @@ def _find_name_column(columns):
 
 
 def _build_hierarchy_map(df, stone_name_col):
-    """Build a map ONLY for stones that exist in Excel - no auto-generated parents"""
+    """Build a map of all stones INCLUDING auto-generated parents needed for hierarchy"""
     hierarchy = {}
+    all_parents = set()
     stones_found_in_excel = 0
     
     # STEP 1: Add all stones that exist in Excel
@@ -234,20 +235,41 @@ def _build_hierarchy_map(df, stone_name_col):
             "has_data": True
         }
         
+        # Track all parent references
+        if parent:
+            all_parents.add(parent)
+        
         if stones_found_in_excel <= 3:  # Debug first 3 stones
             print(f"HIERARCHY DEBUG: Stone '{stone_name}' -> row {idx}, level {level}, parent '{parent}', has_data=True")
     
-    # STEP 2: For stones with parents not in Excel, set parent to None (make them root level)
-    orphaned_count = 0
-    for stone_name, info in hierarchy.items():
-        if info["parent"] and info["parent"] not in hierarchy:
-            print(f"HIERARCHY FIX: Making orphaned stone '{stone_name}' a root stone (parent '{info['parent']}' not in Excel)")
-            hierarchy[stone_name]["parent"] = None
-            orphaned_count += 1
+    # STEP 2: Add missing parent stones (they need to exist for tree structure)
+    parents_to_add = set()
+    for parent in all_parents:
+        if parent not in hierarchy:
+            # Walk up the entire parent chain
+            current = parent
+            while current:
+                if current not in hierarchy:
+                    parents_to_add.add(current)
+                current = _get_parent_stone(current)
     
-    print(f"HIERARCHY BUILD FINAL: {stones_found_in_excel} Excel stones only")
-    print(f"  - {orphaned_count} stones made root-level (parents not in Excel)")
-    print(f"  - NO auto-generated parent stones created")
+    # Add all missing parents
+    for parent_stone in parents_to_add:
+        level = parent_stone.count("/")
+        grandparent = _get_parent_stone(parent_stone)
+        
+        hierarchy[parent_stone] = {
+            "level": level,
+            "parent": grandparent,
+            "row_idx": None,
+            "has_data": False
+        }
+        print(f"HIERARCHY: Auto-generating parent stone '{parent_stone}' at level {level}")
+    
+    print(f"HIERARCHY BUILD FINAL:")
+    print(f"  - {stones_found_in_excel} stones from Excel")
+    print(f"  - {len(parents_to_add)} auto-generated parent stones")
+    print(f"  - {len(hierarchy)} total stones in hierarchy")
     
     return hierarchy
 

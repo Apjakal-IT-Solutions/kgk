@@ -11,7 +11,6 @@
   "stone_name",
   "parcel_name",
   "column_break_basic1",
-  "parent_stone",
   "parcel",
   "stone_type",
   "level",
@@ -81,8 +80,7 @@
   "lft",
   "rgt",
   "is_group",
-  "old_parent",
-  "parent_stone"
+  "old_parent"
  ],
  "fields": [
   {
@@ -108,12 +106,6 @@
   {
    "fieldname": "column_break_basic1",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "parent_stone",
-   "fieldtype": "Link",
-   "label": "Parent Stone",
-   "options": "Stone"
   },
   {
    "fieldname": "parcel",
