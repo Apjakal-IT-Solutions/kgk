@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:parcel_name",
+ "creation": "2025-10-09 11:49:17.385266",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_xgex",
+  "parcel_name",
+  "barcode",
+  "received_on",
+  "predictions_section",
+  "stone_predictions",
+  "amended_from",
+  "actual_cut_details_section",
+  "actual_cuts"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_xgex",
+   "fieldtype": "Section Break",
+   "label": "Basic Details"
+  },
+  {
+   "fieldname": "parcel_name",
+   "fieldtype": "Data",
+   "label": "Parcel Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "barcode",
+   "fieldtype": "Link",
+   "label": "Barcode",
+   "no_copy": 1,
+   "options": "Rough Stone",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "received_on",
+   "fieldtype": "Date",
+   "label": "Received On"
+  },
+  {
+   "fieldname": "predictions_section",
+   "fieldtype": "Section Break",
+   "label": "Prediction Details"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Rough Stone",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "stone_predictions",
+   "fieldtype": "Table",
+   "label": "Predicted Cuts",
+   "options": "Stone Prediction Item"
+  },
+  {
+   "fieldname": "actual_cut_details_section",
+   "fieldtype": "Section Break",
+   "label": "Actual Cut Details"
+  },
+  {
+   "fieldname": "actual_cuts",
+   "fieldtype": "Table",
+   "label": "Actual Cuts",
+   "options": "Stone Cuts"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-10-09 15:25:30.139114",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Rough Stone",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,96 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:predicted_by",
+ "creation": "2025-10-09 11:55:59.322830",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "predicted_by",
+  "predicted_number_of_cuts",
+  "estimated_value",
+  "parcel_name",
+  "predicted_cuts_section",
+  "predicted_cuts",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "predicted_number_of_cuts",
+   "fieldtype": "Int",
+   "label": "Predicted Number of Cuts"
+  },
+  {
+   "fieldname": "estimated_value",
+   "fieldtype": "Currency",
+   "label": "Estimated Value"
+  },
+  {
+   "fieldname": "predicted_cuts_section",
+   "fieldtype": "Section Break",
+   "label": "Predicted Cuts Details"
+  },
+  {
+   "fetch_if_empty": 1,
+   "fieldname": "predicted_by",
+   "fieldtype": "Link",
+   "label": "Predicted By",
+   "options": "User",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "predicted_cuts",
+   "fieldtype": "Table",
+   "label": "Predicted Cuts",
+   "options": "Stone Cuts",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Stone Prediction",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "parcel_name",
+   "fieldtype": "Link",
+   "label": "Parcel Name",
+   "options": "Rough Stone"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-10-09 15:09:20.661997",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Stone Prediction",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
