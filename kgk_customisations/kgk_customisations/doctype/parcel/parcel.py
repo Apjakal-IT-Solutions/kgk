@@ -384,11 +384,7 @@ def _extract_stone_data(row, stone_name, parcel_name, parent_stone, level):
     missing_critical = []
     fields_processed = 0
     fields_populated = 0
-    
-    print(f"DATA EXTRACTION DEBUG for {stone_name}:")
-    print(f"  Available Excel columns: {len(row.index)}")
-    print(f"  COLUMN_MAP entries: {len(COLUMN_MAP)}")
-    
+        
     # Map all fields from Excel using COLUMN_MAP
     for excel_col, field_name in COLUMN_MAP.items():
         fields_processed += 1
@@ -555,9 +551,27 @@ def import_from_file_async(parcel_name: str, file_url: str):
 
 
 @frappe.whitelist()
+def backfill_codes_async(parcel_name: str):
+    """Async backfill for missing main_barcodes and child_stones population"""
+    frappe.enqueue(
+        method="kgk_customisations.kgk_customisations.doctype.parcel.parcel.backfill_missing_main_barcodes",
+        queue='long',
+        timeout=28800,
+        parcel_name=parcel_name,
+        job_name=f"backfill_barcodes_{parcel_name}_{int(time.time())}",
+        now=False
+    )
+    
+    return {
+        "status": "queued",
+        "message": f"Backfill queued for {parcel_name}. Check Background Jobs."
+    }
+
+@frappe.whitelist()
 def backfill_missing_main_barcodes(parcel_name: str):
     """
     Fix stones with missing main_barcodes by inheriting from parent or siblings
+    AND populate the child_stones child table for all stones
     """
     try:
         # Get all stones for this parcel without main_barcode
@@ -571,8 +585,9 @@ def backfill_missing_main_barcodes(parcel_name: str):
             order_by="level asc"
         )
         
-        fixed_count = 0
+        fixed_barcode_count = 0
         
+        # PART 1: Fix missing barcodes
         for stone in stones_without_barcode:
             stone_name = stone.name
             parent_stone = stone.parent_stone
@@ -612,23 +627,205 @@ def backfill_missing_main_barcodes(parcel_name: str):
             # Update if found
             if main_barcode:
                 frappe.db.set_value("Stone", stone_name, "main_barcode", main_barcode)
-                fixed_count += 1
+                fixed_barcode_count += 1
         
         frappe.db.commit()
         
-        message = f"Backfill complete: Fixed {fixed_count} out of {len(stones_without_barcode)} stones"
+        # PART 2: Populate child_stones child table for all stones in parcel
+        child_table_populated_count = _populate_child_stones_table(parcel_name)
+        
+        message = f"Backfill complete: Fixed {fixed_barcode_count}/{len(stones_without_barcode)} barcodes. Populated child table for {child_table_populated_count} stones."
         frappe.msgprint(message)
         
         return {
             "status": "success",
             "message": message,
-            "fixed": fixed_count,
-            "total_without_barcode": len(stones_without_barcode)
+            "fixed_barcodes": fixed_barcode_count,
+            "total_without_barcode": len(stones_without_barcode),
+            "child_tables_populated": child_table_populated_count
         }
         
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Barcode Backfill Error")
         frappe.throw(f"Backfill failed: {str(e)}")
+
+
+def _populate_child_stones_table(parcel_name: str):
+    """
+    Populate the child_stones child table for all stones in a parcel
+    """
+    # Get all stones in this parcel
+    all_stones = frappe.get_all(
+        "Stone",
+        filters={"parcel": parcel_name},
+        fields=["name", "stone_name", "barcode", "main_barcode"],
+        order_by="level asc"
+    )
+    
+    populated_count = 0
+    
+    for stone in all_stones:
+        stone_name = stone.name
+        
+        # Get all child stones (stones where parent_stone = this stone)
+        child_stones = frappe.get_all(
+            "Stone",
+            filters={"parent_stone": stone_name},
+            fields=["name", "stone_name", "barcode", "main_barcode"],
+            order_by="stone_name asc"
+        )
+        
+        # Skip if no children
+        if not child_stones:
+            continue
+        
+        # Get the stone document
+        stone_doc = frappe.get_doc("Stone", stone_name)
+        
+        # Clear existing child_stones entries to avoid duplicates
+        stone_doc.child_stones = []
+        
+        # Add each child stone to the child table
+        for child in child_stones:
+            stone_doc.append("child_stones", {
+                "stone_name": child.name,
+                "barcode": child.barcode or "",
+                "main_barcode": child.main_barcode or ""
+            })
+        
+        # Save the document
+        stone_doc.save(ignore_permissions=True)
+        populated_count += 1
+        
+        # Periodic commit for performance
+        if populated_count % 50 == 0:
+            frappe.db.commit()
+    
+    # Final commit
+    frappe.db.commit()
+    
+    print(f"Populated child_stones table for {populated_count} parent stones")
+    return populated_count
+
+
+@frappe.whitelist()
+def populate_child_stones_async(parcel_name: str):
+    """Async populate child_stones table for all stones in parcel"""
+    frappe.enqueue(
+        method="kgk_customisations.kgk_customisations.doctype.parcel.parcel.populate_child_stones_only",
+        queue='long',
+        timeout=7200,
+        parcel_name=parcel_name,
+        job_name=f"populate_child_stones_{parcel_name}_{int(time.time())}",
+        now=False
+    )
+    
+    return {
+        "status": "queued",
+        "message": f"Child stone population queued for {parcel_name}. Check Background Jobs."
+    }
+
+@frappe.whitelist()
+def populate_child_stones_only(parcel_name: str):
+    """
+    Standalone function to only populate child_stones tables without barcode fixing
+    Useful if you just want to refresh the child stone relationships
+    """
+    try:
+        populated_count = _populate_child_stones_table(parcel_name)
+        
+        message = f"Child stone tables populated for {populated_count} stones in parcel {parcel_name}"
+        frappe.msgprint(message)
+        
+        return {
+            "status": "success",
+            "message": message,
+            "populated": populated_count
+        }
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Child Stone Population Error")
+        frappe.throw(f"Population failed: {str(e)}")
+
+
+@frappe.whitelist()
+def rebuild_all_child_tables(parcel_name: str = None):
+    """
+    Rebuild child_stones tables for all stones, optionally filtered by parcel
+    More comprehensive - useful after major data changes
+    """
+    try:
+        filters = {}
+        if parcel_name:
+            filters["parcel"] = parcel_name
+        
+        # Get all stones that have children
+        all_parent_stones = frappe.db.sql("""
+            SELECT DISTINCT parent_stone 
+            FROM `tabStone` 
+            WHERE parent_stone IS NOT NULL 
+            AND parent_stone != ''
+            {parcel_filter}
+        """.format(
+            parcel_filter=f"AND parcel = '{parcel_name}'" if parcel_name else ""
+        ), as_dict=True)
+        
+        parent_stone_names = [s.parent_stone for s in all_parent_stones]
+        
+        updated_count = 0
+        
+        for parent_stone_name in parent_stone_names:
+            try:
+                # Get all children of this parent
+                children = frappe.get_all(
+                    "Stone",
+                    filters={"parent_stone": parent_stone_name},
+                    fields=["name", "stone_name", "barcode", "main_barcode"],
+                    order_by="stone_name asc"
+                )
+                
+                if not children:
+                    continue
+                
+                # Update parent stone's child table
+                parent_doc = frappe.get_doc("Stone", parent_stone_name)
+                parent_doc.child_stones = []
+                
+                for child in children:
+                    parent_doc.append("child_stones", {
+                        "stone_name": child.name,
+                        "barcode": child.barcode or "",
+                        "main_barcode": child.main_barcode or ""
+                    })
+                
+                parent_doc.save(ignore_permissions=True)
+                updated_count += 1
+                
+                if updated_count % 50 == 0:
+                    frappe.db.commit()
+                    print(f"Progress: {updated_count}/{len(parent_stone_names)} parent stones updated")
+                
+            except Exception as e:
+                print(f"Error updating {parent_stone_name}: {str(e)}")
+                continue
+        
+        frappe.db.commit()
+        
+        message = f"Rebuilt child_stones tables for {updated_count} parent stones"
+        if parcel_name:
+            message += f" in parcel {parcel_name}"
+        
+        frappe.msgprint(message)
+        
+        return {
+            "status": "success",
+            "message": message,
+            "updated": updated_count
+        }
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Rebuild Child Tables Error")
+        frappe.throw(f"Rebuild failed: {str(e)}")
 
 
 @frappe.whitelist()

@@ -73,6 +73,8 @@
   "esp_percent_ig",
   "esp_at_ig",
   "esp_amount_ig",
+  "child_stones_section",
+  "child_stones",
   "processing_stages_section",
   "processing_stages",
   "advisor_files_section",
@@ -80,7 +82,8 @@
   "lft",
   "rgt",
   "is_group",
-  "old_parent"
+  "old_parent",
+  "parent_stone"
  ],
  "fields": [
   {
@@ -464,6 +467,7 @@
    "read_only": 1
   },
   {
+   "default": "0",
    "fieldname": "is_group",
    "fieldtype": "Check",
    "label": "Is Group"
@@ -479,13 +483,24 @@
    "fieldtype": "Link",
    "label": "Parent Stone",
    "options": "Stone"
+  },
+  {
+   "fieldname": "child_stones_section",
+   "fieldtype": "Section Break",
+   "label": "Child Stones"
+  },
+  {
+   "fieldname": "child_stones",
+   "fieldtype": "Table",
+   "label": "Child Stones",
+   "options": "Child Stone Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2025-10-03 11:58:58.563394",
+ "modified": "2025-10-09 09:45:54.432049",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Stone",

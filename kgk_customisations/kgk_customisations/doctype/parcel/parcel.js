@@ -32,26 +32,26 @@ frappe.ui.form.on('Parcel', {
             });
             
             // Import stones (sync) button
-            frm.add_custom_button('Import Stones (Quick)', function() {
-                frappe.call({
-                    method: "kgk_customisations.kgk_customisations.doctype.parcel.parcel.import_from_file",
-                    args: {
-                        parcel_name: frm.doc.name,
-                        file_url: frm.doc.import_file
-                    },
-                    freeze: true,
-                    freeze_message: "Importing stones...",
-                    callback: function(r) {
-                        if (r.message && r.message.status === "success") {
-                            frappe.show_alert({
-                                message: r.message.message,
-                                indicator: 'green'
-                            });
-                            frm.reload_doc();
-                        }
-                    }
-                });
-            });
+            // frm.add_custom_button('Import Stones (Quick)', function() {
+            //     frappe.call({
+            //         method: "kgk_customisations.kgk_customisations.doctype.parcel.parcel.import_from_file",
+            //         args: {
+            //             parcel_name: frm.doc.name,
+            //             file_url: frm.doc.import_file
+            //         },
+            //         freeze: true,
+            //         freeze_message: "Importing stones...",
+            //         callback: function(r) {
+            //             if (r.message && r.message.status === "success") {
+            //                 frappe.show_alert({
+            //                     message: r.message.message,
+            //                     indicator: 'green'
+            //                 });
+            //                 frm.reload_doc();
+            //             }
+            //         }
+            //     });
+            // });
             
             // Import stones (async) button
             frm.add_custom_button('Import Stones (Background)', function() {
@@ -73,10 +73,10 @@ frappe.ui.form.on('Parcel', {
             });
         }
         
-        // Backfill missing barcodes button (always available)
-        frm.add_custom_button('Fix Missing Barcodes', function() {
+        // Enhanced backfill button
+        frm.add_custom_button('Fix Barcodes & Child Tables', function() {
             frappe.confirm(
-                'This will backfill missing main_barcodes from parent/sibling stones. Continue?',
+                'This will backfill missing barcodes AND populate child stone tables. Continue?',
                 function() {
                     frappe.call({
                         method: "kgk_customisations.kgk_customisations.doctype.parcel.parcel.backfill_missing_main_barcodes",
@@ -84,7 +84,7 @@ frappe.ui.form.on('Parcel', {
                             parcel_name: frm.doc.name
                         },
                         freeze: true,
-                        freeze_message: "Fixing barcodes...",
+                        freeze_message: "Fixing barcodes and populating child tables...",
                         callback: function(r) {
                             if (r.message && r.message.status === "success") {
                                 frappe.show_alert({
@@ -97,6 +97,26 @@ frappe.ui.form.on('Parcel', {
                     });
                 }
             );
+        });
+        
+        // Rebuild child tables only
+        frm.add_custom_button('Rebuild Child Tables', function() {
+            frappe.call({
+                method: "kgk_customisations.kgk_customisations.doctype.parcel.parcel.populate_child_stones_async",
+                args: {
+                    parcel_name: frm.doc.name
+                },
+                freeze: true,
+                freeze_message: "Rebuilding child stone tables...",
+                callback: function(r) {
+                    if (r.message && r.message.status === "success") {
+                        frappe.show_alert({
+                            message: r.message.message,
+                            indicator: 'green'
+                        });
+                    }
+                }
+            });
         });
     }
 });
