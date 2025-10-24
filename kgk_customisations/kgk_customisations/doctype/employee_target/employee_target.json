@@ -4,10 +4,14 @@
  "allow_rename": 1,
  "autoname": "field:employee",
  "creation": "2025-09-02 11:59:12.149367",
+ "default_view": "List",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "factory_code",
   "employee",
+  "employee_name",
+  "section",
   "target",
   "factory_process"
  ],
@@ -15,26 +19,50 @@
   {
    "fieldname": "employee",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Employee",
    "options": "Employee",
+   "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "fetch_from": "employee.employee_name",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section",
+   "fieldtype": "Link",
+   "fetch_from": "employee.department",
+   "label": "Section",
+   "options": "Section",
+   "read_only": 1
   },
   {
    "fieldname": "target",
    "fieldtype": "Float",
-   "label": "Target"
+   "label": "Target",
+   "precision": "2"
   },
   {
    "fieldname": "factory_process",
    "fieldtype": "Link",
    "label": "Factory Process",
    "options": "Factory Process"
+  },
+  {
+   "fieldname": "factory_code",
+   "fieldtype": "Data",
+   "label": "Factory Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-03 14:18:15.348371",
+ "modified": "2025-10-24 08:24:43.268560",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Employee Target",
@@ -55,7 +83,10 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "employee_name",
+ "translated_doctype": 1
 }

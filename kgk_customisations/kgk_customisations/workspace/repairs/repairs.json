@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"Eq6A-Ux1sG\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Repair Reports</span>\",\"col\":12}},{\"id\":\"GUVfWohH18\",\"type\":\"card\",\"data\":{\"card_name\":\"Polishing\",\"col\":4}},{\"id\":\"dmFgYXTx56\",\"type\":\"card\",\"data\":{\"card_name\":\"Grading\",\"col\":4}}]",
+ "content": "[{\"id\":\"Eq6A-Ux1sG\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Repair Reports</span>\",\"col\":12}},{\"id\":\"2hCprGxigA\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Factory Entry\",\"col\":3}},{\"id\":\"GUVfWohH18\",\"type\":\"card\",\"data\":{\"card_name\":\"Polishing\",\"col\":4}},{\"id\":\"dmFgYXTx56\",\"type\":\"card\",\"data\":{\"card_name\":\"Grading\",\"col\":4}}]",
  "creation": "2025-09-02 11:26:06.574218",
  "custom_blocks": [],
  "docstatus": 0,
@@ -52,7 +52,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-10-06 16:32:14.659810",
+ "modified": "2025-10-23 12:40:08.195943",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Repairs",
@@ -62,7 +62,16 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 5.0,
- "shortcuts": [],
+ "sequence_id": 3.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Factory Entry",
+   "link_to": "Factory Entry",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
  "title": "Repairs"
 }

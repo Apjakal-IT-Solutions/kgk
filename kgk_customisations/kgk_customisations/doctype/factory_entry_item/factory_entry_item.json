@@ -8,6 +8,8 @@
  "field_order": [
   "section_break_ukan",
   "employee",
+  "employee_name",
+  "target_info",
   "column_break_cbab",
   "factory_process",
   "column_break_rutb",
@@ -21,15 +23,29 @@
   {
    "fieldname": "employee",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Employee",
    "options": "Employee"
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "target_info",
+   "fieldtype": "Data",
+   "label": "Target Value",
+   "read_only": 1
   },
   {
    "fieldname": "factory_process",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Factory Process",
-   "options": "Factory Process"
+   "options": "Factory Process",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_ukan",
@@ -48,7 +64,8 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Target",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_gzoh",
@@ -77,7 +94,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-02 14:51:26.190504",
+ "modified": "2025-10-24 09:24:14.950923",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry Item",

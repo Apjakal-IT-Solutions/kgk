@@ -8,9 +8,10 @@
  "field_order": [
   "work_date",
   "column_break_ljhp",
+  "department",
   "section",
   "section_break_hrmb",
-  "table_nbxi"
+  "factory_entry_item_table"
  ],
  "fields": [
   {
@@ -33,7 +34,13 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "table_nbxi",
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "factory_entry_item_table",
    "fieldtype": "Table",
    "options": "Factory Entry Item"
   }
@@ -41,7 +48,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-04 15:18:20.428536",
+ "modified": "2025-10-24 09:48:37.390360",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry",
