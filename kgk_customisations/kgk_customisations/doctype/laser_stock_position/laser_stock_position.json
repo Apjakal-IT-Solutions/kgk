@@ -1,0 +1,91 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-24 14:47:04.908331",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "column_break_vyvx",
+  "time",
+  "stock_details_section",
+  "laser_stock_item_table",
+  "totals_section",
+  "cts_total",
+  "column_break_hvea",
+  "pcs_total"
+ ],
+ "fields": [
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "column_break_vyvx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time"
+  },
+  {
+   "fieldname": "stock_details_section",
+   "fieldtype": "Section Break",
+   "label": "Stock Details"
+  },
+  {
+   "fieldname": "pcs_total",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "PCS TOTAL",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cts_total",
+   "fieldtype": "Float",
+   "label": "CTS TOTAL"
+  },
+  {
+   "fieldname": "totals_section",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "fieldname": "column_break_hvea",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "laser_stock_item_table",
+   "fieldtype": "Table",
+   "options": "Laser Stock Position Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-24 15:12:16.081558",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Laser Stock Position",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

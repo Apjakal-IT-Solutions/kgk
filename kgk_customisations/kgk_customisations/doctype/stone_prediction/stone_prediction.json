@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:predicted_by",
+ "autoname": "format:{MM}-{parcel_name}",
  "creation": "2025-10-09 11:55:59.322830",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -68,16 +68,15 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-09 15:09:20.661997",
+ "modified": "2025-10-24 15:39:50.673835",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Stone Prediction",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -85,6 +84,31 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Appraiser",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Report Manager",
+   "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

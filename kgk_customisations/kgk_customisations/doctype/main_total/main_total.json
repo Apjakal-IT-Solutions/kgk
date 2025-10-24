@@ -9,13 +9,17 @@
  "field_order": [
   "planning_main_section",
   "date",
-  "round_actual",
-  "fancy_actual",
-  "total",
-  "reason",
   "column_break_ibme",
-  "round_target",
+  "round_values_section",
+  "target",
+  "column_break_skor",
+  "round_actual",
+  "round_reason",
+  "fancy_values_section",
   "fancy_target",
+  "column_break_zqks",
+  "fancy_actual",
+  "fancy_reason",
   "factory_main_section",
   "table_tovk"
  ],
@@ -29,27 +33,23 @@
    "fieldname": "round_actual",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "ROUND (Actual)",
+   "label": "Actual",
    "options": "Department"
   },
   {
    "fieldname": "fancy_actual",
    "fieldtype": "Float",
-   "label": "FANCY (Actual)"
+   "label": "Actual"
   },
   {
    "fieldname": "column_break_ibme",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "round_target",
-   "fieldtype": "Read Only",
-   "label": "ROUND (Target)"
-  },
-  {
    "fieldname": "fancy_target",
-   "fieldtype": "Read Only",
-   "label": "FANCY (Target)",
+   "fieldtype": "Float",
+   "label": "Target",
+   "precision": "2",
    "read_only_depends_on": "1"
   },
   {
@@ -63,27 +63,51 @@
    "options": "Factory Main Item"
   },
   {
-   "fieldname": "total",
-   "fieldtype": "Read Only",
-   "label": "TOTAL",
-   "precision": "2"
-  },
-  {
-   "fieldname": "reason",
-   "fieldtype": "Link",
-   "label": "REASON",
-   "options": "Reason"
-  },
-  {
    "fieldname": "date",
    "fieldtype": "Datetime",
    "label": "Date"
+  },
+  {
+   "fieldname": "round_values_section",
+   "fieldtype": "Section Break",
+   "label": "Round Values"
+  },
+  {
+   "fieldname": "target",
+   "fieldtype": "Float",
+   "label": "Target",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_skor",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "round_reason",
+   "fieldtype": "Link",
+   "label": "Reason",
+   "options": "Reason"
+  },
+  {
+   "fieldname": "fancy_values_section",
+   "fieldtype": "Section Break",
+   "label": "Fancy Values"
+  },
+  {
+   "fieldname": "column_break_zqks",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fancy_reason",
+   "fieldtype": "Link",
+   "label": "Reason",
+   "options": "Reason"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-04 15:15:27.205612",
+ "modified": "2025-10-24 14:28:56.615122",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Main Total",

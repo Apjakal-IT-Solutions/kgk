@@ -1,0 +1,59 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-24 14:53:50.724395",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "column_break_ccgl",
+  "pcs",
+  "column_break_ixgs",
+  "cts"
+ ],
+ "fields": [
+  {
+   "fieldname": "type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Laser Positoin Type"
+  },
+  {
+   "fieldname": "column_break_ccgl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pcs",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "PCS"
+  },
+  {
+   "fieldname": "column_break_ixgs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cts",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "CTS",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-24 15:03:36.993913",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Laser Stock Position Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

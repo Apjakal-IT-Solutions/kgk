@@ -1,39 +1,29 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{MM}-{YY}-###",
- "creation": "2025-09-02 10:18:29.157002",
+ "autoname": "field:_name",
+ "creation": "2025-10-24 14:55:50.603403",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "working_date",
-  "section_break_rixo",
-  "planning_entry_item_table"
+  "_name"
  ],
  "fields": [
   {
-   "fieldname": "working_date",
-   "fieldtype": "Date",
-   "label": "Working Date"
-  },
-  {
-   "fieldname": "section_break_rixo",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "planning_entry_item_table",
-   "fieldtype": "Table",
-   "options": "Planning Entry Item"
+   "fieldname": "_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-24 14:05:00.491897",
+ "modified": "2025-10-24 14:58:30.935872",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
- "name": "Planning Entry",
- "naming_rule": "Expression",
+ "name": "Laser Positoin Type",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
