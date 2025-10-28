@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:{MM}-{YY}-###",
+ "autoname": "format:GRA-{MM}-{YY}-{###}",
  "creation": "2025-09-02 09:52:14.638284",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -23,34 +23,50 @@
   {
    "fieldname": "date",
    "fieldtype": "Date",
-   "label": "Date"
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_khif",
    "fieldtype": "Column Break"
   },
   {
+   "default": "1",
    "fieldname": "week",
    "fieldtype": "Int",
-   "label": "Week"
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Week",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "section_break_bpnm",
    "fieldtype": "Section Break"
   },
   {
+   "default": "0",
    "fieldname": "grp_rep",
    "fieldtype": "Int",
-   "label": "GRP Rep"
+   "label": "GRP Rep",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_jfoi",
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "gia_rep",
    "fieldtype": "Int",
-   "label": "GIA Rep"
+   "label": "GIA Rep",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_wpva",
@@ -60,7 +76,8 @@
   {
    "fieldname": "table_qese",
    "fieldtype": "Table",
-   "options": "Grading Report Pieces Item"
+   "options": "Grading Report Pieces Item",
+   "reqd": 1
   },
   {
    "fieldname": "percentages_section",
@@ -70,16 +87,17 @@
   {
    "fieldname": "table_zlqf",
    "fieldtype": "Table",
-   "options": "Grading Report Percentage Item"
+   "options": "Grading Report Percentage Item",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-04 15:17:35.770186",
+ "modified": "2025-10-28 12:59:44.974604",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
- "name": "Grading Repairs",
+ "name": "Grading Repair",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
@@ -99,5 +117,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -8,16 +8,18 @@
  "field_order": [
   "section_break_ukan",
   "employee",
-  "employee_name",
-  "target_info",
-  "column_break_cbab",
-  "factory_process",
-  "column_break_rutb",
+  "column_break_xjky",
+  "employee_code",
+  "column_break_ixqv",
   "target",
-  "column_break_gzoh",
+  "column_break_irtr",
+  "factory_process",
+  "column_break_cbab",
   "actual",
-  "column_break_ynju",
-  "reason"
+  "column_break_rutb",
+  "reason",
+  "column_break_gzoh",
+  "column_break_ynju"
  ],
  "fields": [
   {
@@ -25,21 +27,11 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Employee",
-   "options": "Employee"
+   "options": "Employee Target",
+   "reqd": 1
   },
   {
-   "fieldname": "employee_name",
-   "fieldtype": "Data",
-   "label": "Employee Name",
-   "read_only": 1
-  },
-  {
-   "fieldname": "target_info",
-   "fieldtype": "Data",
-   "label": "Target Value",
-   "read_only": 1
-  },
-  {
+   "fetch_from": "employee.factory_process",
    "fieldname": "factory_process",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -60,11 +52,11 @@
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "employee.target",
    "fieldname": "target",
-   "fieldtype": "Float",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Target",
-   "precision": "2",
    "read_only": 1
   },
   {
@@ -88,13 +80,35 @@
    "in_list_view": 1,
    "label": "Reason",
    "options": "Reason"
+  },
+  {
+   "fieldname": "column_break_ixqv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_irtr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xjky",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "employee.factory_code",
+   "fieldname": "employee_code",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee Code",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-24 09:24:14.950923",
+ "modified": "2025-10-28 16:35:54.092536",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry Item",

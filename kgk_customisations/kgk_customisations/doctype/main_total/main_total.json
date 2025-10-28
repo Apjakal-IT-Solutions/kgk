@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:{MM}-{YY}-###",
+ "autoname": "format:Main-{MM}-{YY}-{###}",
  "creation": "2025-09-04 10:29:35.956513",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -11,7 +11,7 @@
   "date",
   "column_break_ibme",
   "round_values_section",
-  "target",
+  "round_target",
   "column_break_skor",
   "round_actual",
   "round_reason",
@@ -20,6 +20,10 @@
   "column_break_zqks",
   "fancy_actual",
   "fancy_reason",
+  "total_section",
+  "target_total",
+  "column_break_vfzq",
+  "actual_total",
   "factory_main_section",
   "table_tovk"
  ],
@@ -34,23 +38,30 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Actual",
-   "options": "Department"
+   "non_negative": 1,
+   "options": "Department",
+   "reqd": 1
   },
   {
    "fieldname": "fancy_actual",
    "fieldtype": "Float",
-   "label": "Actual"
+   "label": "Actual",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_ibme",
    "fieldtype": "Column Break"
   },
   {
+   "default": "30.00",
    "fieldname": "fancy_target",
    "fieldtype": "Float",
    "label": "Target",
+   "non_negative": 1,
    "precision": "2",
-   "read_only_depends_on": "1"
+   "read_only_depends_on": "1",
+   "reqd": 1
   },
   {
    "fieldname": "factory_main_section",
@@ -60,23 +71,19 @@
   {
    "fieldname": "table_tovk",
    "fieldtype": "Table",
-   "options": "Factory Main Item"
+   "options": "Factory Main Item",
+   "reqd": 1
   },
   {
    "fieldname": "date",
    "fieldtype": "Datetime",
-   "label": "Date"
+   "label": "Date",
+   "reqd": 1
   },
   {
    "fieldname": "round_values_section",
    "fieldtype": "Section Break",
    "label": "Round Values"
-  },
-  {
-   "fieldname": "target",
-   "fieldtype": "Float",
-   "label": "Target",
-   "precision": "2"
   },
   {
    "fieldname": "column_break_skor",
@@ -102,12 +109,44 @@
    "fieldtype": "Link",
    "label": "Reason",
    "options": "Reason"
+  },
+  {
+   "default": "170.00",
+   "fieldname": "round_target",
+   "fieldtype": "Float",
+   "label": "Target",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_section",
+   "fieldtype": "Section Break",
+   "label": "Total"
+  },
+  {
+   "fieldname": "target_total",
+   "fieldtype": "Float",
+   "label": "Target Total",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_vfzq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "actual_total",
+   "fieldtype": "Float",
+   "label": "Actual Total",
+   "non_negative": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-24 14:28:56.615122",
+ "modified": "2025-10-28 14:00:11.862073",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Main Total",
@@ -123,6 +162,17 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
    "share": 1,
    "write": 1
   }

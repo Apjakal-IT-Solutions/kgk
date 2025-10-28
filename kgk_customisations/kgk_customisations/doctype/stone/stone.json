@@ -25,6 +25,7 @@
   "s_part",
   "basic_measurements_section",
   "org_weight",
+  "column_break_igns",
   "prop_cts",
   "est_amt",
   "column_break_weight",
@@ -40,6 +41,7 @@
   "fluro_e",
   "expected_esp_section",
   "list_e",
+  "column_break_ivxg",
   "esp_percent_e",
   "esp_at_e",
   "lab_measurements_section",
@@ -56,6 +58,7 @@
   "lab_esp_section",
   "list_l",
   "esp_percent_l",
+  "column_break_fvqt",
   "esp_at_l",
   "esp_amount_l",
   "internal_grading_section",
@@ -71,6 +74,7 @@
   "ig_esp_section",
   "list_ig",
   "esp_percent_ig",
+  "column_break_relb",
   "esp_at_ig",
   "esp_amount_ig",
   "child_stones_section",
@@ -80,10 +84,12 @@
   "advisor_files_section",
   "advisor_files",
   "lft",
-  "rgt",
   "is_group",
+  "rgt",
+  "column_break_taay",
   "old_parent",
-  "parent_stone"
+  "parent_stone",
+  "column_break_xltm"
  ],
  "fields": [
   {
@@ -113,9 +119,12 @@
   {
    "fieldname": "parcel",
    "fieldtype": "Link",
+   "in_filter": 1,
    "in_standard_filter": 1,
    "label": "Parcel",
-   "options": "Parcel"
+   "options": "Parcel",
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "stone_type",
@@ -137,15 +146,22 @@
   {
    "fieldname": "main_barcode",
    "fieldtype": "Data",
+   "in_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Main Barcode"
+   "label": "Main Barcode",
+   "reqd": 1,
+   "search_index": 1
   },
   {
+   "default": "0",
    "fieldname": "barcode",
    "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Barcode"
+   "label": "Barcode",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_barcode",
@@ -494,13 +510,42 @@
    "fieldtype": "Table",
    "label": "Child Stones",
    "options": "Child Stone Item"
+  },
+  {
+   "fieldname": "column_break_igns",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ivxg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_fvqt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_relb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_taay",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xltm",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_tree": 1,
- "links": [],
- "modified": "2025-10-09 09:45:54.432049",
+ "links": [
+  {
+   "link_doctype": "Stone",
+   "link_fieldname": "main_barcode"
+  }
+ ],
+ "modified": "2025-10-27 16:46:49.679730",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Stone",

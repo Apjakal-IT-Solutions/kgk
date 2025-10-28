@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestPolishingRepairs(FrappeTestCase):
+class TestGradingRepair(FrappeTestCase):
 	pass

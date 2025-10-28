@@ -26,67 +26,85 @@
    "label": "Pieces"
   },
   {
+   "default": "0",
    "fieldname": "colory_piece",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Color"
+   "label": "Color",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_ydax",
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "clarity_piece",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Clarity"
+   "label": "Clarity",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_btki",
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "cut_piece",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Cut"
+   "label": "Cut",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_kwbt",
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "polish_piece",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Polish"
+   "label": "Polish",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_clks",
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "symmetry_piece",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Symmetry"
+   "label": "Symmetry",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_wgnc",
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "fluency_piece",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Fluency"
+   "label": "Fluency",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-02 10:50:10.705057",
+ "modified": "2025-10-27 11:57:22.834377",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Grading Report Pieces Item",

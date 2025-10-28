@@ -27,7 +27,7 @@
    "is_query_report": 0,
    "label": "Grading Report",
    "link_count": 0,
-   "link_to": "Grading Repairs",
+   "link_to": "Grading Repair",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -46,13 +46,13 @@
    "is_query_report": 0,
    "label": "Polishing Report",
    "link_count": 0,
-   "link_to": "Polishing Repairs",
+   "link_to": "Polishing Repair",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-10-23 12:40:08.195943",
+ "modified": "2025-10-28 11:40:59.638936",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Repairs",

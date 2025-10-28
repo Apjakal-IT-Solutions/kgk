@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class GradingRepairs(Document):
+class SawingReport(Document):
 	pass

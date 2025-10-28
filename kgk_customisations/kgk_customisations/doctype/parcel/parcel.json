@@ -123,8 +123,13 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-09-25 09:31:43.956433",
+ "links": [
+  {
+   "link_doctype": "Stone",
+   "link_fieldname": "parcel"
+  }
+ ],
+ "modified": "2025-10-27 16:31:35.589165",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Parcel",

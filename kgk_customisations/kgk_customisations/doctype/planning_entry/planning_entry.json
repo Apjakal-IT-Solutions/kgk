@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{MM}-{YY}-###",
+ "autoname": "format:PLA-{MM}-{YY}-{###}",
  "creation": "2025-09-02 10:18:29.157002",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -14,7 +14,9 @@
   {
    "fieldname": "working_date",
    "fieldtype": "Date",
-   "label": "Working Date"
+   "in_list_view": 1,
+   "label": "Working Date",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_rixo",
@@ -23,13 +25,14 @@
   {
    "fieldname": "planning_entry_item_table",
    "fieldtype": "Table",
-   "options": "Planning Entry Item"
+   "options": "Planning Entry Item",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-24 14:05:00.491897",
+ "modified": "2025-10-28 10:10:44.238541",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Planning Entry",
@@ -45,6 +48,17 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
    "share": 1,
    "write": 1
   }

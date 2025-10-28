@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class PolishingRepairs(Document):
+class PolishingRepair(Document):
 	pass

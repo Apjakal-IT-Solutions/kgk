@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{MM}-{YY}-###",
+ "autoname": "format:FAC-{MM}-{YY}-{###}",
  "creation": "2025-09-02 13:53:50.184768",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -17,13 +17,17 @@
   {
    "fieldname": "section",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Section",
-   "options": "Section"
+   "options": "Section",
+   "reqd": 1
   },
   {
    "fieldname": "work_date",
    "fieldtype": "Date",
-   "label": "Work Date"
+   "in_list_view": 1,
+   "label": "Work Date",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_ljhp",
@@ -36,19 +40,22 @@
   {
    "fieldname": "department",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Department",
-   "options": "Department"
+   "options": "Department",
+   "reqd": 1
   },
   {
    "fieldname": "factory_entry_item_table",
    "fieldtype": "Table",
-   "options": "Factory Entry Item"
+   "options": "Factory Entry Item",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-24 09:48:37.390360",
+ "modified": "2025-10-28 10:11:19.160877",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry",
@@ -64,6 +71,17 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
    "share": 1,
    "write": 1
   }

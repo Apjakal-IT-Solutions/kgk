@@ -19,7 +19,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-24 14:58:30.935872",
+ "modified": "2025-10-28 10:17:01.600131",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Laser Positoin Type",
@@ -35,6 +35,17 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
    "share": 1,
    "write": 1
   }

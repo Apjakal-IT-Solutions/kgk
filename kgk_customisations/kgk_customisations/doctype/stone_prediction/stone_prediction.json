@@ -8,23 +8,29 @@
  "engine": "InnoDB",
  "field_order": [
   "predicted_by",
+  "column_break_cvdq",
   "predicted_number_of_cuts",
   "estimated_value",
   "parcel_name",
   "predicted_cuts_section",
-  "predicted_cuts",
-  "amended_from"
+  "predicted_cuts"
  ],
  "fields": [
   {
    "fieldname": "predicted_number_of_cuts",
    "fieldtype": "Int",
-   "label": "Predicted Number of Cuts"
+   "in_list_view": 1,
+   "label": "Predicted Number of Cuts",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "estimated_value",
    "fieldtype": "Currency",
-   "label": "Estimated Value"
+   "in_list_view": 1,
+   "label": "Estimated Value",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "predicted_cuts_section",
@@ -35,9 +41,11 @@
    "fetch_if_empty": 1,
    "fieldname": "predicted_by",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Predicted By",
    "options": "User",
    "read_only": 1,
+   "reqd": 1,
    "unique": 1
   },
   {
@@ -48,27 +56,23 @@
    "reqd": 1
   },
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Stone Prediction",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
    "fieldname": "parcel_name",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Parcel Name",
-   "options": "Rough Stone"
+   "options": "Rough Stone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_cvdq",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-24 15:39:50.673835",
+ "modified": "2025-10-27 09:47:22.351578",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Stone Prediction",

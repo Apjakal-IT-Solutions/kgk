@@ -546,6 +546,10 @@ class OCRDataUpload(Document):
 				return {"success": False, "message": error_msg}
 
 			msg = f"Successfully loaded {rows_processed} rows from Excel file."
+			# update "total_records" with rows_processed
+			self.total_records = rows_processed
+			self.save()
+			frappe.db.commit()
 			frappe.msgprint(msg, indicator="green")
 			print(f"Success: {msg}")
 

@@ -1,0 +1,124 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"b5h_5AjGhY\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Cash Management</span>\",\"col\":12}},{\"id\":\"xFgmEEogfj\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}},{\"id\":\"ySAr0M-tPd\",\"type\":\"card\",\"data\":{\"card_name\":\"Shortcuts\",\"col\":4}}]",
+ "creation": "2025-09-16 10:52:53.795817",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "money-coins-1",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Cash Management",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Document Report",
+   "link_count": 0,
+   "link_to": "Cash Document Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Missing Cash Documents Report",
+   "link_count": 0,
+   "link_to": "Missing Cash Documents Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Flow",
+   "link_count": 0,
+   "link_to": "Cash Flow",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shortcuts",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cash Document",
+   "link_count": 0,
+   "link_to": "Cash Document",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Daily Cash Balance",
+   "link_count": 0,
+   "link_to": "Daily Cash Balance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cash Management Settings",
+   "link_count": 0,
+   "link_to": "Cash Management Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-10-28 11:45:32.847491",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Cash Management",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Cash Accountant"
+  }
+ ],
+ "sequence_id": 4.0,
+ "shortcuts": [],
+ "title": "Cash Management"
+}
