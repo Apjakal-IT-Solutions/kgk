@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:LST-{MM}-{YY}-{###}",
  "creation": "2025-10-24 14:47:04.908331",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -19,6 +20,9 @@
   {
    "fieldname": "date",
    "fieldtype": "Date",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Date",
    "reqd": 1
   },
@@ -49,6 +53,8 @@
    "default": "0",
    "fieldname": "cts_total",
    "fieldtype": "Float",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "CTS TOTAL",
    "non_negative": 1,
    "precision": "2",
@@ -73,10 +79,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-28 14:16:17.841549",
+ "modified": "2025-10-29 10:20:05.568364",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Laser Stock Position",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:FAC-{MM}-{YY}-{###}",
  "creation": "2025-09-02 13:53:50.184768",
@@ -11,7 +12,8 @@
   "department",
   "section",
   "section_break_hrmb",
-  "factory_entry_item_table"
+  "factory_entry_item_table",
+  "amended_from"
  ],
  "fields": [
   {
@@ -50,12 +52,23 @@
    "fieldtype": "Table",
    "options": "Factory Entry Item",
    "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Factory Entry",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-10-28 10:11:19.160877",
+ "modified": "2025-10-29 15:16:54.309729",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry",
@@ -89,5 +102,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

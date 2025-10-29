@@ -19,7 +19,8 @@
   "pieces_section",
   "piece_values",
   "percentage_section",
-  "percent_values"
+  "percent_values",
+  "amended_from"
  ],
  "fields": [
   {
@@ -107,12 +108,23 @@
    "fieldtype": "Table",
    "options": "Polishing Report Percentage Item",
    "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Polishing Repair",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-10-28 12:57:57.378767",
+ "modified": "2025-10-29 15:17:20.709658",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Polishing Repair",

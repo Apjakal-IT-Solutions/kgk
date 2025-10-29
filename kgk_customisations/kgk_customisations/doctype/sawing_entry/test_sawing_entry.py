@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestSawingReport(FrappeTestCase):
+class TestSawingEntry(FrappeTestCase):
 	pass

@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class SawingReport(Document):
+class FactoryMainSectionTypeTarget(Document):
 	pass

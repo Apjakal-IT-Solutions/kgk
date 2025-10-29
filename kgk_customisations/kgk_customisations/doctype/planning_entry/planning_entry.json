@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:PLA-{MM}-{YY}-{###}",
  "creation": "2025-09-02 10:18:29.157002",
@@ -8,7 +9,8 @@
  "field_order": [
   "working_date",
   "section_break_rixo",
-  "planning_entry_item_table"
+  "planning_entry_item_table",
+  "amended_from"
  ],
  "fields": [
   {
@@ -27,12 +29,23 @@
    "fieldtype": "Table",
    "options": "Planning Entry Item",
    "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Planning Entry",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-10-28 10:10:44.238541",
+ "modified": "2025-10-29 15:16:38.276765",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Planning Entry",
@@ -66,5 +79,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -61,7 +61,39 @@ frappe.ui.form.on("Factory Entry Item", {
 				}
 			});
 		}
+	},
+	employee_code: function(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		if (row.employee_code) {
+			// Search for Employee Target record by employee code
+			frappe.db.get_list("Employee Target", {
+				filters: {
+					factory_code: row.employee_code
+				},
+				fields: ["name", "target", "factory_process", "employee"]
+			}).then(records => {
+				if (records && records.length > 0) {
+					// Employee Target found, populate the fields
+					let target_record = records[0];
+					frappe.model.set_value(cdt, cdn, "target", target_record.target || "");
+					frappe.model.set_value(cdt, cdn, "factory_process", target_record.factory_process || "");
+					frappe.model.set_value(cdt, cdn, "employee", target_record.employee || "");
+				} else {
+					// No Employee Target found, offer to create one
+					frappe.confirm(
+						`No Employee Target record found for this employee code. Would you like to create one?`,
+						() => {
+							// Create new Employee Target
+							frappe.new_doc("Employee Target", {
+								employee_code: row.employee_code
+							});
+						}
+					);
+				}
+			});
+		}
 	}
 });
+
 
 

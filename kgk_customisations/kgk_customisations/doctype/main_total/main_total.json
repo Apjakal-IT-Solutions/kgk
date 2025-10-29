@@ -10,22 +10,24 @@
   "planning_main_section",
   "date",
   "column_break_ibme",
+  "time",
   "round_values_section",
   "round_target",
   "column_break_skor",
   "round_actual",
-  "round_reason",
   "fancy_values_section",
   "fancy_target",
   "column_break_zqks",
   "fancy_actual",
-  "fancy_reason",
   "total_section",
   "target_total",
   "column_break_vfzq",
   "actual_total",
+  "column_break_tjeo",
+  "fancy_reason",
   "factory_main_section",
-  "table_tovk"
+  "factory_main_item_table",
+  "amended_from"
  ],
  "fields": [
   {
@@ -40,6 +42,7 @@
    "label": "Actual",
    "non_negative": 1,
    "options": "Department",
+   "precision": "2",
    "reqd": 1
   },
   {
@@ -47,6 +50,7 @@
    "fieldtype": "Float",
    "label": "Actual",
    "non_negative": 1,
+   "precision": "2",
    "reqd": 1
   },
   {
@@ -69,14 +73,8 @@
    "label": "Factory Main"
   },
   {
-   "fieldname": "table_tovk",
-   "fieldtype": "Table",
-   "options": "Factory Main Item",
-   "reqd": 1
-  },
-  {
    "fieldname": "date",
-   "fieldtype": "Datetime",
+   "fieldtype": "Date",
    "label": "Date",
    "reqd": 1
   },
@@ -88,12 +86,6 @@
   {
    "fieldname": "column_break_skor",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "round_reason",
-   "fieldtype": "Link",
-   "label": "Reason",
-   "options": "Reason"
   },
   {
    "fieldname": "fancy_values_section",
@@ -141,12 +133,39 @@
    "label": "Actual Total",
    "non_negative": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "factory_main_item_table",
+   "fieldtype": "Table",
+   "options": "Factory Main Item",
+   "reqd": 1
+  },
+  {
+   "fetch_if_empty": 1,
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time"
+  },
+  {
+   "fieldname": "column_break_tjeo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Main Total",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-10-28 14:00:11.862073",
+ "modified": "2025-10-29 12:25:16.018867",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Main Total",
@@ -180,5 +199,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

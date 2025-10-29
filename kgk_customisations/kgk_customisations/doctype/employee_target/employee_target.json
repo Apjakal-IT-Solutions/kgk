@@ -15,8 +15,7 @@
   "employee_name",
   "factory_code",
   "factory_process",
-  "column_break_eekh",
-  "placeholder"
+  "column_break_eekh"
  ],
  "fields": [
   {
@@ -54,24 +53,21 @@
   {
    "fieldname": "factory_process",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Factory Process",
    "options": "Factory Process"
   },
   {
    "fieldname": "factory_code",
    "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Factory Code"
   },
   {
    "fieldname": "column_break_rkrg",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fetch_if_empty": 1,
-   "fieldname": "placeholder",
-   "fieldtype": "Int",
-   "label": "Placeholder"
   },
   {
    "fieldname": "column_break_eekh",
@@ -81,7 +77,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-28 15:55:28.789338",
+ "modified": "2025-10-29 12:46:28.623271",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Employee Target",

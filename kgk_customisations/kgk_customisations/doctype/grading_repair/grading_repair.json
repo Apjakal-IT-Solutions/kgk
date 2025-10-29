@@ -17,7 +17,8 @@
   "section_break_wpva",
   "table_qese",
   "percentages_section",
-  "table_zlqf"
+  "table_zlqf",
+  "amended_from"
  ],
  "fields": [
   {
@@ -89,12 +90,23 @@
    "fieldtype": "Table",
    "options": "Grading Report Percentage Item",
    "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Grading Repair",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-10-28 12:59:44.974604",
+ "modified": "2025-10-29 15:17:50.722066",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Grading Repair",

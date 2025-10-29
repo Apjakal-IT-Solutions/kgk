@@ -99,16 +99,16 @@
    "fieldtype": "Data",
    "in_filter": 1,
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Employee Code",
-   "read_only": 1
+   "label": "Employee Code"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-28 16:35:54.092536",
+ "modified": "2025-10-29 13:43:08.966950",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry Item",

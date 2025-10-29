@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:SAW-{MM}-{YY}-{###}",
  "creation": "2025-10-28 10:20:21.266565",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -15,7 +16,8 @@
   "ls_from_factoy_b",
   "column_break_xpem",
   "results_ok_b",
-  "results_not_ok_b"
+  "results_not_ok_b",
+  "amended_from"
  ],
  "fields": [
   {
@@ -95,15 +97,27 @@
    "label": "Output Results Not Ok",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Sawing Report",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-10-28 10:31:20.532431",
+ "modified": "2025-10-29 15:32:45.503310",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
- "name": "Sawing Report",
+ "name": "Sawing Entry",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -115,6 +129,18 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
+   "select": 1,
    "share": 1,
    "write": 1
   }

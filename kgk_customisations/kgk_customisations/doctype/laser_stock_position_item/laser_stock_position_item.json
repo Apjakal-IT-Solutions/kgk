@@ -26,6 +26,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "pcs",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -44,15 +45,14 @@
    "label": "CTS",
    "non_negative": 1,
    "precision": "2",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-28 14:16:53.102027",
+ "modified": "2025-10-29 09:26:15.886746",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Laser Stock Position Item",
