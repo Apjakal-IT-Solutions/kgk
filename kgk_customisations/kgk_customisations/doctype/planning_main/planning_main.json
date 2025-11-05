@@ -1,0 +1,180 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:Main-{MM}-{YY}-{###}",
+ "creation": "2025-09-04 10:29:35.956513",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "planning_main_section",
+  "date",
+  "column_break_ibme",
+  "time",
+  "round_values_section",
+  "round_target",
+  "column_break_skor",
+  "round_actual",
+  "fancy_values_section",
+  "fancy_target",
+  "column_break_zqks",
+  "fancy_actual",
+  "total_section",
+  "target_total",
+  "column_break_vfzq",
+  "actual_total",
+  "column_break_tjeo",
+  "fancy_reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "planning_main_section",
+   "fieldtype": "Section Break",
+   "label": "Planning Main"
+  },
+  {
+   "fieldname": "round_actual",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Actual",
+   "non_negative": 1,
+   "options": "Department",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fancy_actual",
+   "fieldtype": "Float",
+   "label": "Actual",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_ibme",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "30.00",
+   "fieldname": "fancy_target",
+   "fieldtype": "Float",
+   "label": "Target",
+   "non_negative": 1,
+   "precision": "2",
+   "read_only_depends_on": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "round_values_section",
+   "fieldtype": "Section Break",
+   "label": "Round Values"
+  },
+  {
+   "fieldname": "column_break_skor",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fancy_values_section",
+   "fieldtype": "Section Break",
+   "label": "Fancy Values"
+  },
+  {
+   "fieldname": "column_break_zqks",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fancy_reason",
+   "fieldtype": "Link",
+   "label": "Reason",
+   "options": "Reason"
+  },
+  {
+   "default": "170.00",
+   "fieldname": "round_target",
+   "fieldtype": "Float",
+   "label": "Target",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_section",
+   "fieldtype": "Section Break",
+   "label": "Total"
+  },
+  {
+   "fieldname": "target_total",
+   "fieldtype": "Float",
+   "label": "Target Total",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_vfzq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "actual_total",
+   "fieldtype": "Float",
+   "label": "Actual Total",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fetch_if_empty": 1,
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time"
+  },
+  {
+   "fieldname": "column_break_tjeo",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-11-05 11:27:13.340219",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Planning Main",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

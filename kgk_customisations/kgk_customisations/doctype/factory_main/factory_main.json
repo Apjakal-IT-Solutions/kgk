@@ -1,0 +1,80 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:FAC-{MM}-{YY}-{###}",
+ "creation": "2025-11-05 11:24:13.793372",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_lmfk",
+  "work_date",
+  "column_break_wtab",
+  "factory_main_section",
+  "factory_main_item_table"
+ ],
+ "fields": [
+  {
+   "fieldname": "factory_main_section",
+   "fieldtype": "Section Break",
+   "label": "Factory Main"
+  },
+  {
+   "fieldname": "factory_main_item_table",
+   "fieldtype": "Table",
+   "options": "Factory Main Item"
+  },
+  {
+   "fieldname": "section_break_lmfk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "work_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Work Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_wtab",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-05 12:26:43.315946",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Factory Main",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
