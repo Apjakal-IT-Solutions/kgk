@@ -39,6 +39,7 @@
    "description": "Upload Raw OCR data file (.xlsx)",
    "fieldname": "file_upload",
    "fieldtype": "Attach",
+   "in_list_view": 1,
    "label": "File Upload",
    "reqd": 1
   },
@@ -57,7 +58,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-28 12:27:40.105397",
+ "modified": "2025-11-07 11:13:40.464248",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "OCR Data Upload",

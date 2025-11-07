@@ -68,23 +68,3 @@ function prefill_section_type_target_table(frm) {
         }
     });
 }
-
-// Optional: Add a button to manually refresh the table
-frappe.ui.form.on("Factory Main", {
-    refresh(frm) {
-        // Add custom button to refresh table data
-        frm.add_custom_button(__("Refresh Table"), function() {
-            // Clear existing data and refill
-            frm.clear_table("factory_main_item_table");
-            frm.refresh_field("factory_main_item_table");
-
-            // Pre-fill again
-            prefill_section_type_target_table(frm);
-        }, __("Actions"));
-        
-        // Auto-fill on refresh if table is empty
-        if (!frm.doc.section_type_target || frm.doc.section_type_target.length === 0) {
-            prefill_section_type_target_table(frm);
-        }
-    }
-});

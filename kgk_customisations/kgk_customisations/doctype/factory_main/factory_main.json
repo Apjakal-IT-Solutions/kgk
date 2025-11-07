@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:FAC-{MM}-{YY}-{###}",
  "creation": "2025-11-05 11:24:13.793372",
@@ -10,7 +11,8 @@
   "work_date",
   "column_break_wtab",
   "factory_main_section",
-  "factory_main_item_table"
+  "factory_main_item_table",
+  "amended_from"
  ],
  "fields": [
   {
@@ -19,6 +21,7 @@
    "label": "Factory Main"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "factory_main_item_table",
    "fieldtype": "Table",
    "options": "Factory Main Item"
@@ -28,21 +31,35 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "work_date",
    "fieldtype": "Date",
+   "in_filter": 1,
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Work Date",
    "reqd": 1
   },
   {
    "fieldname": "column_break_wtab",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Factory Main",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-11-05 12:26:43.315946",
+ "modified": "2025-11-07 10:49:09.815602",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Main",
@@ -70,11 +87,13 @@
    "report": 1,
    "role": "Fulfillment User",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

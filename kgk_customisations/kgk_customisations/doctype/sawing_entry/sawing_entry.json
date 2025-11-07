@@ -6,12 +6,15 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_nyeb",
+  "work_date",
+  "column_break_rppn",
   "sheet_a_section",
   "ls_from_sawing_a",
   "factory_stones_a",
-  "column_break_rppn",
-  "results_ok_a",
+  "column_break_jyhk",
   "results_not_ok_a",
+  "results_ok_a",
   "sheet_b_section",
   "ls_from_factoy_b",
   "column_break_xpem",
@@ -20,11 +23,6 @@
   "amended_from"
  ],
  "fields": [
-  {
-   "fieldname": "sheet_a_section",
-   "fieldtype": "Section Break",
-   "label": "Sheet A"
-  },
   {
    "default": "0",
    "fieldname": "ls_from_sawing_a",
@@ -103,17 +101,39 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Sawing Report",
+   "options": "Sawing Entry",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "work_date",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Work Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_jyhk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_nyeb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "sheet_a_section",
+   "fieldtype": "Section Break",
+   "label": "Sheet A"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-29 15:32:45.503310",
+ "modified": "2025-11-07 11:08:39.239235",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Sawing Entry",

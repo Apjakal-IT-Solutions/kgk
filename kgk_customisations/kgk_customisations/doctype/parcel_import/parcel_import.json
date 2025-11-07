@@ -1,13 +1,17 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:ROUGH-{MM}-{YY}",
  "creation": "2025-09-24 11:43:42.772606",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "upload_date",
   "upload_file",
+  "column_break_myxc",
   "status",
-  "log"
+  "log",
+  "amended_from"
  ],
  "fields": [
   {
@@ -24,15 +28,37 @@
    "fieldname": "log",
    "fieldtype": "Long Text",
    "label": "Log"
+  },
+  {
+   "fieldname": "column_break_myxc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "upload_date",
+   "fieldtype": "Date",
+   "label": "Upload Date"
+  },
+  {
+   "fetch_if_empty": 1,
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Parcel Import",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-09-24 11:44:44.403059",
+ "modified": "2025-11-07 11:23:22.869662",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Parcel Import",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

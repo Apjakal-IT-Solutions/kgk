@@ -34,7 +34,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "PCS\nPOL.ct\nPROP .ct",
+   "options": "PCS\nPOL.ct\nPROP.ct",
    "reqd": 1
   },
   {
@@ -57,7 +57,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-29 14:20:55.323322",
+ "modified": "2025-11-06 08:59:50.146875",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Main Section Type Target",
