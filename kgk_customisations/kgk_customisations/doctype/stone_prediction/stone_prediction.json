@@ -9,11 +9,12 @@
  "field_order": [
   "predicted_by",
   "column_break_cvdq",
+  "parcel_name",
   "predicted_number_of_cuts",
   "estimated_value",
-  "parcel_name",
   "predicted_cuts_section",
-  "predicted_cuts"
+  "predicted_cuts",
+  "amended_from"
  ],
  "fields": [
   {
@@ -66,13 +67,23 @@
   {
    "fieldname": "column_break_cvdq",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Stone Prediction",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-27 09:47:22.351578",
+ "modified": "2025-11-07 12:30:42.450300",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Stone Prediction",
@@ -120,5 +131,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

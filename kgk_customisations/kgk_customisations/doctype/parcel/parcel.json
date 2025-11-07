@@ -1,12 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:parcel_name",
+ "autoname": "format:{parcel_name}-{MM}-{##}",
  "creation": "2025-09-24 11:03:27.998422",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "parcel_information_section",
+  "date",
   "parcel_name",
   "batch_reference",
   "barcode",
@@ -23,7 +24,8 @@
   "advisor_details_section",
   "advisor_details",
   "polished_details_section",
-  "polished_stones"
+  "polished_stones",
+  "amended_from"
  ],
  "fields": [
   {
@@ -119,32 +121,74 @@
    "fieldname": "polished_stones",
    "fieldtype": "Table",
    "options": "Polished Detail"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Parcel",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [
   {
    "link_doctype": "Stone",
    "link_fieldname": "parcel"
   }
  ],
- "modified": "2025-10-27 16:31:35.589165",
+ "modified": "2025-11-07 12:20:27.273501",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Parcel",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Report Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Appraiser",
+   "select": 1,
    "share": 1,
    "write": 1
   }
