@@ -6,265 +6,11 @@ from frappe.model.document import Document
 import json
 import os
 import re
+from kgk_customisations.utils.ocr_utils import extract_ocr_fields_from_text, get_consolidated_ocr_data
+from kgk_customisations.utils.excel_utils import create_styled_excel_workbook, create_download_response
 
 
-# Extraction logic (adapted from readings_optimisation.py)
-def extract_fields(text: str):
-	"""
-	Tokenise OCR output into field segments, extract with regex,
-	apply inference and override rules for Blue UV, Brown, Type,
-	handle mis-ordered COLOR/RESULT, enforce strict validation on
-	Result and Color, and support Fancy Yellow override.
-	"""
-	
-	t = re.sub(r"[\r\n]+", " ", text or "").upper()
-	t = re.sub(r"\bYELL\s*UU\b", "YELL UV", t)
-	t = t.replace("=", "-").replace("||", "")
-	t = re.sub(r"\bLICHT\b", "LIGHT", t)
-
-	t = re.sub(r"\bLUE\s*UV\b", "BLUE UV", t)
-	t = re.sub(r"\bWU\b", "UV", t)
-	t = re.sub(r"\bROWN\b", "BROWN", t)
-
-	fancy_override = "CHECK FANCY" in t
-
-	m0 = re.search(r"\b(RESULT|COLOR|BLUE\s*UV)\b", t)
-	if m0:
-		t = t[m0.start() :]
-
-	fields = [
-		"RESULT",
-		"COLOR",
-		"BLUE\\s*UV",
-		"BROWN",
-		"YELL?OW\\s*UV",
-		"TYPE",
-		"FANCY\\s*YELLOW",
-	]
-	parts = re.split(r"\b(" + "|".join(fields) + r")\b", t, flags=re.IGNORECASE)
-	raw = {}
-	for i in range(1, len(parts) - 1, 2):
-		key = parts[i].strip().upper().replace(" ", "_")
-		val = parts[i + 1].strip()
-		raw.setdefault(key, val)
-
-	patterns = {
-		"RESULT": re.compile(r"([!?]{1,4}|[A-Z0-9+\-]{1,2})"),
-		"COLOR": re.compile(r"([A-Z]{1,2}[+\-]?|\d+)"),
-		"BLUE_UV": re.compile(r"([A-Z]+)\s*\.?([0-9]{1,3})"),
-		"BROWN": re.compile(r"([A-Z? ]+)"),
-		"YELLOW_UV": re.compile(r"([A-Z! ]+)"),
-		"TYPE": re.compile(r"([A-Z][A-Z ]+)"),
-		"FANCY_YELLOW": re.compile(r"([A-Z ]+)"),
-	}
-	clean = {}
-	for fld, pat in patterns.items():
-		seg = raw.get(fld, "")
-		if fld in ("RESULT", "COLOR"):
-			seg = seg.replace(" ", "")
-		m = pat.search(seg)
-		val = m.group(0).strip() if m else ""
-		if fld in ("RESULT", "COLOR"):
-			val = val.replace("=", "-")
-			dm = re.fullmatch(r"(\d)([+\-]?)", val)
-			if dm and dm.group(1) in {"6", "1"}:
-				val = {"6": "G", "1": "I"}[dm.group(1)] + dm.group(2)
-			if fld == "RESULT" and val.isdigit():
-				val = "".join("!" if int(d) < 5 else "?" for d in val)
-		if fld == "BLUE_UV" and m:
-			val = f"{m.group(1)} {m.group(2)}"
-		clean[fld] = val
-
-	col_blob = raw.get("COLOR", "")
-	if "RESULT" in col_blob.upper():
-		blob = col_blob.replace(" ", "")
-		toks = re.findall(r"([A-Z0-9!?+\-]+)", blob)
-		if len(toks) >= 2:
-			first, second = toks[0], toks[1]
-			if first in ("!", "1!"):
-				first = "!!"
-			elif first.isdigit():
-				first = "".join("!" if int(d) < 5 else "?" for d in first)
-			clean["RESULT"], clean["COLOR"] = first, second
-	elif not clean["COLOR"]:
-		resseg = raw.get("RESULT", "").replace(" ", "")
-		toks = re.findall(r"([A-Z0-9!?+\-]+)", resseg)
-		if len(toks) >= 2:
-			first, second = toks[0], toks[1]
-			if first in ("!", "1!"):
-				first = "!!"
-			elif first.isdigit():
-				first = "".join("!" if int(d) < 5 else "?" for d in first)
-			clean["RESULT"], clean["COLOR"] = first, second
-
-	if clean.get("COLOR") == "1":
-		clean["COLOR"] = "I"
-
-	buv = raw.get("BLUE_UV", "")
-	m_lbl = re.search(r"\b(FAINT|LIGHT|MEDIUM|STRONG|NONE)\b", buv)
-	m_dig = re.search(r"\b(\d{1,4})\b", buv)
-	if m_lbl:
-		lbl = m_lbl.group(1)
-		if lbl == "NONE":
-			clean["BLUE_UV"] = "NONE 000"
-		elif m_dig:
-			code = m_dig.group(1)[:3]
-			clean["BLUE_UV"] = f"{lbl} {code}"
-		else:
-			clean["BLUE_UV"] = lbl
-	elif m_dig:
-		clean["BLUE_UV"] = m_dig.group(1)[:3]
-
-	if not clean["RESULT"] and "STRONG" in buv:
-		clean["RESULT"] = "??"
-	if not clean["RESULT"] and raw.get("YELL?OW_UV", ""):
-		clean["RESULT"] = "!!"
-
-	br = raw.get("BROWN", "").upper()
-	if "TLB?" in br:
-		clean["BROWN"] = "TLB?"
-	elif re.search(r"\bLB\b", br):
-		clean["BROWN"] = "LB!"
-	elif "NOT" in br and "MEASURED" in br:
-		clean["BROWN"] = "NOT MEASURED"
-	elif "NONE" in br:
-		clean["BROWN"] = "NONE"
-	else:
-		clean["BROWN"] = ""
-
-	mT = re.search(r"TYPE\s*2[AB]\s+(MIXED|WHITE|BLUE OR GRAY|GRAY|BROWN)", t)
-	clean["TYPE"] = mT.group(1) if mT else ""
-
-	if clean.get("RESULT") in ("!", "1!"):
-		clean["RESULT"] = "!!"
-	allowed_res = {
-		"D",
-		"DE",
-		"E",
-		"E-",
-		"E+",
-		"F",
-		"F-",
-		"F+",
-		"G",
-		"G-",
-		"G+",
-		"H",
-		"H-",
-		"H+",
-		"I",
-		"I-",
-		"I+",
-		"J",
-		"J-",
-		"J+",
-		"K",
-		"K-",
-		"K+",
-		"?",
-		"??",
-		"???",
-	}
-	if (
-		not re.fullmatch(r"[!?]{1,4}", clean.get("RESULT", ""))
-		and clean.get("RESULT", "") not in allowed_res
-	):
-		clean["RESULT"] = ""
-
-	c = clean.get("COLOR", "")
-	allowed_col = {
-		"D",
-		"DE",
-		"E",
-		"E+",
-		"E-",
-		"F",
-		"F+",
-		"F-",
-		"G",
-		"G+",
-		"G-",
-		"H",
-		"H+",
-		"H-",
-		"I",
-		"I+",
-		"I-",
-		"J",
-		"J+",
-		"J-",
-		"K",
-		"K+",
-		"K-",
-	}
-	if re.fullmatch(r"[A-Z]{1,3}[+\-]?", c):
-		if c not in allowed_col:
-			clean["COLOR"] = ""
-	elif not re.fullmatch(r"\d{3}", c):
-		clean["COLOR"] = ""
-
-	scale = [chr(x) for x in range(ord("D"), ord("Z") + 1)]
-	r0, c0 = clean.get("RESULT", "")[:1], clean.get("COLOR", "")[:1]
-	if r0 in scale and c0 in scale and scale.index(c0) < scale.index(r0):
-		clean["COLOR"] = clean["RESULT"]
-
-	if not clean["RESULT"]:
-		parts = raw.get("RESULT", "").strip().split()
-		norm = []
-		skip = False
-		for i, p in enumerate(parts):
-			if skip:
-				skip = False
-				continue
-			if (
-				re.fullmatch(r"[A-Z]", p)
-				and i + 1 < len(parts)
-				and parts[i + 1] in ("+", "-")
-			):
-				norm.append(p + parts[i + 1])
-				skip = True
-			elif re.fullmatch(r"[A-Z][+\-]?", p):
-				norm.append(p)
-			elif re.fullmatch(r"[!?]{1,4}", p):
-				norm.append(p)
-		if norm:
-			clean["RESULT"] = norm[0]
-
-	if not clean["COLOR"]:
-		rseg = raw.get("RESULT", "")
-		toks = re.findall(r"([A-Z][+\-]?|[!?]{1,4})", rseg.replace(" ", ""))
-		if len(toks) >= 2:
-			letter_toks = [tok for tok in toks if re.fullmatch(r"[A-Z][+\-]?", tok)]
-			if letter_toks:
-				clean["COLOR"] = letter_toks[-1]
-
-	if not clean["COLOR"]:
-		rc = raw.get("COLOR", "").upper()
-		m = re.findall(r"[DEFGHIJK]", rc)
-		if m:
-			clean["COLOR"] = m[0]
-		elif "1" in rc:
-			clean["COLOR"] = "I"
-
-	if not clean["COLOR"]:
-		rc = raw.get("COLOR", "").upper().strip()
-		for bad, good in {"FS": "F", "CH": "H", "1": "I"}.items():
-			if rc == bad:
-				clean["COLOR"] = good
-				break
-
-	if fancy_override:
-		clean["FANCY_YELLOW"] = "CHECK FANCY"
-
-	return {
-		"Result": clean.get("RESULT", ""),
-		"Color": clean.get("COLOR", ""),
-		"Blue UV": clean.get("BLUE_UV", ""),
-		"Brown": clean.get("BROWN", ""),
-		"Yellow UV": clean.get("YELLOW_UV", ""),
-		"Type": clean.get("TYPE", ""),
-		"Fancy Yellow": clean.get("FANCY_YELLOW", ""),
-	}
+# Extraction logic moved to utils/ocr_utils.py for reusability
 
 
 class OCRDataUpload(Document):
@@ -445,7 +191,7 @@ class OCRDataUpload(Document):
 					# Now, if we have OCR output text, extract refined values using our extraction logic
 					if hasattr(child, 'text_data') and child.text_data:
 						try:
-							extracted_fields = extract_fields(child.text_data)
+							extracted_fields = extract_ocr_fields_from_text(child.text_data)
 							
 							# Apply fallback logic from original Excel values (like in reference code)
 							# Only update fields if they're not already populated from Excel, with fallbacks
@@ -570,51 +316,377 @@ class OCRDataUpload(Document):
 
 @frappe.whitelist()
 def download_cumulative_report():
-	"""Generate and download cumulative report with refined columns - optimized for large datasets"""
+	"""Generate and download cumulative report with refined columns - using centralized utilities"""
 	try:
-		# Check dataset size first
-		total_count = frappe.db.sql("""
-			SELECT COUNT(*) as count 
-			FROM `tabOCR Data Item` 
-			WHERE parent IN (
-				SELECT name FROM `tabOCR Data Upload` WHERE docstatus != 2
-			)
-		""", as_dict=True)[0].count
+		# Get consolidated OCR data using centralized function
+		ocr_data = get_consolidated_ocr_data(include_refined=True, format="dict")
 		
-		print(f"Total records to process: {total_count}")
+		if not ocr_data or len(ocr_data) == 0:
+			return {"success": False, "message": "No OCR data found for report generation"}
+		
+		total_records = len(ocr_data)
 		
 		# For very large datasets, use background job
-		if total_count > 5000:
-			# Enqueue background job for large datasets
+		if total_records > 5000:
 			job = frappe.enqueue(
 				method='kgk_customisations.kgk_customisations.doctype.ocr_data_upload.ocr_data_upload.generate_large_report_background',
-				timeout=1800,  # 30 minutes
+				timeout=1800,
 				is_async=True,
 				job_name=f"ocr_report_{frappe.session.user}_{frappe.utils.now()}"
 			)
 			
 			return {
 				"success": True,
-				"message": f"Report generation started in background for {total_count} records. You will receive a notification when it's ready.",
+				"message": f"Report generation started in background for {total_records} records. You will receive a notification when it's ready.",
 				"is_background": True,
 				"job_id": job.id,
-				"records_count": total_count
+				"records_count": total_records
 			}
 		
 		# For smaller datasets, process immediately
-		return generate_small_report_immediate(total_count)
+		return generate_small_report_immediate_centralized(ocr_data)
 		
 	except Exception as e:
-		error_msg = f"Error initiating report generation: {str(e)}"
-		print(f"Download report error: {error_msg}")
-		frappe.msgprint(error_msg, indicator="red")
+		error_msg = f"Error in download_cumulative_report: {str(e)}"
+		frappe.log_error(error_msg)
+		return {"success": False, "message": error_msg}
+def generate_small_report_immediate_centralized(ocr_data):
+	"""Generate report immediately using centralized utilities for smaller datasets"""
+	try:
+		from kgk_customisations.utils.excel_utils import create_download_response
+		from openpyxl import Workbook
+		from openpyxl.styles import PatternFill, Font
+		from openpyxl.utils import get_column_letter
+		
+		# Create Excel workbook
+		wb = Workbook()
+		ws = wb.active
+		ws.title = "Cumulative OCR Report"
+		
+		# Define headers including refined columns
+		headers = [
+			"Upload Date", "Sequence", "Created On", "Batch Name", "Text Data",
+			"Lot ID 1", "Lot ID 2", "Sub Lot ID", "Result", "Color", 
+			"Blue UV", "Yellow UV", "Brown", "Type", "Fancy Yellow",
+			"Refined Result", "Refined Color", "Refined Blue UV", "Refined Brown",
+			"Refined Yellow UV", "Refined Type", "Refined Fancy Yellow"
+		]
+		ws.append(headers)
+		
+		# Process each record
+		processed_count = 0
+		for item in ocr_data:
+			# Base row data
+			row = [
+				item.get("upload_date", ""),
+				item.get("sequence", ""),
+				item.get("created_on", ""),
+				item.get("batch_name", ""),
+				(item.get("text_data", "") or "")[:500],  # Truncate for display
+				item.get("lot_id_1", ""),
+				item.get("lot_id_2", ""),
+				item.get("sub_lot_id", ""),
+				item.get("result", ""),
+				item.get("color", ""),
+				item.get("blue_uv", ""),
+				item.get("yellow_uv", ""),
+				item.get("brown", ""),
+				item.get("type", ""),
+				item.get("fancy_yellow", "")
+			]
+			
+			# Add refined columns (these should already be in the data from get_consolidated_ocr_data)
+			row.extend([
+				item.get("refined_result", ""),
+				item.get("refined_color", ""),
+				item.get("refined_blue_uv", ""),
+				item.get("refined_brown", ""),
+				item.get("refined_yellow_uv", ""),
+				item.get("refined_type", ""),
+				item.get("refined_fancy_yellow", "")
+			])
+			
+			ws.append(row)
+			processed_count += 1
+		
+		# Apply formatting using centralized utility
+		from kgk_customisations.utils.excel_utils import apply_standard_header_formatting
+		apply_standard_header_formatting(ws, 1)
+		
+		# Highlight refined columns manually since our utils might not handle this exactly
+		yellow_fill = PatternFill(start_color="FFF2CC", end_color="FFF2CC", fill_type="solid")
+		yellow_header_fill = PatternFill(start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+		header_font = Font(bold=True)
+		
+		# Refined columns start at column 16 (P) and go to column 22 (V)
+		refined_start_col = 16  # "Refined Result" column
+		refined_end_col = 22    # "Refined Fancy Yellow" column
+		
+		# Apply yellow highlighting to refined column headers
+		for col_idx in range(refined_start_col, refined_end_col + 1):
+			cell = ws.cell(row=1, column=col_idx)
+			cell.fill = yellow_header_fill
+			cell.font = header_font
+		
+		# Apply yellow highlighting to all refined column data cells
+		for row_idx in range(2, ws.max_row + 1):
+			for col_idx in range(refined_start_col, refined_end_col + 1):
+				cell = ws.cell(row=row_idx, column=col_idx)
+				cell.fill = yellow_fill
+		
+		# Set column widths
+		for col_idx in range(1, len(headers) + 1):
+			column_letter = get_column_letter(col_idx)
+			if col_idx == 5:  # Text Data column
+				ws.column_dimensions[column_letter].width = 30
+			elif col_idx >= refined_start_col:  # Refined columns
+				ws.column_dimensions[column_letter].width = 12
+			else:
+				ws.column_dimensions[column_letter].width = 15
+		
+		# Create download using centralized function
+		filename = f"cumulative_ocr_report_{frappe.utils.today().replace('-', '_')}.xlsx"
+		download_result = create_download_response(wb, filename)
+		
+		if download_result.get("success"):
+			return {
+				"success": True,
+				"message": f"Report generated with {processed_count} records including refined analysis",
+				"download_triggered": True,
+				"records_count": processed_count
+			}
+		else:
+			return {"success": False, "message": f"Error creating download: {download_result.get('error')}"}
+		
+	except Exception as e:
+		error_msg = f"Error generating immediate report with centralized utilities: {str(e)}"
+		frappe.log_error(error_msg)
 		import traceback
 		traceback.print_exc()
-		return {
-			"success": False, 
-			"message": error_msg,
-			"error_details": str(e)
+		return {"success": False, "message": error_msg}
+
+
+def generate_report_using_centralized_functions(ocr_data):
+	"""Generate report immediately using centralized Excel utilities"""
+	try:
+		from openpyxl.utils import get_column_letter
+		
+		# Prepare sheet data
+		sheets_data = {
+			"Cumulative OCR Report": {
+				"headers": ocr_data.get("headers", []),
+				"data": ocr_data.get("data", []),
+				"special_formatting": {
+					"highlighted_columns": {
+						"columns": list(range(16, 23)),  # Refined columns (P-V)
+						"color": "FFF2CC",
+						"start_row": 2
+					},
+					"column_widths": {
+						"E": 30  # Text Data column
+						# Refined columns width will be set dynamically
+					}
+				}
+			}
 		}
+		
+		# Create workbook using centralized function
+		workbook_result = create_styled_excel_workbook(sheets_data, "cumulative_ocr_report")
+		
+		if not workbook_result.get("success"):
+			return {"success": False, "message": f"Error creating workbook: {workbook_result.get('error')}"}
+		
+		# Create download response
+		download_result = create_download_response(
+			workbook_result["workbook"], 
+			workbook_result["filename"]
+		)
+		
+		if download_result.get("success"):
+			return {
+				"success": True,
+				"message": f"Report generated with {ocr_data.get('total_records', 0)} records including refined analysis",
+				"download_triggered": True,
+				"records_count": ocr_data.get("total_records", 0)
+			}
+		else:
+			return {"success": False, "message": f"Error creating download: {download_result.get('error')}"}
+		
+	except Exception as e:
+		frappe.log_error(f"Error generating report with centralized functions: {str(e)}")
+		return {"success": False, "message": str(e)}
+
+
+def generate_large_report_background_centralized():
+	"""Background job for large report generation using centralized utilities"""
+	try:
+		# Get all OCR data using centralized function  
+		ocr_data = get_consolidated_ocr_data(include_refined=True, format="dict")
+		
+		if not ocr_data or len(ocr_data) == 0:
+			frappe.publish_realtime(
+				event='report_error',
+				message={'title': 'OCR Report Error', 'message': 'No OCR data found'},
+				user=frappe.session.user
+			)
+			return {"success": False, "message": "No OCR data found"}
+		
+		total_records = len(ocr_data)
+		
+		# Use the existing background function with centralized data
+		return generate_large_report_background_with_data(ocr_data)
+		
+	except Exception as e:
+		error_msg = f"Error in background report generation: {str(e)}"
+		frappe.log_error(error_msg)
+		
+		# Send error notification
+		frappe.publish_realtime(
+			event='report_error',
+			message={'title': 'OCR Report Error', 'message': f'Error generating report: {str(e)}'},
+			user=frappe.session.user
+		)
+		
+		return {"success": False, "message": error_msg}
+
+
+def generate_large_report_background_with_data(ocr_data):
+	"""Generate large report using provided OCR data"""
+	try:
+		from kgk_customisations.utils.excel_utils import save_excel_as_frappe_file
+		from openpyxl import Workbook
+		from openpyxl.styles import PatternFill, Font
+		from openpyxl.utils import get_column_letter
+		
+		# Create Excel workbook
+		wb = Workbook()
+		ws = wb.active
+		ws.title = "Cumulative OCR Report"
+		
+		# Add headers
+		headers = [
+			"Upload Date", "Sequence", "Created On", "Batch Name", "Text Data",
+			"Lot ID 1", "Lot ID 2", "Sub Lot ID", "Result", "Color", 
+			"Blue UV", "Yellow UV", "Brown", "Type", "Fancy Yellow",
+			"Refined Result", "Refined Color", "Refined Blue UV", "Refined Brown",
+			"Refined Yellow UV", "Refined Type", "Refined Fancy Yellow"
+		]
+		ws.append(headers)
+		
+		# Style headers with proper highlighting
+		header_fill = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
+		yellow_header_fill = PatternFill(start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+		yellow_fill = PatternFill(start_color="FFF2CC", end_color="FFF2CC", fill_type="solid")
+		header_font = Font(bold=True)
+		
+		# Style header row
+		for i, cell in enumerate(ws[1], 1):
+			cell.font = header_font
+			if i > 15:  # Refined columns (columns 16-22)
+				cell.fill = yellow_header_fill
+			else:
+				cell.fill = header_fill
+		
+		processed_count = 0
+		
+		# Process each record
+		for item in ocr_data:
+			row_data = [
+				item.get("upload_date", ""),
+				item.get("sequence", ""),
+				item.get("created_on", ""),
+				item.get("batch_name", ""),
+				(item.get("text_data", "") or "")[:1000],  # Truncate for memory
+				item.get("lot_id_1", ""),
+				item.get("lot_id_2", ""),
+				item.get("sub_lot_id", ""),
+				item.get("result", ""),
+				item.get("color", ""),
+				item.get("blue_uv", ""),
+				item.get("yellow_uv", ""),
+				item.get("brown", ""),
+				item.get("type", ""),
+				item.get("fancy_yellow", "")
+			]
+			
+			# Add refined columns
+			row_data.extend([
+				item.get("refined_result", ""),
+				item.get("refined_color", ""),
+				item.get("refined_blue_uv", ""),
+				item.get("refined_brown", ""),
+				item.get("refined_yellow_uv", ""),
+				item.get("refined_type", ""),
+				item.get("refined_fancy_yellow", "")
+			])
+			
+			ws.append(row_data)
+			processed_count += 1
+			
+			# Progress update
+			if processed_count % 1000 == 0:
+				print(f"Processed {processed_count} records...")
+		
+		# Apply yellow highlighting to all refined column data cells
+		refined_start_col = 16  # "Refined Result" column
+		refined_end_col = 22    # "Refined Fancy Yellow" column
+		
+		print("Applying refined column highlighting...")
+		for row_idx in range(2, ws.max_row + 1):
+			for col_idx in range(refined_start_col, refined_end_col + 1):
+				cell = ws.cell(row=row_idx, column=col_idx)
+				cell.fill = yellow_fill
+		
+		print(f"Highlighting applied to {ws.max_row - 1} data rows")
+		
+		# Set column widths
+		for col_idx in range(1, len(headers) + 1):
+			column_letter = get_column_letter(col_idx)
+			if col_idx == 5:  # Text Data column
+				ws.column_dimensions[column_letter].width = 30
+			elif col_idx >= refined_start_col:  # Refined columns
+				ws.column_dimensions[column_letter].width = 12
+			else:
+				ws.column_dimensions[column_letter].width = 15
+		
+		# Save using centralized function
+		filename = f"cumulative_ocr_report_{frappe.utils.today().replace('-', '_')}.xlsx"
+		file_result = save_excel_as_frappe_file(wb, filename, is_private=True)
+		
+		if file_result.get("success"):
+			# Send notification to user
+			frappe.publish_realtime(
+				event='report_ready',
+				message={
+					'title': 'OCR Report Ready',
+					'message': f'Your cumulative OCR report with {processed_count} records is ready for download.',
+					'file_url': file_result["file_url"],
+					'records_count': processed_count
+				},
+				user=frappe.session.user
+			)
+			
+			return {"success": True, "message": f"Background report completed with {processed_count} records"}
+		else:
+			raise Exception(f"File saving failed: {file_result.get('error')}")
+		
+	except Exception as e:
+		error_msg = f"Error in background report generation with data: {str(e)}"
+		print(error_msg)
+		import traceback
+		traceback.print_exc()
+		
+		# Send error notification
+		frappe.publish_realtime(
+			event='report_error',
+			message={
+				'title': 'OCR Report Error',
+				'message': f'Error generating report: {str(e)}'
+			},
+			user=frappe.session.user
+		)
+		
+		return {"success": False, "message": error_msg}
 
 
 def generate_small_report_immediate(total_count):
@@ -686,7 +758,7 @@ def generate_small_report_immediate(total_count):
 				# Add refined columns
 				if item.text_data and item.text_data.strip() and len(item.text_data) < 5000:
 					try:
-						refined_data = extract_fields(item.text_data)
+						refined_data = extract_ocr_fields_from_text(item.text_data)
 						row.extend([
 							refined_data.get("Result", ""),
 							refined_data.get("Color", ""),
@@ -863,7 +935,7 @@ def generate_large_report_background():
 					# Add refined columns
 					if item.text_data and len(item.text_data) < 3000:
 						try:
-							refined_data = extract_fields(item.text_data)
+							refined_data = extract_ocr_fields_from_text(item.text_data)
 							row_data.extend([
 								refined_data.get("Result", ""),
 								refined_data.get("Color", ""),
