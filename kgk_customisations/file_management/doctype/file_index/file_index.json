@@ -5,18 +5,64 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_u5up"
+  "lot_number",
+  "column_break_zucu",
+  "indexed_on",
+  "section_break_cjaz",
+  "file_name",
+  "file_type",
+  "column_break_uffe",
+  "file_path",
+  "file_size"
  ],
  "fields": [
   {
-   "fieldname": "section_break_u5up",
+   "fieldname": "lot_number",
+   "fieldtype": "Data",
+   "label": "Lot Number"
+  },
+  {
+   "fieldname": "column_break_zucu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "indexed_on",
+   "fieldtype": "Datetime",
+   "label": "Indexed On"
+  },
+  {
+   "fieldname": "section_break_cjaz",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "file_name",
+   "fieldtype": "Data",
+   "label": "File Name"
+  },
+  {
+   "fieldname": "file_type",
+   "fieldtype": "Select",
+   "label": "File Type"
+  },
+  {
+   "fieldname": "column_break_uffe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "file_path",
+   "fieldtype": "Data",
+   "label": "File Path"
+  },
+  {
+   "fieldname": "file_size",
+   "fieldtype": "Float",
+   "label": "File Size"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-07 13:48:59.001019",
+ "modified": "2025-11-13 09:36:47.590303",
  "modified_by": "Administrator",
  "module": "File Management",
  "name": "File Index",

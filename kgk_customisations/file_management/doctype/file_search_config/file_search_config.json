@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-13 09:26:41.245580",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "azure_base_url",
+  "column_break_usum",
+  "search_timeout",
+  "section_break_hygg",
+  "file_directories"
+ ],
+ "fields": [
+  {
+   "fieldname": "azure_base_url",
+   "fieldtype": "Data",
+   "label": "Azure Base URL"
+  },
+  {
+   "default": "180",
+   "fieldname": "column_break_usum",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "search_timeout",
+   "fieldtype": "Int",
+   "label": "Search Timeout"
+  },
+  {
+   "fieldname": "section_break_hygg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "file_directories",
+   "fieldtype": "Table",
+   "label": "File Directories",
+   "options": "File Directory"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-11-13 09:32:36.505280",
+ "modified_by": "Administrator",
+ "module": "File Management",
+ "name": "File Search Config",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -23,6 +23,7 @@
  ],
  "fields": [
   {
+   "fetch_if_empty": 1,
    "fieldname": "employee",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -32,8 +33,10 @@
   },
   {
    "fetch_from": "employee.factory_process",
+   "fetch_if_empty": 1,
    "fieldname": "factory_process",
    "fieldtype": "Link",
+   "hidden": 1,
    "in_list_view": 1,
    "label": "Factory Process",
    "options": "Factory Process",
@@ -53,6 +56,7 @@
   },
   {
    "fetch_from": "employee.target",
+   "fetch_if_empty": 1,
    "fieldname": "target",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -108,7 +112,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-29 13:43:08.966950",
+ "modified": "2025-11-10 08:59:46.336794",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry Item",

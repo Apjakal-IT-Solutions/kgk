@@ -40,6 +40,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "default": "Factory - KD",
    "fieldname": "department",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -68,7 +69,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-29 15:16:54.309729",
+ "modified": "2025-11-11 08:50:47.163940",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry",

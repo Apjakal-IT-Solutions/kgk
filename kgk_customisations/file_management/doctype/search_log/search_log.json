@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-13 09:37:38.123760",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "lot_number",
+  "column_break_nkvi",
+  "search_type",
+  "timestamp",
+  "section_break_zpza",
+  "results_found",
+  "column_break_ffds",
+  "search_duration",
+  "user"
+ ],
+ "fields": [
+  {
+   "fieldname": "lot_number",
+   "fieldtype": "Data",
+   "label": "Lot Number"
+  },
+  {
+   "fieldname": "column_break_nkvi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "search_type",
+   "fieldtype": "Select",
+   "label": "Search Type",
+   "options": "All\nAdvisor\nPolish Video\nRough Video"
+  },
+  {
+   "fieldname": "timestamp",
+   "fieldtype": "Datetime",
+   "label": "Timestamp",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_zpza",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "results_found",
+   "fieldtype": "Int",
+   "label": "Results Found",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ffds",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "search_duration",
+   "fieldtype": "Float",
+   "label": "Search Duration",
+   "read_only": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-13 09:41:07.632316",
+ "modified_by": "Administrator",
+ "module": "File Management",
+ "name": "Search Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

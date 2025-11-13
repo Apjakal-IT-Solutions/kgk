@@ -92,6 +92,16 @@ frappe.ui.form.on("Factory Entry Item", {
 				}
 			});
 		}
+	},
+	actual: function(frm, cdt, cdn){
+		// if actual is >= target, set reason to "" and disalbled
+		let row = locals[cdt][cdn];
+		if (row.actual >= row.target){
+			frappe.model.set_value(cdt, cdn, "reason", "");
+			frappe.model.set_value(cdt, cdn, "read_only", 1);
+		} else {
+			frappe.model.set_value(cdt, cdn, "read_only", 0);
+		}	
 	}
 });
 
