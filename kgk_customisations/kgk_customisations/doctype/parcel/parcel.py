@@ -159,6 +159,16 @@ def import_from_file(parcel_name: str, file_url: str):
         
         frappe.publish_progress(15, "Stone Import", f"Processing {total_rows} rows...")
         
+        # CRITICAL: Validate Excel data before processing
+        validation_errors = _validate_excel_data(df, stone_name_col)
+        if validation_errors:
+            error_summary = f"Excel data validation failed with {len(validation_errors)} errors:"
+            for i, error in enumerate(validation_errors[:5]):  # Show first 5 errors
+                error_summary += f"\n{i+1}. {error}"
+            if len(validation_errors) > 5:
+                error_summary += f"\n... and {len(validation_errors) - 5} more errors"
+            frappe.throw(error_summary)
+        
         # Build hierarchy map
         hierarchy_map = _build_hierarchy_map(df, stone_name_col)
         
@@ -207,6 +217,53 @@ def _find_name_column(columns):
     return None
 
 
+def _validate_excel_data(df, stone_name_col):
+    """Validate Excel data to catch potential issues early"""
+    errors = []
+    
+    print("=== EXCEL DATA VALIDATION ===")
+    
+    for idx, row in df.iterrows():
+        stone_name_raw = row[stone_name_col]
+        
+        # Check for completely missing stone names
+        if pd.isna(stone_name_raw):
+            errors.append(f"Row {idx+2}: Stone name is missing (NaN)")
+            continue
+        
+        stone_name = str(stone_name_raw).strip()
+        
+        # Check for empty or invalid stone names
+        if not stone_name:
+            errors.append(f"Row {idx+2}: Stone name is empty")
+            continue
+            
+        if stone_name.lower() in ['none', 'null', 'nan']:
+            errors.append(f"Row {idx+2}: Stone name is invalid: '{stone_name}'")
+            continue
+            
+        # Check for problematic characters that might cause issues
+        if stone_name == "None":
+            errors.append(f"Row {idx+2}: Stone name is literally 'None': '{stone_name}'")
+            continue
+            
+        # Validate parent stone extraction if this is a hierarchical name
+        if "/" in stone_name:
+            parent = _get_parent_stone(stone_name)
+            if not parent:
+                errors.append(f"Row {idx+2}: Could not extract valid parent from stone name: '{stone_name}'")
+                continue
+    
+    if errors:
+        print(f"Found {len(errors)} validation errors")
+        for error in errors[:10]:  # Show first 10 errors
+            print(f"  - {error}")
+    else:
+        print("Excel data validation passed - no critical errors found")
+    
+    return errors
+
+
 def _build_hierarchy_map(df, stone_name_col):
     """Build a map of all stones INCLUDING auto-generated parents needed for hierarchy"""
     hierarchy = {}
@@ -218,10 +275,12 @@ def _build_hierarchy_map(df, stone_name_col):
         stone_name_raw = row[stone_name_col]
         
         if pd.isna(stone_name_raw):
+            print(f"SKIP: Row {idx} has NaN stone name")
             continue
         
         stone_name = str(stone_name_raw).strip()
         if not stone_name or stone_name.lower() in ['none', 'null', 'nan']:
+            print(f"SKIP: Row {idx} has invalid stone name: '{stone_name}'")
             continue
         
         stones_found_in_excel += 1
@@ -246,15 +305,30 @@ def _build_hierarchy_map(df, stone_name_col):
     parents_to_add = set()
     for parent in all_parents:
         if parent not in hierarchy:
+            # VALIDATION: Ensure parent name is valid before adding
+            if not parent or parent == "None" or parent.lower() in ['none', 'null', 'nan', '']:
+                print(f"ERROR: Skipping invalid parent stone name: '{parent}'")
+                continue
+                
             # Walk up the entire parent chain
             current = parent
             while current:
+                # VALIDATION: Ensure current name is valid
+                if not current or current == "None" or current.lower() in ['none', 'null', 'nan', '']:
+                    print(f"ERROR: Stopping parent chain walk due to invalid name: '{current}'")
+                    break
+                    
                 if current not in hierarchy:
                     parents_to_add.add(current)
                 current = _get_parent_stone(current)
     
-    # Add all missing parents
+    # Add all missing parents with validation
     for parent_stone in parents_to_add:
+        # VALIDATION: Double-check parent stone name is valid
+        if not parent_stone or parent_stone == "None" or parent_stone.lower() in ['none', 'null', 'nan', '']:
+            print(f"ERROR: Skipping addition of invalid parent stone: '{parent_stone}'")
+            continue
+            
         level = parent_stone.count("/")
         grandparent = _get_parent_stone(parent_stone)
         
@@ -299,6 +373,12 @@ def _create_stones_hierarchically(df, stone_name_col, parcel_name, hierarchy_map
     
     for i, (stone_name, info) in enumerate(sorted_stones):
         try:
+            # CRITICAL: Validate stone name is not None or empty
+            if not stone_name or stone_name == "None" or stone_name.lower() in ['none', 'null', 'nan', '']:
+                print(f"ERROR: Invalid stone name detected at position {i}: '{stone_name}' - SKIPPING")
+                errors += 1
+                continue
+                
             # Update progress
             if i % 50 == 0:
                 progress = 20 + ((i / total) * 75)
@@ -414,6 +494,11 @@ def _create_stones_hierarchically(df, stone_name_col, parcel_name, hierarchy_map
 
 def _extract_stone_data(row, stone_name, parcel_name, parent_stone, level):
     """Extract all stone data from Excel row using centralized column map with enhanced barcode validation"""
+    
+    # CRITICAL VALIDATION: Ensure stone_name is valid
+    if not stone_name or stone_name == "None" or stone_name.lower() in ['none', 'null', 'nan', '']:
+        raise ValueError(f"Invalid stone name provided: '{stone_name}' - cannot create stone with empty or None name")
+    
     stone_data = {
         "doctype": "Stone",
         "stone_name": stone_name,
@@ -617,6 +702,11 @@ def _extract_stone_data(row, stone_name, parcel_name, parent_stone, level):
 
 def _create_minimal_stone_data(stone_name, parcel_name, parent_stone, level):
     """Create minimal data for parent stones without Excel data"""
+    
+    # CRITICAL VALIDATION: Ensure stone_name is valid
+    if not stone_name or stone_name == "None" or stone_name.lower() in ['none', 'null', 'nan', '']:
+        raise ValueError(f"Invalid stone name provided: '{stone_name}' - cannot create stone with empty or None name")
+    
     return {
         "doctype": "Stone",
         "stone_name": stone_name,
@@ -632,11 +722,18 @@ def _create_minimal_stone_data(stone_name, parcel_name, parent_stone, level):
 
 
 def _get_parent_stone(stone_name):
-    """Extract parent stone from name"""
-    if not stone_name or "/" not in stone_name:
+    """Extract parent stone from name with validation"""
+    if not stone_name or stone_name == "None" or stone_name.lower() in ['none', 'null', 'nan', ''] or "/" not in stone_name:
         return None
     
-    return stone_name.rsplit("/", 1)[0]
+    parent = stone_name.rsplit("/", 1)[0]
+    
+    # Validate the extracted parent name
+    if not parent or parent == "None" or parent.lower() in ['none', 'null', 'nan', '']:
+        print(f"WARNING: Invalid parent extracted from '{stone_name}': '{parent}'")
+        return None
+        
+    return parent
 
 
 @frappe.whitelist()

@@ -300,11 +300,11 @@ def get_consolidated_ocr_data(from_date=None, to_date=None, filters=None, format
 		# Build base query for OCR data
 		upload_filters = {"docstatus": ("!=", 2)}
 		
-		# Add date filtering if specified
+		# Add date filtering if specified - use upload_date field not creation
 		if from_date:
-			upload_filters["creation"] = (">=", from_date)
+			upload_filters["upload_date"] = (">=", from_date)
 		if to_date:
-			upload_filters["creation"] = ("<=", to_date)
+			upload_filters["upload_date"] = ("<=", to_date)
 		
 		# Add custom filters if provided
 		if filters and isinstance(filters, dict):
@@ -313,8 +313,8 @@ def get_consolidated_ocr_data(from_date=None, to_date=None, filters=None, format
 		# Get matching OCR Data Upload records
 		uploads = frappe.get_all("OCR Data Upload", 
 			filters=upload_filters,
-			fields=["name", "creation"],
-			order_by="creation desc"
+			fields=["name", "upload_date"],
+			order_by="upload_date desc"
 		)
 		
 		if not uploads:
@@ -333,7 +333,7 @@ def get_consolidated_ocr_data(from_date=None, to_date=None, filters=None, format
 		# Get OCR items
 		ocr_items = []
 		for upload in uploads:
-			upload_date = formatdate(upload.creation) if upload.creation else ""
+			upload_date = formatdate(upload.upload_date) if upload.upload_date else ""
 			
 			items = frappe.db.sql("""
 				SELECT sequence, created_on, batch_name, text_data, lot_id_1, lot_id_2, 

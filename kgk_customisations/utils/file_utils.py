@@ -46,19 +46,25 @@ def read_excel_file_safely(file_url, expected_columns=None, sheet_name=None):
 		# Determine file type and read accordingly
 		file_extension = os.path.splitext(file_path)[1].lower()
 		
-		if file_extension in ['.xlsx', '.xls']:
-			# Excel file
+		if file_extension in ['.xlsx', '.xls', '.xlsb']:
+			# Excel file (including binary format)
+			engine = None
+			if file_extension == '.xlsb':
+				engine = "pyxlsb"
+			elif file_extension == '.xlsx':
+				engine = "openpyxl"
+			
 			if sheet_name:
-				df = pd.read_excel(file_path, sheet_name=sheet_name, engine="pyxlsb" if file_extension == '.xlsx' else None)
+				df = pd.read_excel(file_path, sheet_name=sheet_name, engine=engine)
 			else:
-				df = pd.read_excel(file_path, engine="pyxlsb" if file_extension == '.xlsx' else None)
+				df = pd.read_excel(file_path, engine=engine)
 		elif file_extension == '.csv':
 			# CSV file
 			df = pd.read_csv(file_path)
 		else:
 			return {
 				"success": False,
-				"error": f"Unsupported file type: {file_extension}. Please use Excel (.xlsx/.xls) or CSV files.",
+				"error": f"Unsupported file type: {file_extension}. Please use Excel (.xlsx/.xls/.xlsb) or CSV files.",
 				"dataframe": None
 			}
 		

@@ -25,8 +25,8 @@ frappe.ui.form.on("Factory Entry", {
 	
 	section: function(frm) {
 		// Clear child table when section changes
-		frm.clear_table("factory_entry_item_table");
-		frm.refresh_field("factory_entry_item_table");
+		// frm.clear_table("factory_entry_item_table");
+		// frm.refresh_field("factory_entry_item_table");
 	}
 });
 
