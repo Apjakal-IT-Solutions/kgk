@@ -19,21 +19,22 @@ frappe.query_reports["OCR Parcel Merge"] = {
 			"default": "Strict",
 			"width": "120px",
 			"description": "Strict: Exact matches only, Fuzzy: Similar matches (80%+ similarity)"
-		},
-		{
-			"fieldname": "lot_id_filter",
-			"label": __("Lot ID Filter"),
-			"fieldtype": "Data",
-			"width": "120px",
-			"description": "Filter by specific Lot ID pattern (optional)"
-		},
-		{
-			"fieldname": "barcode_filter",
-			"label": __("Barcode Filter"),
-			"fieldtype": "Data",
-			"width": "120px",
-			"description": "Filter by specific barcode pattern (optional)"
 		}
+		// ,
+		// {
+		// 	"fieldname": "lot_id_filter",
+		// 	"label": __("Lot ID Filter"),
+		// 	"fieldtype": "Data",
+		// 	"width": "120px",
+		// 	"description": "Filter by specific Lot ID pattern (optional)"
+		// },
+		// {
+		// 	"fieldname": "barcode_filter",
+		// 	"label": __("Barcode Filter"),
+		// 	"fieldtype": "Data",
+		// 	"width": "120px",
+		// 	"description": "Filter by specific barcode pattern (optional)"
+		// }
 	],
 	
 	"onload": function(report) {
@@ -114,10 +115,12 @@ frappe.query_reports["OCR Parcel Merge"] = {
 	},
 	
 	"formatter": function (value, row, column, data, default_formatter) {
-		// Highlight match status
+		// Highlight match status - GREEN for matched, GRAY for unmatched
 		if (column.fieldname === 'match_status') {
 			if (value && value.includes('MATCHED')) {
 				return `<span class="indicator green">${value}</span>`;
+			} else if (value && value.includes('UNMATCHED')) {
+				return `<span class="indicator gray">${value}</span>`;
 			}
 		}
 		
@@ -130,6 +133,8 @@ frappe.query_reports["OCR Parcel Merge"] = {
 				return `<span style="background-color: #fff3cd; padding: 2px 6px; border-radius: 3px; color: #856404;">${(confidence * 100).toFixed(1)}%</span>`;
 			} else if (confidence >= 0.5) {
 				return `<span style="background-color: #f8d7da; padding: 2px 6px; border-radius: 3px; color: #721c24;">${(confidence * 100).toFixed(1)}%</span>`;
+			} else if (confidence === 0) {
+				return `<span style="background-color: #e9ecef; padding: 2px 6px; border-radius: 3px; color: #6c757d;">0%</span>`;
 			}
 		}
 		
@@ -329,7 +334,7 @@ frappe.query_reports["OCR Parcel Merge"] = {
 				new frappe.Chart(chart_container, {
 					title: "Overall Match Distribution",
 					data: {
-						labels: ["Matched Records", "Unmatched Records"],
+						labels: ["Matched", "Unmatched"],
 						datasets: [
 							{
 								values: [total_matched, total_unmatched]

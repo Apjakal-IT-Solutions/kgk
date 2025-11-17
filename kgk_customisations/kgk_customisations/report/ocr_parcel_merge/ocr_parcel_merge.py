@@ -82,11 +82,14 @@ def execute(filters=None):
 		
 		parcel_data = parcel_result["data"]
 		parcel_columns = parcel_result.get("columns", [])
+		barcode_field = parcel_result.get("barcode_field", "barcode")  # Get which field to use
+		
 		if not parcel_data:
 			return get_basic_columns(), [create_info_row("No valid parcel data found in uploaded file")]
 		
 		# Perform matching between OCR and Parcel data
-		merge_result = perform_merge_analysis(ocr_data, parcel_data, filters)
+		merge_result = perform_merge_analysis(ocr_data, parcel_data, filters, barcode_field)
+		all_records = merge_result.get("all_records", [])
 		matched_pairs = merge_result.get("matched_pairs", [])
 		unmatched_ocr = merge_result.get("unmatched_ocr", [])
 		unmatched_parcels = merge_result.get("unmatched_parcels", [])
@@ -104,18 +107,60 @@ def execute(filters=None):
 		if not matched_pairs:
 			# Return with statistics even if no matches
 			chart = generate_statistics_chart(stats)
-			message = f"No matched records found. OCR: {stats['total_ocr_records']} records, Parcel: {stats['total_parcel_records']} records"
-			return get_basic_columns(), [create_info_row(message)], message, chart
+			
+			# DEBUG: Show sample values to help diagnose matching issues
+			debug_rows = []
+			
+			# Header row
+			debug_rows.append({
+				"match_status": "DEBUG",
+				"message": f"Total OCR Records: {len(ocr_data)}, Total Parcel Records: {len(parcel_data)}. Matching OCR lot_id_1 against Parcel '{barcode_field}'"
+			})
+			
+			# Show sample OCR lot_id_1 values
+			debug_rows.append({
+				"match_status": "OCR SAMPLES",
+				"message": "Sample lot_id_1 values from OCR:"
+			})
+			for i, ocr_record in enumerate(ocr_data[:5]):
+				lot_id_1 = str(ocr_record.get("lot_id_1", ""))
+				debug_rows.append({
+					"match_status": f"OCR {i+1}",
+					"message": f"lot_id_1 = '{lot_id_1}' (length: {len(lot_id_1)})"
+				})
+			
+			# Show sample Parcel barcode values
+			debug_rows.append({
+				"match_status": "PARCEL SAMPLES",
+				"message": f"Sample '{barcode_field}' values from Parcel:"
+			})
+			for i, parcel_record in enumerate(parcel_data[:5]):
+				barcode_value = str(parcel_record.get(barcode_field, ""))
+				debug_rows.append({
+					"match_status": f"PARCEL {i+1}",
+					"message": f"{barcode_field} = '{barcode_value}' (length: {len(barcode_value)})"
+				})
+			
+			message = f"No matched records found. See debug information below."
+			return get_basic_columns(), debug_rows, message, chart
 		
 		# Generate dynamic columns based on actual OCR and Parcel data
 		columns = generate_dynamic_columns(ocr_data, parcel_columns)
 		
-		# Format only matched data for display
-		formatted_data = format_matched_records_only(matched_pairs)
+		# Format ONLY MATCHED records for display (LEFT JOIN filtered to matches only)
+		formatted_data = format_all_records(matched_pairs)
+		
+		# Count unique OCR and Parcel records in matches
+		unique_ocr_matched = len(set(str(m.get("ocr_data", {}).get("name", "")) for m in matched_pairs if m.get("ocr_data")))
+		unique_parcel_matched = len(set(str(m.get("parcel_data", {}).get("seria_id", "")) for m in matched_pairs if m.get("parcel_data")))
 		
 		# Generate chart and message with statistics
 		chart = generate_statistics_chart(stats)
-		message = f"Analysis Complete: {len(matched_pairs)} matches found from {len(ocr_data)} OCR records and {len(parcel_data)} parcel records"
+		message = (
+			f"Analysis Complete: {len(matched_pairs)} total rows displayed (Cartesian product). "
+			f"Unique matches: {unique_ocr_matched} OCR records matched with {unique_parcel_matched} Parcel records. "
+			f"Source: {len(ocr_data)} OCR records, {len(parcel_data)} parcel records."
+		)
 		
 		return columns, formatted_data, message, chart
 		
@@ -210,37 +255,53 @@ def get_parcel_data(filters):
 		
 		df = excel_result["dataframe"]
 		
-		# Validate required columns
-		required_columns = ["barcode"]  # Primary matching field
-		missing_columns = [col for col in required_columns if col.lower() not in [c.lower() for c in df.columns]]
+		# Validate required columns - check for either "barcode" or "main_barcode"
+		normalized_columns = [col.lower().strip().replace(' ', '_') for col in df.columns]
 		
-		if missing_columns:
+		has_barcode = "barcode" in normalized_columns
+		has_main_barcode = "main_barcode" in normalized_columns
+		
+		if not has_barcode and not has_main_barcode:
 			available_cols = ", ".join(df.columns.tolist())
 			return {
 				"success": False, 
-				"message": f"Missing required columns: {missing_columns}. Available columns: {available_cols}"
+				"message": f"Missing required column 'Barcode' or 'Main Barcode'. Available columns: {available_cols}"
 			}
 		
-		# Normalize column names (case-insensitive) but keep originals for display
+		# Normalize column names (case-insensitive, replace spaces with underscores)
 		original_columns = df.columns.tolist()  # Keep original names for display
-		df.columns = [col.lower().strip() for col in df.columns]
+		df.columns = [col.lower().strip().replace(' ', '_') for col in df.columns]
+		
+		# Determine which barcode field to use for matching
+		barcode_field = "main_barcode" if has_main_barcode else "barcode"
 		
 		# Convert to list of dicts for processing
 		parcel_records = df.to_dict("records")
+		
+		# Clean barcode fields - remove .0 suffix from float conversion
+		for record in parcel_records:
+			if barcode_field in record:
+				value = str(record[barcode_field])
+				# Remove trailing .0 if present (from float conversion)
+				if value.endswith('.0'):
+					record[barcode_field] = value[:-2]
+				else:
+					record[barcode_field] = value
 		
 		# Filter by barcode pattern if specified
 		if filters.get("barcode_filter"):
 			barcode_filter = filters.get("barcode_filter").upper()
 			parcel_records = [
 				record for record in parcel_records
-				if record.get("barcode", "").upper().find(barcode_filter) != -1
+				if str(record.get(barcode_field, "")).upper().find(barcode_filter) != -1
 			]
 		
 		return {
 			"success": True, 
 			"data": parcel_records,
 			"total_records": len(parcel_records),
-			"columns": original_columns  # Return original column names for display
+			"columns": original_columns,  # Return original column names for display
+			"barcode_field": barcode_field  # Return which field is being used for matching
 		}
 		
 	except Exception as e:
@@ -259,6 +320,7 @@ def create_error_row(message):
 def create_info_row(message):
 	"""Create a row to display informational messages."""
 	return {
+		"match_status": "INFO",
 		"message": message,
 		"status": "INFO"
 	}
@@ -392,8 +454,60 @@ def generate_dynamic_columns(ocr_data, parcel_columns):
 	return columns
 
 
+def format_all_records(all_records):
+	"""
+	Format all records from LEFT JOIN for display.
+	Shows all parcel records with OCR data where available.
+	"""
+	import math
+	
+	def clean_value(value):
+		"""Clean problematic values that can't be serialized to JSON."""
+		if value is None:
+			return ""
+		elif isinstance(value, float):
+			if math.isnan(value) or math.isinf(value):
+				return ""
+			return value
+		elif isinstance(value, str):
+			# Handle string representations of NaN
+			if value.upper() in ['NAN', 'NULL', 'NONE']:
+				return ""
+			return value
+		return value
+	
+	formatted_data = []
+	
+	for record in all_records:
+		parcel_data = record.get("parcel_data", {})
+		ocr_data = record.get("ocr_data", {})
+		is_matched = record.get("is_matched", False)
+		
+		# Start with match information
+		row = {
+			"match_status": f"MATCHED ({record.get('match_type', 'Unknown')})" if is_matched else "UNMATCHED",
+			"match_confidence": record.get('confidence', 0)
+		}
+		
+		# Add all OCR fields with original field names (empty if unmatched)
+		if ocr_data:
+			for field_name, field_value in ocr_data.items():
+				row[field_name] = clean_value(field_value)
+		
+		# Add all parcel fields with cleaned field names
+		for field_name, field_value in parcel_data.items():
+			# Normalize field name to match column fieldname
+			normalized_field = field_name.lower().replace(' ', '_').replace('.', '_')
+			row[normalized_field] = clean_value(field_value)
+		
+		formatted_data.append(row)
+	
+	return formatted_data
+
+
 def format_matched_records_only(matched_pairs):
 	"""
+	DEPRECATED: Use format_all_records instead.
 	Format only the matched pairs for display with all available data.
 	"""
 	import math
@@ -464,78 +578,140 @@ def generate_statistics_chart(stats):
 		return {}
 
 
-def perform_merge_analysis(ocr_data, parcel_data, filters):
+def perform_merge_analysis(ocr_data, parcel_data, filters, barcode_field="barcode"):
 	"""
 	Core matching logic between OCR and Parcel data.
+	LEFT JOIN: Parcel (left) with OCR (right) where lot_id_1 = parcel barcode
 	
 	Args:
 		ocr_data: List of OCR records
 		parcel_data: List of Parcel records
 		filters: Dict with matching mode and other options
+		barcode_field: Which barcode field to use for matching (barcode or main_barcode)
 		
 	Returns:
 		Dict with matched and unmatched records
 	"""
 	try:
 		matching_mode = filters.get("matching_mode", "Strict")
-		show_unmatched = filters.get("show_unmatched", 1)
 		
-		# Initialize results
-		matched_pairs = []
-		unmatched_ocr = []
-		unmatched_parcels = list(parcel_data)  # Start with all parcels as unmatched
-		
-		# Create barcode lookup for efficiency
-		parcel_lookup = {}
-		for idx, parcel in enumerate(parcel_data):
-			barcode = str(parcel.get("barcode", "")).strip().upper()
-			main_barcode = str(parcel.get("main_barcode", "")).strip().upper()
-			
-			if barcode:
-				parcel_lookup[barcode] = {"index": idx, "data": parcel}
-			if main_barcode and main_barcode != barcode:
-				parcel_lookup[main_barcode] = {"index": idx, "data": parcel}
-		
-		# Process each OCR record
+		# Create OCR lookup indexed by lot_id_1 for LEFT JOIN
+		# Key: lot_id_1 (uppercase), Value: OCR record
+		ocr_lookup = {}
 		for ocr_record in ocr_data:
-			matches_found = find_matches_for_ocr(ocr_record, parcel_lookup, matching_mode)
+			lot_id_1 = str(ocr_record.get("lot_id_1", "")).strip().upper()
+			if lot_id_1 and lot_id_1 != "NONE":
+				# Store OCR record by its lot_id_1
+				if lot_id_1 not in ocr_lookup:
+					ocr_lookup[lot_id_1] = []
+				ocr_lookup[lot_id_1].append(ocr_record)
+		
+		# DEBUG: Log sample OCR lot_id_1 values
+		sample_ocr_keys = list(ocr_lookup.keys())[:10]
+		print(f"\n=== OCR MATCHING DEBUG ===")
+		print(f"OCR Lookup created with {len(ocr_lookup)} unique lot_id_1 values.")
+		print(f"Sample OCR lot_id_1 values (normalized): {sample_ocr_keys}")
+		print(f"Matching against parcel field: '{barcode_field}'")
+		
+		frappe.log_error(
+			f"OCR Lookup created with {len(ocr_lookup)} unique lot_id_1 values.\n"
+			f"Sample OCR lot_id_1 values: {sample_ocr_keys}\n"
+			f"Matching against parcel field: '{barcode_field}'",
+			"OCR Merge Debug - OCR Data"
+		)
+		
+		# LEFT JOIN: Process ALL parcel records (left table)
+		all_records = []
+		matched_count = 0
+		unmatched_count = 0
+		
+		# DEBUG: Collect sample parcel barcode values
+		sample_parcel_barcodes = []
+		
+		for parcel_record in parcel_data:
+			# Use the specified barcode field (barcode or main_barcode)
+			parcel_barcode = str(parcel_record.get(barcode_field, "")).strip().upper()
 			
-			if matches_found:
-				# Process all matches based on mode
-				if matching_mode == "All Matches":
-					# Include all matches
-					for match in matches_found:
-						matched_pairs.append(match)
-						# Remove from unmatched parcels
-						if match["parcel_data"] in unmatched_parcels:
-							unmatched_parcels.remove(match["parcel_data"])
-				else:
-					# Take the best match only
-					best_match = max(matches_found, key=lambda x: x["confidence"])
-					matched_pairs.append(best_match)
-					# Remove from unmatched parcels
-					if best_match["parcel_data"] in unmatched_parcels:
-						unmatched_parcels.remove(best_match["parcel_data"])
+			# Collect first 10 samples for debugging
+			if len(sample_parcel_barcodes) < 10 and parcel_barcode:
+				sample_parcel_barcodes.append(parcel_barcode)
+			
+			# Look for matching OCR record(s)
+			if parcel_barcode and parcel_barcode in ocr_lookup:
+				# MATCHED: Parcel has corresponding OCR data
+				# Create Cartesian product: Each parcel × Each matching OCR
+				matching_ocr_records = ocr_lookup[parcel_barcode]
+				
+				for ocr_record in matching_ocr_records:
+					all_records.append({
+						"parcel_data": parcel_record,
+						"ocr_data": ocr_record,
+						"matching_field": "lot_id_1",
+						"matched_value": parcel_barcode,
+						"confidence": 1.0,
+						"match_type": "Exact",
+						"is_matched": True
+					})
+					matched_count += 1
 			else:
-				# No matches found
-				unmatched_ocr.append(ocr_record)
+				# UNMATCHED: Parcel with no corresponding OCR data
+				all_records.append({
+					"parcel_data": parcel_record,
+					"ocr_data": {},  # Empty OCR data
+					"matching_field": None,
+					"matched_value": None,
+					"confidence": 0,
+					"match_type": "Unmatched",
+					"is_matched": False
+				})
+				unmatched_count += 1
+		
+		# DEBUG: Log parcel samples and matching results
+		print(f"Parcel Data processed: {len(parcel_data)} total records.")
+		print(f"Sample Parcel '{barcode_field}' values (normalized): {sample_parcel_barcodes}")
+		print(f"Matched: {matched_count}, Unmatched: {unmatched_count}")
+		print(f"=== END DEBUG ===\n")
+		
+		frappe.log_error(
+			f"Parcel Data processed: {len(parcel_data)} total records.\n"
+			f"Sample Parcel main_barcode values: {sample_parcel_barcodes}\n"
+			f"Matched: {matched_count}, Unmatched: {unmatched_count}",
+			"OCR Merge Debug - Parcel Data & Results"
+		)
+		
+		# Separate matched and unmatched for statistics
+		matched_pairs = [r for r in all_records if r["is_matched"]]
+		unmatched_parcels = [r for r in all_records if not r["is_matched"]]
+		
+		# Count unmatched OCR records (OCR records not found in any parcel)
+		matched_lot_ids = set()
+		for record in matched_pairs:
+			if record.get("matched_value"):
+				matched_lot_ids.add(record["matched_value"])
+		
+		unmatched_ocr = []
+		for lot_id_1, ocr_records in ocr_lookup.items():
+			if lot_id_1 not in matched_lot_ids:
+				unmatched_ocr.extend(ocr_records)
 		
 		return {
+			"all_records": all_records,  # All parcel records with/without OCR
 			"matched_pairs": matched_pairs,
-			"unmatched_ocr": unmatched_ocr if show_unmatched else [],
-			"unmatched_parcels": unmatched_parcels if show_unmatched else [],
+			"unmatched_ocr": unmatched_ocr,
+			"unmatched_parcels": [r["parcel_data"] for r in unmatched_parcels],
 			"summary": {
 				"total_ocr_records": len(ocr_data),
 				"total_parcel_records": len(parcel_data),
-				"matched_pairs": len(matched_pairs),
+				"matched_pairs": matched_count,
 				"unmatched_ocr": len(unmatched_ocr),
-				"unmatched_parcels": len(unmatched_parcels)
+				"unmatched_parcels": unmatched_count
 			}
 		}
 		
 	except Exception as e:
 		frappe.log_error(f"Error in merge analysis: {str(e)}", "OCR Parcel Merge")
 		return {
+			"all_records": [],
 			"matched_pairs": [],
 			"unmatched_ocr": [],
 			"unmatched_parcels": [],
@@ -546,10 +722,11 @@ def perform_merge_analysis(ocr_data, parcel_data, filters):
 def find_matches_for_ocr(ocr_record, parcel_lookup, matching_mode):
 	"""
 	Find matching parcels for a single OCR record.
+	Matches ONLY lot_id_1 from OCR against main_barcode from Parcel.
 	
 	Args:
 		ocr_record: Single OCR record dict
-		parcel_lookup: Dict of parcel data indexed by barcode
+		parcel_lookup: Dict of parcel data indexed by main_barcode
 		matching_mode: Strict, Fuzzy, or All Matches
 		
 	Returns:
@@ -557,42 +734,37 @@ def find_matches_for_ocr(ocr_record, parcel_lookup, matching_mode):
 	"""
 	matches = []
 	
-	# Extract OCR lot IDs for matching
-	lot_ids = [
-		str(ocr_record.get("lot_id_1", "")).strip().upper(),
-		str(ocr_record.get("lot_id_2", "")).strip().upper(),
-		str(ocr_record.get("sub_lot_id", "")).strip().upper()
-	]
+	# Extract ONLY lot_id_1 for matching against main_barcode
+	lot_id_1 = str(ocr_record.get("lot_id_1", "")).strip().upper()
 	
-	# Remove empty lot IDs
-	lot_ids = [lot_id for lot_id in lot_ids if lot_id and lot_id != "NONE"]
+	# Skip if lot_id_1 is empty
+	if not lot_id_1 or lot_id_1 == "NONE":
+		return matches
 	
-	# Try exact matches first
-	for lot_id in lot_ids:
-		if lot_id in parcel_lookup:
-			matches.append({
-				"ocr_data": ocr_record,
-				"parcel_data": parcel_lookup[lot_id]["data"],
-				"matching_field": _get_lot_id_field_name(ocr_record, lot_id),
-				"matched_value": lot_id,
-				"confidence": 1.0,
-				"match_type": "Exact"
-			})
+	# Try exact match first
+	if lot_id_1 in parcel_lookup:
+		matches.append({
+			"ocr_data": ocr_record,
+			"parcel_data": parcel_lookup[lot_id_1]["data"],
+			"matching_field": "lot_id_1",
+			"matched_value": lot_id_1,
+			"confidence": 1.0,
+			"match_type": "Exact"
+		})
 	
-	# If no exact matches and fuzzy matching is enabled
+	# If no exact match and fuzzy matching is enabled
 	if not matches and matching_mode in ["Fuzzy", "All Matches"]:
-		for lot_id in lot_ids:
-			for barcode, parcel_info in parcel_lookup.items():
-				similarity = calculate_string_similarity(lot_id, barcode)
-				if similarity >= 0.8:  # 80% similarity threshold
-					matches.append({
-						"ocr_data": ocr_record,
-						"parcel_data": parcel_info["data"],
-						"matching_field": _get_lot_id_field_name(ocr_record, lot_id),
-						"matched_value": f"{lot_id} ≈ {barcode}",
-						"confidence": similarity,
-						"match_type": "Fuzzy"
-					})
+		for main_barcode, parcel_info in parcel_lookup.items():
+			similarity = calculate_string_similarity(lot_id_1, main_barcode)
+			if similarity >= 0.8:  # 80% similarity threshold
+				matches.append({
+					"ocr_data": ocr_record,
+					"parcel_data": parcel_info["data"],
+					"matching_field": "lot_id_1",
+					"matched_value": f"{lot_id_1} ≈ {main_barcode}",
+					"confidence": similarity,
+					"match_type": "Fuzzy"
+				})
 	
 	# Sort by confidence descending
 	matches.sort(key=lambda x: x["confidence"], reverse=True)
@@ -676,7 +848,14 @@ def get_statistics(filters):
 
 @frappe.whitelist()
 def export_matched_records(filters):
-	"""Export only matched records to Excel."""
+	"""
+	Export only matched records to Excel.
+	
+	IMPORTANT: This exports ALL matched pairs including Cartesian product.
+	Example: If 5 parcel records have main_barcode='21348036' and 
+	2 OCR records have lot_id_1='21348036', this will export 10 rows (5×2).
+	Each unique match combination is exported as a separate row.
+	"""
 	try:
 		# Parse filters if they come as string (from web requests)
 		if isinstance(filters, str):
