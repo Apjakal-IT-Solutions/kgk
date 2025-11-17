@@ -63,22 +63,29 @@ frappe.query_reports["OCR Parcel Merge"] = {
 							<button class="btn btn-xs chart-toggle-btn" data-type="pie" style="background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; padding: 4px 8px; border-radius: 3px; font-size: 11px;">Pie Chart</button>
 						</div>
 					</div>
-					<div class="match-stats" style="display: flex; justify-content: space-around; margin-bottom: 15px;">
-						<div class="stat-card" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 120px;">
+					<div class="match-stats" style="display: flex; justify-content: space-around; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+						<div class="stat-card" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 110px; flex: 1;">
 							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #007bff;">0</div>
-							<div class="stat-label" style="font-size: 12px; color: #666;">Total OCR</div>
+							<div class="stat-label" style="font-size: 11px; color: #666;">Total OCR</div>
 						</div>
-						<div class="stat-card" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 120px;">
+						<div class="stat-card ocr-matched" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 110px; flex: 1;">
 							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #28a745;">0</div>
-							<div class="stat-label" style="font-size: 12px; color: #666;">OCR Matched</div>
+							<div class="stat-secondary" style="font-size: 13px; color: #6c757d; margin-top: 2px;">0 rows</div>
+							<div class="stat-label" style="font-size: 11px; color: #666;">OCR Matched</div>
 						</div>
-						<div class="stat-card" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 120px;">
+						<div class="stat-card" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 110px; flex: 1;">
 							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #6c757d;">0</div>
-							<div class="stat-label" style="font-size: 12px; color: #666;">Total Parcel</div>
+							<div class="stat-label" style="font-size: 11px; color: #666;">Total Parcel</div>
 						</div>
-						<div class="stat-card" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 120px;">
+						<div class="stat-card parcel-matched" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 110px; flex: 1;">
 							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #28a745;">0</div>
-							<div class="stat-label" style="font-size: 12px; color: #666;">Parcel Matched</div>
+							<div class="stat-secondary" style="font-size: 13px; color: #6c757d; margin-top: 2px;">0 rows</div>
+							<div class="stat-label" style="font-size: 11px; color: #666;">Parcel Matched</div>
+						</div>
+						<div class="stat-card total-rows" style="text-align: center; padding: 10px; background: #e8f5e9; border-radius: 4px; min-width: 110px; flex: 1; border: 2px solid #28a745;">
+							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #2e7d32;">0</div>
+							<div class="stat-label" style="font-size: 11px; color: #2e7d32; font-weight: 600;">Total Rows</div>
+							<div class="stat-sublabel" style="font-size: 10px; color: #666; margin-top: 2px;">Cartesian Product</div>
 						</div>
 					</div>
 					<div class="chart-area" style="height: 250px;"></div>
@@ -279,15 +286,33 @@ frappe.query_reports["OCR Parcel Merge"] = {
 	},
 	
 	"render_statistics": function(stats) {
-		// Update the statistics cards
+		// Update the statistics cards with unique counts and total row count
 		var chart_area = $('.chart-container');
 		if (chart_area.length > 0) {
 			var cards = chart_area.find('.stat-card .stat-number');
-			if (cards.length >= 4) {
+			if (cards.length >= 5) {
+				// Total OCR
 				$(cards[0]).text(stats.total_ocr_records || 0).css('color', '#007bff');
+				
+				// OCR Matched (unique) with total rows
 				$(cards[1]).text(stats.matched_ocr_records || 0).css('color', '#28a745');
+				var ocr_secondary = chart_area.find('.stat-card.ocr-matched .stat-secondary');
+				if (ocr_secondary.length > 0 && stats.chart_data && stats.chart_data.total_matched_rows) {
+					ocr_secondary.text(stats.chart_data.total_matched_rows + ' rows');
+				}
+				
+				// Total Parcel
 				$(cards[2]).text(stats.total_parcel_records || 0).css('color', '#6c757d');
+				
+				// Parcel Matched (unique) with total rows
 				$(cards[3]).text(stats.matched_parcel_records || 0).css('color', '#28a745');
+				var parcel_secondary = chart_area.find('.stat-card.parcel-matched .stat-secondary');
+				if (parcel_secondary.length > 0 && stats.chart_data && stats.chart_data.total_matched_rows) {
+					parcel_secondary.text(stats.chart_data.total_matched_rows + ' rows');
+				}
+				
+				// Total Matched Rows (Cartesian product)
+				$(cards[4]).text((stats.chart_data && stats.chart_data.total_matched_rows) || 0).css('color', '#2e7d32');
 			}
 			
 			// Render chart if chart data is available
@@ -298,7 +323,7 @@ frappe.query_reports["OCR Parcel Merge"] = {
 	},
 	
 	"render_chart": function(chart_data, chart_type) {
-		// Render the match statistics chart with support for bar and pie charts
+		// Render the match statistics chart with enhanced overlay showing unique counts and total rows
 		try {
 			var chart_container = $('.chart-container .chart-area')[0];
 			if (!chart_container) return;
@@ -324,14 +349,19 @@ frappe.query_reports["OCR Parcel Merge"] = {
 			var total_parcel = chart_data.matched_parcel + chart_data.unmatched_parcel;
 			var ocr_match_pct = total_ocr > 0 ? (chart_data.matched_ocr / total_ocr * 100) : 0;
 			var parcel_match_pct = total_parcel > 0 ? (chart_data.matched_parcel / total_parcel * 100) : 0;
+			var total_matched_rows = chart_data.total_matched_rows || 0;
 			
 			if (chart_type === 'pie') {
-				// Create pie chart showing overall match distribution
+				// Create pie chart showing overall match distribution with total rows annotation
 				var total_records = total_ocr + total_parcel;
 				var total_matched = chart_data.matched_ocr + chart_data.matched_parcel;
 				var total_unmatched = total_records - total_matched;
 				
-				new frappe.Chart(chart_container, {
+				// Create container for chart and annotation
+				var wrapper = $('<div style="position: relative; height: 200px;"></div>');
+				$(chart_container).append(wrapper);
+				
+				new frappe.Chart(wrapper[0], {
 					title: "Overall Match Distribution",
 					data: {
 						labels: ["Matched", "Unmatched"],
@@ -345,20 +375,38 @@ frappe.query_reports["OCR Parcel Merge"] = {
 					height: 200,
 					colors: ['#28a745', '#dc3545']
 				});
+				
+				// Add annotation overlay for total rows
+				if (total_matched_rows > 0) {
+					var annotation = $(`
+						<div style="position: absolute; top: 10px; right: 10px; background: rgba(46, 125, 50, 0.9); color: white; 
+							padding: 8px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+							Total Rows: ${total_matched_rows}
+							<div style="font-size: 9px; font-weight: 400; margin-top: 2px;">Cartesian Product</div>
+						</div>
+					`);
+					wrapper.append(annotation);
+				}
 			} else {
-				// Create bar chart with percentage data
-				new frappe.Chart(chart_container, {
-					title: "Match Rate Analysis (%)",
+				// Create bar chart with enhanced overlay showing unique counts + total rows
+				// Option C: Single coherent chart with total rows as annotation
+				
+				// Create container for chart and annotation
+				var wrapper = $('<div style="position: relative; height: 200px;"></div>');
+				$(chart_container).append(wrapper);
+				
+				new frappe.Chart(wrapper[0], {
+					title: "Match Analysis (Unique Records)",
 					data: {
 						labels: ["OCR Records", "Parcel Records"],
 						datasets: [
 							{
-								name: "Matched %",
-								values: [parseFloat(ocr_match_pct.toFixed(2)), parseFloat(parcel_match_pct.toFixed(2))]
+								name: "Matched",
+								values: [chart_data.matched_ocr, chart_data.matched_parcel]
 							},
 							{
-								name: "Unmatched %", 
-								values: [parseFloat((100 - ocr_match_pct).toFixed(2)), parseFloat((100 - parcel_match_pct).toFixed(2))]
+								name: "Unmatched", 
+								values: [chart_data.unmatched_ocr, chart_data.unmatched_parcel]
 							}
 						]
 					},
@@ -366,9 +414,38 @@ frappe.query_reports["OCR Parcel Merge"] = {
 					height: 200,
 					colors: ['#28a745', '#dc3545'],
 					barOptions: {
-						stacked: true
+						stacked: true,
+						spaceRatio: 0.5
+					},
+					axisOptions: {
+						xAxisMode: 'tick',
+						xIsSeries: false
+					},
+					tooltipOptions: {
+						formatTooltipY: d => d + " unique records"
 					}
 				});
+				
+				// Add annotation overlay showing total rows (Cartesian product)
+				if (total_matched_rows > 0) {
+					var annotation = $(`
+						<div style="position: absolute; top: 10px; right: 10px; background: rgba(46, 125, 50, 0.9); color: white; 
+							padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+							<div style="font-size: 18px; font-weight: bold;">${total_matched_rows}</div>
+							<div style="font-size: 10px; font-weight: 400; margin-top: 2px;">Total Matched Rows</div>
+							<div style="font-size: 9px; font-weight: 300; margin-top: 1px; opacity: 0.9;">Cartesian Product</div>
+						</div>
+					`);
+					wrapper.append(annotation);
+				}
+				
+				// Add subtle text below chart explaining the metrics
+				var explanation = $(`
+					<div style="text-align: center; color: #666; font-size: 10px; margin-top: 8px; padding: 0 10px;">
+						Chart shows unique record counts. Total rows (${total_matched_rows}) includes all combinations from matching barcodes.
+					</div>
+				`);
+				$(chart_container).append(explanation);
 			}
 		} catch (error) {
 			console.error("Chart rendering error:", error);

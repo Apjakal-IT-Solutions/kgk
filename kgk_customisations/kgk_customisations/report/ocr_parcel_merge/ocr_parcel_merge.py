@@ -94,14 +94,25 @@ def execute(filters=None):
 		unmatched_ocr = merge_result.get("unmatched_ocr", [])
 		unmatched_parcels = merge_result.get("unmatched_parcels", [])
 		
-		# Calculate statistics
+		# Calculate statistics with UNIQUE counts
+		# Count unique OCR and Parcel records that were matched
+		unique_ocr_matched = len(set(
+			id(m.get("ocr_data")) for m in matched_pairs 
+			if m.get("ocr_data") and m.get("is_matched")
+		))
+		unique_parcel_matched = len(set(
+			id(m.get("parcel_data")) for m in matched_pairs 
+			if m.get("parcel_data") and m.get("is_matched")
+		))
+		
 		stats = {
 			"total_ocr_records": len(ocr_data),
 			"total_parcel_records": len(parcel_data),
-			"matched_ocr_records": len(matched_pairs),
+			"matched_ocr_records": unique_ocr_matched,  # UNIQUE OCR records matched
 			"unmatched_ocr_records": len(unmatched_ocr),
-			"matched_parcel_records": len(matched_pairs),
-			"unmatched_parcel_records": len(unmatched_parcels)
+			"matched_parcel_records": unique_parcel_matched,  # UNIQUE Parcel records matched
+			"unmatched_parcel_records": len(unmatched_parcels),
+			"total_matched_rows": len(matched_pairs)  # Total Cartesian product rows
 		}
 		
 		if not matched_pairs:
@@ -150,16 +161,12 @@ def execute(filters=None):
 		# Format ONLY MATCHED records for display (LEFT JOIN filtered to matches only)
 		formatted_data = format_all_records(matched_pairs)
 		
-		# Count unique OCR and Parcel records in matches
-		unique_ocr_matched = len(set(str(m.get("ocr_data", {}).get("name", "")) for m in matched_pairs if m.get("ocr_data")))
-		unique_parcel_matched = len(set(str(m.get("parcel_data", {}).get("seria_id", "")) for m in matched_pairs if m.get("parcel_data")))
-		
 		# Generate chart and message with statistics
 		chart = generate_statistics_chart(stats)
 		message = (
 			f"Analysis Complete: {len(matched_pairs)} total rows displayed (Cartesian product). "
-			f"Unique matches: {unique_ocr_matched} OCR records matched with {unique_parcel_matched} Parcel records. "
-			f"Source: {len(ocr_data)} OCR records, {len(parcel_data)} parcel records."
+			f"Unique matches: {stats['matched_ocr_records']} unique OCR records × {stats['matched_parcel_records']} unique Parcel records. "
+			f"Source: {len(ocr_data)} total OCR, {len(parcel_data)} total Parcel."
 		)
 		
 		return columns, formatted_data, message, chart
@@ -557,6 +564,7 @@ def format_matched_records_only(matched_pairs):
 def generate_statistics_chart(stats):
 	"""
 	Generate chart data for matching statistics visualization.
+	Enhanced overlay approach: Shows unique counts with total row count context.
 	
 	Args:
 		stats: Dict containing match statistics
@@ -566,11 +574,13 @@ def generate_statistics_chart(stats):
 	"""
 	try:
 		# Return chart data in format expected by JavaScript
+		# Include both unique counts AND total row count
 		return {
 			"matched_ocr": stats["matched_ocr_records"],
 			"matched_parcel": stats["matched_parcel_records"], 
 			"unmatched_ocr": stats["unmatched_ocr_records"],
-			"unmatched_parcel": stats["unmatched_parcel_records"]
+			"unmatched_parcel": stats["unmatched_parcel_records"],
+			"total_matched_rows": stats["total_matched_rows"]  # Cartesian product total
 		}
 		
 	except Exception as e:
