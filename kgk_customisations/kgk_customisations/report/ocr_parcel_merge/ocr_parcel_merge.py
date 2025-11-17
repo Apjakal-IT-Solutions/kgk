@@ -58,13 +58,17 @@ def execute(filters=None):
 		filters: Dict containing report filters including parcel_file
 		
 	Returns:
-		Tuple (columns, data) for report display
+		Tuple (columns, data, message, chart) for report display
 	"""
 	try:
+		# Handle case when no filters are provided (initial page load)
+		if not filters:
+			return get_basic_columns(), [create_info_row("Please select a parcel file and configure filters to run the analysis")]
+		
 		# Validate filters and parcel file
 		validation_result = validate_filters(filters)
 		if not validation_result["valid"]:
-			return get_basic_columns(), [create_error_row(validation_result["message"])]
+			return get_basic_columns(), [create_info_row(validation_result["message"])]
 		
 		# Get OCR data using centralized utility
 		ocr_data = get_ocr_data(filters)
@@ -84,9 +88,24 @@ def execute(filters=None):
 		# Perform matching between OCR and Parcel data
 		merge_result = perform_merge_analysis(ocr_data, parcel_data, filters)
 		matched_pairs = merge_result.get("matched_pairs", [])
+		unmatched_ocr = merge_result.get("unmatched_ocr", [])
+		unmatched_parcels = merge_result.get("unmatched_parcels", [])
+		
+		# Calculate statistics
+		stats = {
+			"total_ocr_records": len(ocr_data),
+			"total_parcel_records": len(parcel_data),
+			"matched_ocr_records": len(matched_pairs),
+			"unmatched_ocr_records": len(unmatched_ocr),
+			"matched_parcel_records": len(matched_pairs),
+			"unmatched_parcel_records": len(unmatched_parcels)
+		}
 		
 		if not matched_pairs:
-			return get_basic_columns(), [create_info_row("No matched records found. Please check your data and try different matching settings.")]
+			# Return with statistics even if no matches
+			chart = generate_statistics_chart(stats)
+			message = f"No matched records found. OCR: {stats['total_ocr_records']} records, Parcel: {stats['total_parcel_records']} records"
+			return get_basic_columns(), [create_info_row(message)], message, chart
 		
 		# Generate dynamic columns based on actual OCR and Parcel data
 		columns = generate_dynamic_columns(ocr_data, parcel_columns)
@@ -94,17 +113,16 @@ def execute(filters=None):
 		# Format only matched data for display
 		formatted_data = format_matched_records_only(matched_pairs)
 		
-		# Log successful execution for debugging
-		frappe.log_error(
-			f"OCR Parcel Merge Report Success: {len(matched_pairs)} matches found from {len(ocr_data)} OCR and {len(parcel_data)} parcel records",
-			"OCR Parcel Merge Success"
-		)
+		# Generate chart and message with statistics
+		chart = generate_statistics_chart(stats)
+		message = f"Analysis Complete: {len(matched_pairs)} matches found from {len(ocr_data)} OCR records and {len(parcel_data)} parcel records"
 		
-		return columns, formatted_data
+		return columns, formatted_data, message, chart
 		
 	except Exception as e:
-		frappe.log_error(f"Error in OCR Parcel Merge report: {str(e)}\n{frappe.get_traceback()}", "OCR Parcel Merge Report Error")
-		error_msg = f"Error generating report: {str(e)}"
+		# Create a shorter error message to avoid title length issues
+		error_msg = f"Report error: {str(e)[:100]}..."
+		frappe.log_error(f"Error in OCR Parcel Merge report: {str(e)}", "OCR Merge Error")
 		return get_basic_columns(), [create_error_row(error_msg)]
 
 
@@ -335,23 +353,28 @@ def generate_dynamic_columns(ocr_data, parcel_columns):
 	
 	# Add parcel columns
 	for col_name in parcel_columns:
+		# Skip problematic column names that are None or invalid
+		if not col_name or not isinstance(col_name, str) or len(str(col_name).strip()) == 0:
+			continue
+			
 		# Clean column name for fieldname
-		clean_field_name = col_name.lower().replace(' ', '_').replace('.', '_').replace('%', 'pct').replace('@', 'at')
+		clean_field_name = str(col_name).lower().replace(' ', '_').replace('.', '_').replace('%', 'pct').replace('@', 'at')
 		
 		# Try to infer field type based on column name
 		field_type = "Data"
 		width = 120
 		
-		if any(keyword in col_name.lower() for keyword in ["weight", "carat", "size", "wght", "cts"]):
+		col_name_lower = str(col_name).lower()
+		if any(keyword in col_name_lower for keyword in ["weight", "carat", "size", "wght", "cts"]):
 			field_type = "Float"
-		elif any(keyword in col_name.lower() for keyword in ["amount", "value", "price", "cost", "amt", "list", "esp"]):
+		elif any(keyword in col_name_lower for keyword in ["amount", "value", "price", "cost", "amt", "list", "esp"]):
 			field_type = "Currency"
-		elif any(keyword in col_name.lower() for keyword in ["date", "time"]):
+		elif any(keyword in col_name_lower for keyword in ["date", "time"]):
 			field_type = "Date"
 			width = 100
-		elif any(keyword in col_name.lower() for keyword in ["name", "description", "comment", "article", "shape"]):
+		elif any(keyword in col_name_lower for keyword in ["name", "description", "comment", "article", "shape"]):
 			width = 150
-		elif col_name.lower().endswith(('_pct', '%')):
+		elif col_name_lower.endswith(('_pct', '%')):
 			field_type = "Percent"
 			width = 80
 		
@@ -415,6 +438,30 @@ def format_matched_records_only(matched_pairs):
 		formatted_data.append(row)
 	
 	return formatted_data
+
+
+def generate_statistics_chart(stats):
+	"""
+	Generate chart data for matching statistics visualization.
+	
+	Args:
+		stats: Dict containing match statistics
+		
+	Returns:
+		Dict with chart configuration for Frappe charts
+	"""
+	try:
+		# Return chart data in format expected by JavaScript
+		return {
+			"matched_ocr": stats["matched_ocr_records"],
+			"matched_parcel": stats["matched_parcel_records"], 
+			"unmatched_ocr": stats["unmatched_ocr_records"],
+			"unmatched_parcel": stats["unmatched_parcel_records"]
+		}
+		
+	except Exception as e:
+		frappe.log_error(f"Error generating chart: {str(e)}")
+		return {}
 
 
 def perform_merge_analysis(ocr_data, parcel_data, filters):
@@ -570,6 +617,61 @@ def _get_lot_id_field_name(ocr_record, lot_id):
 		return "sub_lot_id"
 	return "unknown"
 
+
+
+@frappe.whitelist()
+def get_statistics(filters):
+	"""
+	Get matching statistics for chart display.
+	
+	Args:
+		filters: Dict containing report filters
+		
+	Returns:
+		Dict with statistics for display
+	"""
+	try:
+		# Parse filters if they come as string
+		if isinstance(filters, str):
+			import json
+			filters = json.loads(filters)
+		
+		# Get OCR and parcel data
+		ocr_data = get_ocr_data(filters)
+		parcel_result = get_parcel_data(filters)
+		
+		if not parcel_result.get("success"):
+			return {"error": "Could not load parcel data"}
+		
+		parcel_data = parcel_result["data"]
+		
+		# Perform matching analysis
+		merge_result = perform_merge_analysis(ocr_data, parcel_data, filters)
+		matched_pairs = merge_result.get("matched_pairs", [])
+		unmatched_ocr = merge_result.get("unmatched_ocr", [])
+		unmatched_parcels = merge_result.get("unmatched_parcels", [])
+		
+		# Calculate statistics
+		stats = {
+			"total_ocr_records": len(ocr_data),
+			"matched_ocr_records": len(matched_pairs),
+			"unmatched_ocr_records": len(unmatched_ocr),
+			"total_parcel_records": len(parcel_data),
+			"matched_parcel_records": len(matched_pairs),
+			"unmatched_parcel_records": len(unmatched_parcels),
+			"chart_data": {
+				"matched_ocr": len(matched_pairs),
+				"unmatched_ocr": len(unmatched_ocr),
+				"matched_parcel": len(matched_pairs),
+				"unmatched_parcel": len(unmatched_parcels)
+			}
+		}
+		
+		return stats
+		
+	except Exception as e:
+		frappe.log_error(f"Error getting statistics: {str(e)}")
+		return {"error": f"Statistics error: {str(e)}"}
 
 
 @frappe.whitelist()
