@@ -245,14 +245,22 @@ frappe.query_reports["OCR Parcel Merge"] = {
 				$(cards[0]).text(stats.total_ocr_records || 0).css('color', '#007bff');
 				// OCR Matched Count - use UNIQUE count, not sum
 				if (matched_counts.length >= 1) {
-					$(matched_counts[0]).text((stats.unique_ocr_matched || 0) + ' matched').css('color', '#007bff');
+					var ocr_text = (stats.unique_ocr_matched || 0) + ' matched';
+					if (stats.invalid_ocr_records > 0) {
+						ocr_text += ', ' + stats.invalid_ocr_records + ' invalid';
+					}
+					$(matched_counts[0]).text(ocr_text).css('color', '#007bff');
 				}
 				
 				// Total Parcel Records
 				$(cards[1]).text(stats.total_parcel_records || 0).css('color', '#6c757d');
 				// Parcel Matched Count - use UNIQUE count, not sum
 				if (matched_counts.length >= 2) {
-					$(matched_counts[1]).text((stats.unique_parcel_matched || 0) + ' matched').css('color', '#6c757d');
+					var parcel_text = (stats.unique_parcel_matched || 0) + ' matched';
+					if (stats.invalid_parcel_records > 0) {
+						parcel_text += ', ' + stats.invalid_parcel_records + ' invalid';
+					}
+					$(matched_counts[1]).text(parcel_text).css('color', '#6c757d');
 				}
 				
 				// Matched Barcodes (unique barcode values)
@@ -320,13 +328,15 @@ frappe.query_reports["OCR Parcel Merge"] = {
 			console.log("DEBUG: Chart data values:", {
 				matched_ocr: chart_data.matched_ocr,
 				matched_parcel: chart_data.matched_parcel,
+				invalid_ocr: chart_data.invalid_ocr,
+				invalid_parcel: chart_data.invalid_parcel,
 				full_chart_data: chart_data
 			});
 			
 			// Calculate total matched rows for explanation
 			var total_matched_rows = chart_data.total_matched_rows || 0;
 			
-			// Create bar chart showing unique counts
+			// Create bar chart showing unique counts - 3 categories: Matched, Unmatched, Invalid
 			new frappe.Chart(chart_container, {
 				title: "Match Analysis (Unique Records)",
 				data: {
@@ -339,12 +349,16 @@ frappe.query_reports["OCR Parcel Merge"] = {
 						{
 							name: "Unmatched", 
 							values: [chart_data.unmatched_ocr, chart_data.unmatched_parcel]
+						},
+						{
+							name: "Invalid/No Barcode",
+							values: [chart_data.invalid_ocr || 0, chart_data.invalid_parcel || 0]
 						}
 					]
 				},
 				type: 'bar',
 				height: 200,
-				colors: ['#28a745', '#dc3545'],
+				colors: ['#28a745', '#dc3545', '#999999'],
 				barOptions: {
 					stacked: true,
 					spaceRatio: 0.5
@@ -361,7 +375,7 @@ frappe.query_reports["OCR Parcel Merge"] = {
 			// Add explanation text showing relationship between unique counts and total rows
 			var explanation = $(`
 				<div style="text-align: center; color: #666; font-size: 10px; margin-top: 8px; padding: 0 10px;">
-					Chart shows unique record counts. When matching barcodes appear in multiple records, the Cartesian product creates ${total_matched_rows} total rows displayed below.
+					Chart shows unique record counts. When matching barcodes appear in multiple records, the Cartesian product creates ${total_matched_rows} total rows displayed below. "Invalid/No Barcode" shows records filtered out due to missing or invalid barcode values.
 				</div>
 			`);
 			$(chart_container).append(explanation);

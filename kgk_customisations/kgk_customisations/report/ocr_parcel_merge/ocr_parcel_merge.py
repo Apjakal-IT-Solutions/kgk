@@ -50,6 +50,31 @@ from kgk_customisations.utils.file_utils import read_excel_file_safely, get_file
 from kgk_customisations.utils.excel_utils import create_styled_excel_workbook, create_download_response
 
 
+def get_ocr_barcode_value(ocr_record):
+	"""
+	Get barcode value from OCR record, trying lot_id_1 first, then lot_id_2 as fallback.
+	
+	Args:
+		ocr_record: Dict containing OCR data
+		
+	Returns:
+		Tuple (barcode_value, source_field) where barcode_value is the normalized barcode
+		and source_field is either "lot_id_1", "lot_id_2", or None if neither is valid
+	"""
+	# Try lot_id_1 first
+	lot_id_1 = str(ocr_record.get("lot_id_1", "")).strip().upper()
+	if lot_id_1 and lot_id_1 != "NONE":
+		return (lot_id_1, "lot_id_1")
+	
+	# Fallback to lot_id_2
+	lot_id_2 = str(ocr_record.get("lot_id_2", "")).strip().upper()
+	if lot_id_2 and lot_id_2 != "NONE":
+		return (lot_id_2, "lot_id_2")
+	
+	# Neither is valid
+	return (None, None)
+
+
 def execute(filters=None):
 	"""
 	Main function for the OCR Parcel Merge report.
@@ -100,7 +125,9 @@ def execute(filters=None):
 		all_records = merge_result.get("all_records", [])
 		matched_pairs = merge_result.get("matched_pairs", [])
 		unmatched_ocr = merge_result.get("unmatched_ocr", [])
+		invalid_ocr = merge_result.get("invalid_ocr", [])
 		unmatched_parcels = merge_result.get("unmatched_parcels", [])
+		invalid_parcel_count = parcel_result.get("invalid_parcel_count", 0)
 		
 		# DEBUG: Log what we got from merge_result
 		frappe.log_error(
@@ -108,7 +135,8 @@ def execute(filters=None):
 			f"all_records: {len(all_records)} records\n"
 			f"matched_pairs: {len(matched_pairs)} records\n"
 			f"unmatched_ocr: {len(unmatched_ocr)} records\n"
-			f"unmatched_parcels: {len(unmatched_parcels)} records",
+			f"unmatched_parcels: {len(unmatched_parcels)} records\n"
+			f"invalid_parcel_count: {invalid_parcel_count}",
 			"Merge Result Inspection"
 		)
 		
@@ -120,8 +148,8 @@ def execute(filters=None):
 			if m.get("is_matched"):
 				ocr_data = m.get("ocr_data")
 				if ocr_data:
-					barcode_value = str(ocr_data.get("lot_id_1", "")).strip().upper()
-					if barcode_value and barcode_value != "NONE":
+					barcode_value, _ = get_ocr_barcode_value(ocr_data)
+					if barcode_value:
 						matched_barcodes.add(barcode_value)
 		
 		unique_barcode_count = len(matched_barcodes)
@@ -136,9 +164,9 @@ def execute(filters=None):
 				parcel_data = match.get("parcel_data")
 				
 				if ocr_data and parcel_data:
-					# Get the barcode value that matched
-					barcode_value = str(ocr_data.get("lot_id_1", "")).strip().upper()
-					if barcode_value and barcode_value != "NONE":
+					# Get the barcode value that matched (from lot_id_1 or lot_id_2)
+					barcode_value, _ = get_ocr_barcode_value(ocr_data)
+					if barcode_value:
 						distinct_barcodes.add(barcode_value)
 						
 						# Track distribution: count how many times each barcode appears
@@ -189,6 +217,18 @@ def execute(filters=None):
 		unique_ocr_matched = len(all_matched_ocr_ids)
 		unique_parcel_matched = len(all_matched_parcel_ids)
 		
+		# DEBUG: Verify OCR record counts add up
+		frappe.log_error(
+			f"OCR RECORD ACCOUNTING:\n"
+			f"Total OCR records (ocr_data): {len(ocr_data)}\n"
+			f"Unique matched OCR IDs: {unique_ocr_matched}\n"
+			f"Unmatched OCR: {len(unmatched_ocr)}\n"
+			f"Invalid OCR: {len(invalid_ocr)}\n"
+			f"Sum: {unique_ocr_matched} + {len(unmatched_ocr)} + {len(invalid_ocr)} = {unique_ocr_matched + len(unmatched_ocr) + len(invalid_ocr)}\n"
+			f"Difference: {len(ocr_data) - (unique_ocr_matched + len(unmatched_ocr) + len(invalid_ocr))}",
+			"OCR Record Accounting"
+		)
+		
 		# NOTE: total_ocr_matched and total_parcel_matched are SUMS across all barcodes
 		# This means if a barcode appears in multiple OCR/Parcel records, it's counted multiple times
 		# For display purposes, we should use unique_ocr_matched and unique_parcel_matched instead
@@ -197,16 +237,33 @@ def execute(filters=None):
 		
 		stats = {
 			"total_ocr_records": len(ocr_data),
-			"total_parcel_records": len(parcel_data),
+			"total_parcel_records": parcel_result.get("total_records_before_filter", len(parcel_data)),  # Use original total before filtering
 			"matched_barcode_count": unique_barcode_count,  # Number of unique barcodes that matched
 			"unique_ocr_matched": unique_ocr_matched,  # UNIQUE OCR records that matched (use this for display!)
 			"unique_parcel_matched": unique_parcel_matched,  # UNIQUE Parcel records that matched (use this for display!)
 			"unmatched_ocr_records": len(unmatched_ocr),
+			"invalid_ocr_records": len(invalid_ocr),  # OCR records without valid lot_id_1
 			"unmatched_parcel_records": len(unmatched_parcels),
+			"invalid_parcel_records": invalid_parcel_count,  # Parcel records without valid main_barcode
 			"total_matched_rows": total_matched_rows,  # Total Cartesian product rows
 			"distinct_barcodes": len(distinct_barcodes),  # Number of distinct barcode values (should equal matched_barcode_count)
 			"barcode_analysis": barcode_analysis  # ALL barcodes with distribution (not just top 10)
 		}
+		
+		# DEBUG: Verify the math adds up
+		ocr_math_check = unique_ocr_matched + len(unmatched_ocr) + len(invalid_ocr)
+		parcel_math_check = unique_parcel_matched + len(unmatched_parcels) + invalid_parcel_count
+		
+		frappe.log_error(
+			f"STATISTICS MATH CHECK:\n"
+			f"OCR: total={len(ocr_data)}, matched={unique_ocr_matched}, unmatched={len(unmatched_ocr)}, invalid={len(invalid_ocr)}\n"
+			f"OCR Math: {unique_ocr_matched} + {len(unmatched_ocr)} + {len(invalid_ocr)} = {ocr_math_check} (should be {len(ocr_data)})\n"
+			f"OCR Difference: {len(ocr_data) - ocr_math_check}\n\n"
+			f"Parcel: total={len(parcel_data)}, matched={unique_parcel_matched}, unmatched={len(unmatched_parcels)}, invalid={invalid_parcel_count}\n"
+			f"Parcel Math: {unique_parcel_matched} + {len(unmatched_parcels)} + {invalid_parcel_count} = {parcel_math_check} (should be {len(parcel_data)})\n"
+			f"Parcel Difference: {len(parcel_data) - parcel_math_check}",
+			"Statistics Math Check"
+		)
 		
 		if not matched_pairs:
 			# Return with statistics even if no matches
@@ -377,8 +434,19 @@ def get_ocr_data(filters):
 			include_refined=True
 		)
 		
+		# Validate OCR data was retrieved
+		if not ocr_data_dict:
+			frappe.log_error("No OCR data returned from get_consolidated_ocr_data", "OCR Data Warning")
+			return []
+		
 		# Convert dict to list of record values
 		ocr_data = list(ocr_data_dict.values()) if isinstance(ocr_data_dict, dict) else ocr_data_dict
+		
+		frappe.log_error(
+			f"OCR DATA RETRIEVED:\n"
+			f"Total OCR records before filtering: {len(ocr_data)}",
+			"OCR Data Success"
+		)
 		
 		# Apply additional filtering if needed
 		if filters.get("lot_id_filter"):
@@ -389,6 +457,12 @@ def get_ocr_data(filters):
 					record.get("lot_id_2", "").upper().find(lot_filter) != -1 or
 					str(record.get("sub_lot_id", "")).find(lot_filter) != -1)
 			]
+			
+			frappe.log_error(
+				f"OCR DATA AFTER FILTERING:\n"
+				f"Total OCR records after lot_id filter '{lot_filter}': {len(ocr_data)}",
+				"OCR Data Filtered"
+			)
 		
 		return ocr_data
 		
@@ -440,11 +514,14 @@ def get_parcel_data(filters):
 		barcode_field = "main_barcode"
 		
 		# Convert to list of dicts for processing
-		parcel_records = df.to_dict("records")
+		parcel_records_raw = df.to_dict("records")
+		total_parcel_records_before_filter = len(parcel_records_raw)  # Track original count
 		
 		# Clean and filter records - ONLY keep records with valid main_barcode
 		valid_parcel_records = []
-		for record in parcel_records:
+		invalid_parcel_count = 0
+		
+		for record in parcel_records_raw:
 			if "main_barcode" in record:
 				value = str(record["main_barcode"])
 				# Remove trailing .0 if present (from float conversion)
@@ -456,6 +533,10 @@ def get_parcel_data(filters):
 				# Only include if main_barcode is not empty/None/NaN
 				if record["main_barcode"] and str(record["main_barcode"]).strip().upper() not in ['', 'NAN', 'NONE', 'NULL']:
 					valid_parcel_records.append(record)
+				else:
+					invalid_parcel_count += 1
+			else:
+				invalid_parcel_count += 1
 		
 		parcel_records = valid_parcel_records
 		
@@ -491,8 +572,10 @@ def get_parcel_data(filters):
 			"success": True, 
 			"data": parcel_records,
 			"total_records": len(parcel_records),
+			"total_records_before_filter": total_parcel_records_before_filter,  # Original total before filtering
 			"columns": original_columns,  # Return original column names for display
-			"barcode_field": barcode_field  # Return which field is being used for matching
+			"barcode_field": barcode_field,  # Return which field is being used for matching
+			"invalid_parcel_count": invalid_parcel_count  # Count of records filtered out
 		}
 		
 	except Exception as e:
@@ -818,27 +901,36 @@ def perform_merge_analysis(ocr_data, parcel_data, filters, barcode_field="main_b
 		barcode_field = "main_barcode"
 		matching_mode = filters.get("matching_mode", "Strict")
 		
-		# Create OCR lookup indexed by lot_id_1 for LEFT JOIN
-		# Key: lot_id_1 (uppercase), Value: OCR record
+		# Create OCR lookup indexed by lot_id_1 (or lot_id_2 as fallback) for LEFT JOIN
+		# Key: lot_id (uppercase), Value: list of OCR records
 		ocr_lookup = {}
-		for ocr_record in ocr_data:
-			lot_id_1 = str(ocr_record.get("lot_id_1", "")).strip().upper()
-			if lot_id_1 and lot_id_1 != "NONE":
-				# Store OCR record by its lot_id_1
-				if lot_id_1 not in ocr_lookup:
-					ocr_lookup[lot_id_1] = []
-				ocr_lookup[lot_id_1].append(ocr_record)
+		invalid_ocr_records = []  # Track OCR records without valid lot_id_1 OR lot_id_2
 		
-		# DEBUG: Log sample OCR lot_id_1 values
+		for ocr_record in ocr_data:
+			# Get barcode value (tries lot_id_1, then lot_id_2)
+			barcode_value, source_field = get_ocr_barcode_value(ocr_record)
+			
+			if barcode_value:
+				# Store OCR record by its barcode value
+				ocr_record["_barcode_source"] = source_field  # Track which field was used
+				if barcode_value not in ocr_lookup:
+					ocr_lookup[barcode_value] = []
+				ocr_lookup[barcode_value].append(ocr_record)
+			else:
+				# Neither lot_id_1 nor lot_id_2 is valid
+				invalid_ocr_records.append(ocr_record)
+		
+		# DEBUG: Log sample OCR barcode values
 		sample_ocr_keys = list(ocr_lookup.keys())[:10]
 		print(f"\n=== OCR MATCHING DEBUG ===")
-		print(f"OCR Lookup created with {len(ocr_lookup)} unique lot_id_1 values.")
-		print(f"Sample OCR lot_id_1 values (normalized): {sample_ocr_keys}")
+		print(f"OCR Lookup created with {len(ocr_lookup)} unique barcode values (lot_id_1 or lot_id_2).")
+		print(f"Sample OCR barcode values (normalized): {sample_ocr_keys}")
 		print(f"Matching against parcel field: '{barcode_field}'")
 		
 		frappe.log_error(
-			f"OCR Lookup created with {len(ocr_lookup)} unique lot_id_1 values.\n"
-			f"Sample OCR lot_id_1 values: {sample_ocr_keys}\n"
+			f"OCR Lookup created with {len(ocr_lookup)} unique barcode values (lot_id_1 or lot_id_2).\n"
+			f"Sample OCR barcode values: {sample_ocr_keys}\n"
+			f"Invalid OCR records (neither lot_id_1 nor lot_id_2): {len(invalid_ocr_records)}\n"
 			f"Matching against parcel field: '{barcode_field}'",
 			"OCR Merge Debug - OCR Data"
 		)
@@ -913,9 +1005,9 @@ def perform_merge_analysis(ocr_data, parcel_data, filters, barcode_field="main_b
 		sample_matched = matched_pairs[:5] if len(matched_pairs) >= 5 else matched_pairs
 		sample_info = []
 		for idx, match in enumerate(sample_matched):
-			ocr_lot_id = match.get("ocr_data", {}).get("lot_id_1", "MISSING")
-			parcel_barcode = match.get("parcel_data", {}).get("Main Barcode", "MISSING")
-			sample_info.append(f"  Match {idx+1}: OCR lot_id_1='{ocr_lot_id}', Parcel main_barcode='{parcel_barcode}'")
+			ocr_barcode, ocr_source = get_ocr_barcode_value(match.get("ocr_data", {}))
+			parcel_barcode = match.get("parcel_data", {}).get("main_barcode", "MISSING")
+			sample_info.append(f"  Match {idx+1}: OCR {ocr_source}='{ocr_barcode}', Parcel main_barcode='{parcel_barcode}'")
 		
 		frappe.log_error(
 			f"MATCHED PAIRS DEBUG:\n"
@@ -937,17 +1029,33 @@ def perform_merge_analysis(ocr_data, parcel_data, filters, barcode_field="main_b
 			if lot_id_1 not in matched_lot_ids:
 				unmatched_ocr.extend(ocr_records)
 		
+		# DEBUG: Verify OCR accounting
+		total_in_lookup = sum(len(records) for records in ocr_lookup.values())
+		frappe.log_error(
+			f"OCR ACCOUNTING IN perform_merge_analysis:\n"
+			f"Total ocr_data passed in: {len(ocr_data)}\n"
+			f"OCR records in ocr_lookup (valid lot_id_1): {total_in_lookup}\n"
+			f"Invalid OCR records (no valid lot_id_1): {len(invalid_ocr_records)}\n"
+			f"Sum (lookup + invalid): {total_in_lookup + len(invalid_ocr_records)}\n"
+			f"Difference: {len(ocr_data) - (total_in_lookup + len(invalid_ocr_records))}\n\n"
+			f"Matched lot_id_1 values: {len(matched_lot_ids)}\n"
+			f"Unmatched OCR records: {len(unmatched_ocr)}",
+			"OCR Accounting in Merge"
+		)
+		
 		return {
 			"all_records": all_records,  # All parcel records with/without OCR
 			"matched_pairs": matched_pairs,
 			"unmatched_ocr": unmatched_ocr,
+			"invalid_ocr": invalid_ocr_records,  # OCR records without valid lot_id_1
 			"unmatched_parcels": [r["parcel_data"] for r in unmatched_parcels],
 			"summary": {
 				"total_ocr_records": len(ocr_data),
 				"total_parcel_records": len(parcel_data),
 				"matched_pairs": matched_count,
 				"unmatched_ocr": len(unmatched_ocr),
-				"unmatched_parcels": unmatched_count
+				"unmatched_parcels": unmatched_count,
+				"invalid_ocr": len(invalid_ocr_records)
 			}
 		}
 		
@@ -1060,11 +1168,13 @@ def get_statistics(filters):
 		
 		parcel_data = parcel_result["data"]
 		barcode_field = parcel_result.get("barcode_field", "barcode")  # Get the field that was selected
+		invalid_parcel_count = parcel_result.get("invalid_parcel_count", 0)  # Get count of filtered records
 		
 		# Perform matching analysis - MUST pass barcode_field!
 		merge_result = perform_merge_analysis(ocr_data, parcel_data, filters, barcode_field)
 		matched_pairs = merge_result.get("matched_pairs", [])
 		unmatched_ocr = merge_result.get("unmatched_ocr", [])
+		invalid_ocr = merge_result.get("invalid_ocr", [])
 		unmatched_parcels = merge_result.get("unmatched_parcels", [])
 		
 		# Calculate statistics - focus on UNIQUE BARCODE VALUES
@@ -1076,8 +1186,8 @@ def get_statistics(filters):
 			if m.get("is_matched"):
 				ocr_data_item = m.get("ocr_data")
 				if ocr_data_item:
-					barcode_value = str(ocr_data_item.get("lot_id_1", "")).strip().upper()
-					if barcode_value and barcode_value != "NONE":
+					barcode_value, _ = get_ocr_barcode_value(ocr_data_item)
+					if barcode_value:
 						matched_barcodes.add(barcode_value)
 		
 		unique_barcode_count = len(matched_barcodes)
@@ -1092,8 +1202,8 @@ def get_statistics(filters):
 				parcel_data_rec = match.get("parcel_data")
 				
 				if ocr_data_rec and parcel_data_rec:
-					barcode_value = str(ocr_data_rec.get("lot_id_1", "")).strip().upper()
-					if barcode_value and barcode_value != "NONE":
+					barcode_value, _ = get_ocr_barcode_value(ocr_data_rec)
+					if barcode_value:
 						distinct_barcodes.add(barcode_value)
 						
 						if barcode_value not in barcode_distribution:
@@ -1158,7 +1268,7 @@ def get_statistics(filters):
 				barcode = item["barcode"]
 				# Count actual rows in matched_pairs for this barcode
 				actual_rows = sum(1 for m in matched_pairs if m.get("is_matched") and 
-								 m.get("ocr_data", {}).get("lot_id_1", "").strip().upper() == barcode)
+								 get_ocr_barcode_value(m.get("ocr_data", {}))[0] == barcode)
 				sample_analysis.append({
 					"barcode": barcode,
 					"theoretical": item["total_rows"],
@@ -1184,13 +1294,17 @@ def get_statistics(filters):
 			"unique_ocr_matched": unique_ocr_matched,  # Unique OCR records that participate in matches (for chart)
 			"unique_parcel_matched": unique_parcel_matched,  # Unique Parcel records that participate in matches (for chart)
 			"unmatched_ocr_records": len(unmatched_ocr),
-			"total_parcel_records": len(parcel_data),
+			"invalid_ocr_records": len(invalid_ocr),  # OCR records without valid lot_id_1
+			"total_parcel_records": parcel_result.get("total_records_before_filter", len(parcel_data)),  # Use original total before filtering
 			"unmatched_parcel_records": len(unmatched_parcels),
+			"invalid_parcel_records": invalid_parcel_count,  # Parcel records without valid main_barcode
 			"chart_data": {
 				"matched_ocr": unique_ocr_matched,  # Use calculated unique OCR count
 				"unmatched_ocr": len(unmatched_ocr),
+				"invalid_ocr": len(invalid_ocr),  # Add invalid OCR for chart
 				"matched_parcel": unique_parcel_matched,  # Use calculated unique Parcel count
 				"unmatched_parcel": len(unmatched_parcels),
+				"invalid_parcel": invalid_parcel_count,  # Add invalid Parcel for chart
 				"total_matched_rows": total_matched_rows,  # Total Cartesian product rows (actual)
 				"theoretical_total": theoretical_total,  # Theoretical sum from unique combinations
 				"distinct_barcodes": len(distinct_barcodes),  # Distinct barcode values (should equal matched_barcode_count)
