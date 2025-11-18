@@ -91,11 +91,6 @@ frappe.query_reports["OCR Parcel Merge"] = {
 							<div class="stat-label" style="font-size: 11px; color: #155724; font-weight: 600;">Matched Barcodes</div>
 							<div class="stat-sublabel" style="font-size: 10px; color: #666; margin-top: 2px;">Unique Values</div>
 						</div>
-						<div class="stat-card total-rows" style="text-align: center; padding: 10px; background: #e8f5e9; border-radius: 4px; min-width: 110px; flex: 1; border: 2px solid #28a745;">
-							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #2e7d32;">0</div>
-							<div class="stat-label" style="font-size: 11px; color: #2e7d32; font-weight: 600;">Total Rows</div>
-							<div class="stat-sublabel" style="font-size: 10px; color: #666; margin-top: 2px;">Cartesian Product</div>
-						</div>
 					</div>
 					<div class="chart-area" style="height: 250px;"></div>
 					<div class="barcode-analysis" style="margin-top: 15px;">
@@ -161,6 +156,13 @@ frappe.query_reports["OCR Parcel Merge"] = {
 	},
 	
 	"after_datatable_render": function(datatable_obj) {
+		// CRITICAL DEBUG: Log how many rows are actually in the datatable
+		console.log("=== DATATABLE RENDER DEBUG ===");
+		console.log("Datatable row count:", datatable_obj ? datatable_obj.datamanager.rows.length : "NO DATATABLE");
+		console.log("frappe.query_report.data length:", frappe.query_report.data ? frappe.query_report.data.length : "NO DATA");
+		console.log("Expected: 480 rows (from chart stats)");
+		console.log("=== END DEBUG ===");
+		
 		// Update statistics when data loads
 		setTimeout(() => {
 			try {
@@ -238,26 +240,23 @@ frappe.query_reports["OCR Parcel Merge"] = {
 			var cards = chart_area.find('.stat-card .stat-number');
 			var matched_counts = chart_area.find('.stat-card .stat-matched-count');
 			
-			if (cards.length >= 4) {
+			if (cards.length >= 3) {
 				// Total OCR Records
 				$(cards[0]).text(stats.total_ocr_records || 0).css('color', '#007bff');
-				// OCR Matched Count (from barcode table)
+				// OCR Matched Count - use UNIQUE count, not sum
 				if (matched_counts.length >= 1) {
-					$(matched_counts[0]).text((stats.total_ocr_matched || 0) + ' matched').css('color', '#007bff');
+					$(matched_counts[0]).text((stats.unique_ocr_matched || 0) + ' matched').css('color', '#007bff');
 				}
 				
 				// Total Parcel Records
 				$(cards[1]).text(stats.total_parcel_records || 0).css('color', '#6c757d');
-				// Parcel Matched Count (from barcode table)
+				// Parcel Matched Count - use UNIQUE count, not sum
 				if (matched_counts.length >= 2) {
-					$(matched_counts[1]).text((stats.total_parcel_matched || 0) + ' matched').css('color', '#6c757d');
+					$(matched_counts[1]).text((stats.unique_parcel_matched || 0) + ' matched').css('color', '#6c757d');
 				}
 				
 				// Matched Barcodes (unique barcode values)
 				$(cards[2]).text(stats.matched_barcode_count || 0).css('color', '#155724');
-				
-				// Total Matched Rows (Cartesian product)
-				$(cards[3]).text((stats.chart_data && stats.chart_data.total_matched_rows) || 0).css('color', '#2e7d32');
 			}
 			
 			// Render barcode analysis if available
