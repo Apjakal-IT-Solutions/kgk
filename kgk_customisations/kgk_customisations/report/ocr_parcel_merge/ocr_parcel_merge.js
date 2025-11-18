@@ -1,6 +1,22 @@
 // Copyright (c) 2025, Apjakal IT Solutions and contributors
 // For license information, please see license.txt
 
+// Toggle barcode analysis section
+function toggleBarcodeAnalysis() {
+	const barcodeList = document.querySelector('.barcode-list');
+	const toggleIcon = document.querySelector('.barcode-toggle-icon');
+	
+	if (barcodeList.style.display === 'none') {
+		barcodeList.style.display = 'block';
+		toggleIcon.style.transform = 'rotate(0deg)';
+		toggleIcon.textContent = '▼';
+	} else {
+		barcodeList.style.display = 'none';
+		toggleIcon.style.transform = 'rotate(-90deg)';
+		toggleIcon.textContent = '▶';
+	}
+}
+
 frappe.query_reports["OCR Parcel Merge"] = {
 	"filters": [
 		{
@@ -66,21 +82,18 @@ frappe.query_reports["OCR Parcel Merge"] = {
 					<div class="match-stats" style="display: flex; justify-content: space-around; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
 						<div class="stat-card" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 110px; flex: 1;">
 							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #007bff;">0</div>
-							<div class="stat-label" style="font-size: 11px; color: #666;">Total OCR</div>
-						</div>
-						<div class="stat-card ocr-matched" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 110px; flex: 1;">
-							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #28a745;">0</div>
-							<div class="stat-secondary" style="font-size: 13px; color: #6c757d; margin-top: 2px;">0 rows</div>
-							<div class="stat-label" style="font-size: 11px; color: #666;">OCR Matched</div>
+							<div class="stat-label" style="font-size: 11px; color: #666;">Total OCR Records</div>
+							<div class="stat-matched-count" style="font-size: 12px; color: #007bff; margin-top: 2px; font-weight: 500;">0 matched</div>
 						</div>
 						<div class="stat-card" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 110px; flex: 1;">
 							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #6c757d;">0</div>
-							<div class="stat-label" style="font-size: 11px; color: #666;">Total Parcel</div>
+							<div class="stat-label" style="font-size: 11px; color: #666;">Total Parcel Records</div>
+							<div class="stat-matched-count" style="font-size: 12px; color: #6c757d; margin-top: 2px; font-weight: 500;">0 matched</div>
 						</div>
-						<div class="stat-card parcel-matched" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 110px; flex: 1;">
-							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #28a745;">0</div>
-							<div class="stat-secondary" style="font-size: 13px; color: #6c757d; margin-top: 2px;">0 rows</div>
-							<div class="stat-label" style="font-size: 11px; color: #666;">Parcel Matched</div>
+						<div class="stat-card matched-barcodes" style="text-align: center; padding: 10px; background: #d4edda; border-radius: 4px; min-width: 110px; flex: 1; border: 2px solid #28a745;">
+							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #155724;">0</div>
+							<div class="stat-label" style="font-size: 11px; color: #155724; font-weight: 600;">Matched Barcodes</div>
+							<div class="stat-sublabel" style="font-size: 10px; color: #666; margin-top: 2px;">Unique Values</div>
 						</div>
 						<div class="stat-card total-rows" style="text-align: center; padding: 10px; background: #e8f5e9; border-radius: 4px; min-width: 110px; flex: 1; border: 2px solid #28a745;">
 							<div class="stat-number" style="font-size: 24px; font-weight: bold; color: #2e7d32;">0</div>
@@ -89,6 +102,15 @@ frappe.query_reports["OCR Parcel Merge"] = {
 						</div>
 					</div>
 					<div class="chart-area" style="height: 250px;"></div>
+					<div class="barcode-analysis" style="margin-top: 15px;">
+						<h6 style="margin: 10px 0 5px 0; color: #555; font-size: 13px; cursor: pointer;" onclick="toggleBarcodeAnalysis()">
+							<span class="barcode-toggle-icon" style="display: inline-block; transition: transform 0.3s;">▼</span> 
+							Barcode Distribution (All Matches):
+						</h6>
+						<div class="barcode-list" style="max-height: 300px; overflow-y: auto; font-size: 11px; background: #f8f9fa; padding: 10px; border-radius: 4px;">
+							<!-- Will be populated dynamically -->
+						</div>
+					</div>
 				</div>
 			`);
 			report.page.main.prepend(chart_area);
@@ -164,10 +186,10 @@ frappe.query_reports["OCR Parcel Merge"] = {
 	},
 	
 	"after_datatable_render": function(datatable_obj) {
-		// Update statistics when data loads using multiple approaches
+		// Update statistics when data loads
 		setTimeout(() => {
 			try {
-				// Check if we have valid filters before trying to extract statistics
+				// Check if we have valid filters before trying to get statistics
 				if (!frappe.query_report || !frappe.query_report.get_values) {
 					console.log("Query report not ready, skipping statistics");
 					return;
@@ -184,62 +206,11 @@ frappe.query_reports["OCR Parcel Merge"] = {
 				// Show the statistics area if we have a parcel file
 				$('.chart-container').show();
 				
-				// Try to extract statistics from the report message
-				var report_message = '';
-				
-				// Check various places for the report message safely
-				if (frappe.query_report && frappe.query_report.message) {
-					report_message = frappe.query_report.message;
-				} else if (frappe.query_report && frappe.query_report.page && frappe.query_report.page.page) {
-					var msgprint = frappe.query_report.page.page.find('.msgprint');
-					if (msgprint.length > 0) {
-						report_message = msgprint.text();
-					}
-				}
-				
-				// Also try to find message in the DOM
-				if (!report_message) {
-					var msg_elements = $('.layout-main-section .msgprint, .frappe-page-content .msgprint, .page-content .msgprint');
-					if (msg_elements.length > 0) {
-						report_message = msg_elements.last().text();
-					}
-				}
-				
-				console.log("Report message found:", report_message);
-				
-				// Parse the message for statistics
-				var stats_match = report_message.match(/(\d+) matches found from (\d+) OCR records and (\d+) parcel records/);
-				
-				if (stats_match) {
-					var matched_count = parseInt(stats_match[1]);
-					var total_ocr = parseInt(stats_match[2]);
-					var total_parcel = parseInt(stats_match[3]);
-					
-					var stats = {
-						total_ocr_records: total_ocr,
-						matched_ocr_records: matched_count,
-						unmatched_ocr_records: total_ocr - matched_count,
-						total_parcel_records: total_parcel,
-						matched_parcel_records: matched_count,
-						unmatched_parcel_records: total_parcel - matched_count,
-						chart_data: {
-							matched_ocr: matched_count,
-							unmatched_ocr: total_ocr - matched_count,
-							matched_parcel: matched_count,
-							unmatched_parcel: total_parcel - matched_count
-						}
-					};
-					
-					console.log("Extracted statistics:", stats);
-					frappe.query_reports["OCR Parcel Merge"].render_statistics(stats);
-				} else {
-					console.log("Could not parse statistics from message, trying API call");
-					// Fallback to API call
-					frappe.query_reports["OCR Parcel Merge"].update_statistics();
-				}
+				// Call API to get statistics (don't try to parse message)
+				frappe.query_reports["OCR Parcel Merge"].update_statistics();
 			} catch (error) {
 				console.error("Error in after_datatable_render:", error);
-				// Still try the API call as final fallback
+				// Still try the API call as fallback
 				try {
 					frappe.query_reports["OCR Parcel Merge"].update_statistics();
 				} catch (e) {
@@ -286,33 +257,67 @@ frappe.query_reports["OCR Parcel Merge"] = {
 	},
 	
 	"render_statistics": function(stats) {
-		// Update the statistics cards with unique counts and total row count
+		// Update the statistics cards with simplified barcode-focused counts
 		var chart_area = $('.chart-container');
 		if (chart_area.length > 0) {
 			var cards = chart_area.find('.stat-card .stat-number');
-			if (cards.length >= 5) {
-				// Total OCR
+			var matched_counts = chart_area.find('.stat-card .stat-matched-count');
+			
+			if (cards.length >= 4) {
+				// Total OCR Records
 				$(cards[0]).text(stats.total_ocr_records || 0).css('color', '#007bff');
-				
-				// OCR Matched (unique) with total rows
-				$(cards[1]).text(stats.matched_ocr_records || 0).css('color', '#28a745');
-				var ocr_secondary = chart_area.find('.stat-card.ocr-matched .stat-secondary');
-				if (ocr_secondary.length > 0 && stats.chart_data && stats.chart_data.total_matched_rows) {
-					ocr_secondary.text(stats.chart_data.total_matched_rows + ' rows');
+				// OCR Matched Count (from barcode table)
+				if (matched_counts.length >= 1) {
+					$(matched_counts[0]).text((stats.total_ocr_matched || 0) + ' matched').css('color', '#007bff');
 				}
 				
-				// Total Parcel
-				$(cards[2]).text(stats.total_parcel_records || 0).css('color', '#6c757d');
-				
-				// Parcel Matched (unique) with total rows
-				$(cards[3]).text(stats.matched_parcel_records || 0).css('color', '#28a745');
-				var parcel_secondary = chart_area.find('.stat-card.parcel-matched .stat-secondary');
-				if (parcel_secondary.length > 0 && stats.chart_data && stats.chart_data.total_matched_rows) {
-					parcel_secondary.text(stats.chart_data.total_matched_rows + ' rows');
+				// Total Parcel Records
+				$(cards[1]).text(stats.total_parcel_records || 0).css('color', '#6c757d');
+				// Parcel Matched Count (from barcode table)
+				if (matched_counts.length >= 2) {
+					$(matched_counts[1]).text((stats.total_parcel_matched || 0) + ' matched').css('color', '#6c757d');
 				}
+				
+				// Matched Barcodes (unique barcode values)
+				$(cards[2]).text(stats.matched_barcode_count || 0).css('color', '#155724');
 				
 				// Total Matched Rows (Cartesian product)
-				$(cards[4]).text((stats.chart_data && stats.chart_data.total_matched_rows) || 0).css('color', '#2e7d32');
+				$(cards[3]).text((stats.chart_data && stats.chart_data.total_matched_rows) || 0).css('color', '#2e7d32');
+			}
+			
+			// Render barcode analysis if available
+			if (stats.chart_data && stats.chart_data.barcode_analysis && stats.chart_data.barcode_analysis.length > 0) {
+				var barcode_list = chart_area.find('.barcode-list');
+				var barcode_section = chart_area.find('.barcode-analysis');
+				
+				barcode_list.empty();
+				
+				// Create table showing all barcodes with distribution
+				var html = '<table style="width: 100%; border-collapse: collapse;">';
+				html += '<thead><tr style="background: #dee2e6; font-weight: 600;">';
+				html += '<th style="padding: 5px; text-align: left;">Barcode</th>';
+				html += '<th style="padding: 5px; text-align: center;">OCR Count</th>';
+				html += '<th style="padding: 5px; text-align: center;">Parcel Count</th>';
+				html += '<th style="padding: 5px; text-align: center;">Total Rows</th>';
+				html += '<th style="padding: 5px; text-align: center;">% of Total</th>';
+				html += '</tr></thead><tbody>';
+				
+				stats.chart_data.barcode_analysis.forEach(function(item, index) {
+					var bg = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+					html += `<tr style="background: ${bg};">`;
+					html += `<td style="padding: 5px; font-family: monospace;">${item.barcode}</td>`;
+					html += `<td style="padding: 5px; text-align: center; color: #28a745; font-weight: 500;">${item.ocr_count}</td>`;
+					html += `<td style="padding: 5px; text-align: center; color: #007bff; font-weight: 500;">${item.parcel_count}</td>`;
+					html += `<td style="padding: 5px; text-align: center; color: #2e7d32; font-weight: 600;">${item.total_rows}</td>`;
+					html += `<td style="padding: 5px; text-align: center; color: #856404; font-weight: 600;">${item.percentage}%</td>`;
+					html += '</tr>';
+				});
+				
+				html += '</tbody></table>';
+				barcode_list.html(html);
+				barcode_section.show();
+			} else {
+				chart_area.find('.barcode-analysis').hide();
 			}
 			
 			// Render chart if chart data is available
@@ -388,14 +393,8 @@ frappe.query_reports["OCR Parcel Merge"] = {
 					wrapper.append(annotation);
 				}
 			} else {
-				// Create bar chart with enhanced overlay showing unique counts + total rows
-				// Option C: Single coherent chart with total rows as annotation
-				
-				// Create container for chart and annotation
-				var wrapper = $('<div style="position: relative; height: 200px;"></div>');
-				$(chart_container).append(wrapper);
-				
-				new frappe.Chart(wrapper[0], {
+				// Create bar chart showing unique counts (no overlay - Total Rows card is sufficient)
+				new frappe.Chart(chart_container, {
 					title: "Match Analysis (Unique Records)",
 					data: {
 						labels: ["OCR Records", "Parcel Records"],
@@ -426,23 +425,10 @@ frappe.query_reports["OCR Parcel Merge"] = {
 					}
 				});
 				
-				// Add annotation overlay showing total rows (Cartesian product)
-				if (total_matched_rows > 0) {
-					var annotation = $(`
-						<div style="position: absolute; top: 10px; right: 10px; background: rgba(46, 125, 50, 0.9); color: white; 
-							padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-							<div style="font-size: 18px; font-weight: bold;">${total_matched_rows}</div>
-							<div style="font-size: 10px; font-weight: 400; margin-top: 2px;">Total Matched Rows</div>
-							<div style="font-size: 9px; font-weight: 300; margin-top: 1px; opacity: 0.9;">Cartesian Product</div>
-						</div>
-					`);
-					wrapper.append(annotation);
-				}
-				
-				// Add subtle text below chart explaining the metrics
+				// Add explanation text showing relationship between unique counts and total rows
 				var explanation = $(`
 					<div style="text-align: center; color: #666; font-size: 10px; margin-top: 8px; padding: 0 10px;">
-						Chart shows unique record counts. Total rows (${total_matched_rows}) includes all combinations from matching barcodes.
+						Chart shows unique record counts. When matching barcodes appear in multiple records, the Cartesian product creates ${total_matched_rows} total rows displayed below.
 					</div>
 				`);
 				$(chart_container).append(explanation);

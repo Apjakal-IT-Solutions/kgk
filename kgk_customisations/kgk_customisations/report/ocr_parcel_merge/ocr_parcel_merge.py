@@ -94,25 +94,89 @@ def execute(filters=None):
 		unmatched_ocr = merge_result.get("unmatched_ocr", [])
 		unmatched_parcels = merge_result.get("unmatched_parcels", [])
 		
-		# Calculate statistics with UNIQUE counts
-		# Count unique OCR and Parcel records that were matched
-		unique_ocr_matched = len(set(
-			id(m.get("ocr_data")) for m in matched_pairs 
-			if m.get("ocr_data") and m.get("is_matched")
-		))
-		unique_parcel_matched = len(set(
-			id(m.get("parcel_data")) for m in matched_pairs 
-			if m.get("parcel_data") and m.get("is_matched")
-		))
+		# Calculate statistics - focus on UNIQUE BARCODE VALUES
+		# Count how many distinct barcode values were matched
+		matched_barcodes = set()
+		
+		for m in matched_pairs:
+			if m.get("is_matched"):
+				ocr_data = m.get("ocr_data")
+				if ocr_data:
+					barcode_value = str(ocr_data.get("lot_id_1", "")).strip().upper()
+					if barcode_value and barcode_value != "NONE":
+						matched_barcodes.add(barcode_value)
+		
+		unique_barcode_count = len(matched_barcodes)
+		
+		# Calculate DISTINCT barcode values and distribution
+		barcode_distribution = {}
+		distinct_barcodes = set()
+		
+		for match in matched_pairs:
+			if match.get("is_matched"):
+				ocr_data = match.get("ocr_data")
+				parcel_data = match.get("parcel_data")
+				
+				if ocr_data and parcel_data:
+					# Get the barcode value that matched
+					barcode_value = str(ocr_data.get("lot_id_1", "")).strip().upper()
+					if barcode_value and barcode_value != "NONE":
+						distinct_barcodes.add(barcode_value)
+						
+						# Track distribution: count how many times each barcode appears
+						if barcode_value not in barcode_distribution:
+							barcode_distribution[barcode_value] = {
+								"ocr_ids": set(),
+								"parcel_ids": set(),
+								"total_rows": 0
+							}
+						
+						# Add unique record IDs using proper identifiers
+						ocr_id = ocr_data.get("name") or f"{ocr_data.get('upload_name')}_{ocr_data.get('sequence')}"
+						parcel_id = parcel_data.get("_row_index", f"unknown_{id(parcel_data)}")
+						
+						barcode_distribution[barcode_value]["ocr_ids"].add(ocr_id)
+						barcode_distribution[barcode_value]["parcel_ids"].add(parcel_id)
+						barcode_distribution[barcode_value]["total_rows"] += 1
+		
+		# Convert sets to counts
+		barcode_analysis = []
+		for barcode, data in barcode_distribution.items():
+			ocr_count = len(data["ocr_ids"])
+			parcel_count = len(data["parcel_ids"])
+			total_rows = data["total_rows"]
+			
+			barcode_analysis.append({
+				"barcode": barcode,
+				"ocr_count": ocr_count,
+				"parcel_count": parcel_count,
+				"cartesian_product": ocr_count * parcel_count,
+				"total_rows": total_rows
+			})
+		
+		# Sort by most duplicates (highest Cartesian product)
+		barcode_analysis.sort(key=lambda x: x["cartesian_product"], reverse=True)
+		
+		# Add percentage of total rows for each barcode
+		total_matched_rows = len(matched_pairs)
+		for item in barcode_analysis:
+			item["percentage"] = round((item["total_rows"] / total_matched_rows * 100), 2) if total_matched_rows > 0 else 0
+		
+		# Calculate totals from barcode distribution table
+		total_ocr_matched = sum(item["ocr_count"] for item in barcode_analysis)
+		total_parcel_matched = sum(item["parcel_count"] for item in barcode_analysis)
 		
 		stats = {
 			"total_ocr_records": len(ocr_data),
 			"total_parcel_records": len(parcel_data),
-			"matched_ocr_records": unique_ocr_matched,  # UNIQUE OCR records matched
+			"matched_barcode_count": unique_barcode_count,  # Number of unique barcodes that matched
+			"total_ocr_matched": total_ocr_matched,  # Sum of OCR counts from barcode table
+			"total_parcel_matched": total_parcel_matched,  # Sum of Parcel counts from barcode table
 			"unmatched_ocr_records": len(unmatched_ocr),
-			"matched_parcel_records": unique_parcel_matched,  # UNIQUE Parcel records matched
 			"unmatched_parcel_records": len(unmatched_parcels),
-			"total_matched_rows": len(matched_pairs)  # Total Cartesian product rows
+			"total_matched_rows": total_matched_rows,  # Total Cartesian product rows
+			"distinct_barcodes": len(distinct_barcodes),  # Number of distinct barcode values (should equal matched_barcode_count)
+			"barcode_analysis": barcode_analysis  # ALL barcodes with distribution (not just top 10)
 		}
 		
 		if not matched_pairs:
@@ -161,21 +225,54 @@ def execute(filters=None):
 		# Format ONLY MATCHED records for display (LEFT JOIN filtered to matches only)
 		formatted_data = format_all_records(matched_pairs)
 		
+		# Safety check: ensure we have data
+		if not formatted_data or len(formatted_data) == 0:
+			error_msg = f"formatted_data is empty even though we have {len(matched_pairs)} matched_pairs!"
+			frappe.log_error(error_msg, "OCR Merge Data Error")
+			message = f"Error: No data could be formatted from {len(matched_pairs)} matched pairs"
+			return get_basic_columns(), [{
+				"match_status": "ERROR",
+				"message": message
+			}], message, generate_statistics_chart(stats)
+		
 		# Generate chart and message with statistics
 		chart = generate_statistics_chart(stats)
 		message = (
 			f"Analysis Complete: {len(matched_pairs)} total rows displayed (Cartesian product). "
-			f"Unique matches: {stats['matched_ocr_records']} unique OCR records × {stats['matched_parcel_records']} unique Parcel records. "
-			f"Source: {len(ocr_data)} total OCR, {len(parcel_data)} total Parcel."
+			f"Matched {stats['matched_barcode_count']} unique barcode values. "
+			f"Source: {len(ocr_data)} total OCR records, {len(parcel_data)} total Parcel records."
 		)
 		
 		return columns, formatted_data, message, chart
 		
 	except Exception as e:
-		# Create a shorter error message to avoid title length issues
-		error_msg = f"Report error: {str(e)[:100]}..."
-		frappe.log_error(f"Error in OCR Parcel Merge report: {str(e)}", "OCR Merge Error")
-		return get_basic_columns(), [create_error_row(error_msg)]
+		# Create a more detailed error message for debugging
+		import traceback
+		error_detail = traceback.format_exc()
+		error_msg = f"Report error: {str(e)}"
+		frappe.log_error(f"Error in OCR Parcel Merge report:\n{error_detail}", "OCR Merge Error")
+		
+		# Return basic error display
+		basic_cols = get_basic_columns()
+		error_row = {
+			"match_status": "ERROR",
+			"message": f"{error_msg[:200]}"
+		}
+		
+		# Try to return with empty chart to prevent further errors
+		try:
+			empty_chart = {
+				"matched_ocr": 0,
+				"matched_parcel": 0,
+				"unmatched_ocr": 0,
+				"unmatched_parcel": 0,
+				"total_matched_rows": 0,
+				"distinct_barcodes": 0,
+				"barcode_analysis": []
+			}
+			return basic_cols, [error_row], error_msg, empty_chart
+		except:
+			return basic_cols, [error_row]
 
 
 def validate_filters(filters):
@@ -216,11 +313,15 @@ def get_ocr_data(filters):
 			ocr_filters["lot_id_filter"] = filters.get("lot_id_filter")
 		
 		# Get consolidated OCR data with refined analysis - no date restrictions
-		ocr_data = get_consolidated_ocr_data(
+		# Note: format="dict" returns {record_id: record_data, ...}
+		ocr_data_dict = get_consolidated_ocr_data(
 			filters=ocr_filters,
 			format="dict",
 			include_refined=True
 		)
+		
+		# Convert dict to list of record values
+		ocr_data = list(ocr_data_dict.values()) if isinstance(ocr_data_dict, dict) else ocr_data_dict
 		
 		# Apply additional filtering if needed
 		if filters.get("lot_id_filter"):
@@ -376,7 +477,14 @@ def generate_dynamic_columns(ocr_data, parcel_columns):
 	
 	# Get all OCR fields from sample data - match cumulative report exactly
 	if ocr_data:
-		sample_ocr = ocr_data[0]
+		# Handle both list and dict formats
+		if isinstance(ocr_data, dict):
+			# If it's a dict, get the first value
+			sample_ocr = list(ocr_data.values())[0] if ocr_data else {}
+		elif isinstance(ocr_data, list) and len(ocr_data) > 0:
+			sample_ocr = ocr_data[0]
+		else:
+			sample_ocr = {}
 		
 		# OCR fields in exact order as cumulative report (from prepare_excel_data)
 		ocr_fields = [
@@ -406,19 +514,17 @@ def generate_dynamic_columns(ocr_data, parcel_columns):
 			("refined_fancy_yellow", "Refined Fancy Yellow", "Data", None, 140)
 		]
 		
-		# Add OCR columns that exist in the data - use original field names
+		# Add ALL OCR columns (they will be empty for unmatched records)
 		for field_name, label, field_type, options, width in ocr_fields:
-			# Only add columns for fields that actually exist in our data
-			if field_name in sample_ocr:
-				column = {
-					"fieldname": field_name,  # Use original field name without prefix
-					"label": label,  # Use original label without "OCR" prefix
-					"fieldtype": field_type,
-					"width": width
-				}
-				if options:
-					column["options"] = options
-				columns.append(column)
+			column = {
+				"fieldname": field_name,  # Use original field name without prefix
+				"label": label,  # Use original label without "OCR" prefix
+				"fieldtype": field_type,
+				"width": width
+			}
+			if options:
+				column["options"] = options
+			columns.append(column)
 	
 	# Add parcel columns
 	for col_name in parcel_columns:
@@ -574,13 +680,15 @@ def generate_statistics_chart(stats):
 	"""
 	try:
 		# Return chart data in format expected by JavaScript
-		# Include both unique counts AND total row count
+		# Include both unique counts AND total row count AND barcode analysis
 		return {
 			"matched_ocr": stats["matched_ocr_records"],
 			"matched_parcel": stats["matched_parcel_records"], 
 			"unmatched_ocr": stats["unmatched_ocr_records"],
 			"unmatched_parcel": stats["unmatched_parcel_records"],
-			"total_matched_rows": stats["total_matched_rows"]  # Cartesian product total
+			"total_matched_rows": stats["total_matched_rows"],  # Cartesian product total
+			"distinct_barcodes": stats.get("distinct_barcodes", 0),  # Distinct barcode values
+			"barcode_analysis": stats.get("barcode_analysis", [])  # Top duplicate barcodes
 		}
 		
 	except Exception as e:
@@ -638,7 +746,10 @@ def perform_merge_analysis(ocr_data, parcel_data, filters, barcode_field="barcod
 		# DEBUG: Collect sample parcel barcode values
 		sample_parcel_barcodes = []
 		
-		for parcel_record in parcel_data:
+		for parcel_idx, parcel_record in enumerate(parcel_data):
+			# Add row index to parcel record for unique identification
+			parcel_record["_row_index"] = parcel_idx
+			
 			# Use the specified barcode field (barcode or main_barcode)
 			parcel_barcode = str(parcel_record.get(barcode_field, "")).strip().upper()
 			
@@ -833,19 +944,93 @@ def get_statistics(filters):
 		unmatched_ocr = merge_result.get("unmatched_ocr", [])
 		unmatched_parcels = merge_result.get("unmatched_parcels", [])
 		
+		# Calculate statistics - focus on UNIQUE BARCODE VALUES
+		# Count how many distinct barcode values were matched
+		matched_barcodes = set()
+		barcode_field = filters.get("barcode_field", "barcode")  # Get which field was used for matching
+		
+		for m in matched_pairs:
+			if m.get("is_matched"):
+				ocr_data_item = m.get("ocr_data")
+				if ocr_data_item:
+					barcode_value = str(ocr_data_item.get("lot_id_1", "")).strip().upper()
+					if barcode_value and barcode_value != "NONE":
+						matched_barcodes.add(barcode_value)
+		
+		unique_barcode_count = len(matched_barcodes)
+		
+		# Calculate DISTINCT barcode values and distribution (same as execute())
+		barcode_distribution = {}
+		distinct_barcodes = set()
+		
+		for match in matched_pairs:
+			if match.get("is_matched"):
+				ocr_data_rec = match.get("ocr_data")
+				parcel_data_rec = match.get("parcel_data")
+				
+				if ocr_data_rec and parcel_data_rec:
+					barcode_value = str(ocr_data_rec.get("lot_id_1", "")).strip().upper()
+					if barcode_value and barcode_value != "NONE":
+						distinct_barcodes.add(barcode_value)
+						
+						if barcode_value not in barcode_distribution:
+							barcode_distribution[barcode_value] = {
+								"ocr_ids": set(),
+								"parcel_ids": set(),
+								"total_rows": 0
+							}
+						
+						# Add unique record IDs using proper identifiers
+						ocr_id = ocr_data_rec.get("name") or f"{ocr_data_rec.get('upload_name')}_{ocr_data_rec.get('sequence')}"
+						parcel_id = parcel_data_rec.get("_row_index", f"unknown_{id(parcel_data_rec)}")
+						
+						barcode_distribution[barcode_value]["ocr_ids"].add(ocr_id)
+						barcode_distribution[barcode_value]["parcel_ids"].add(parcel_id)
+						barcode_distribution[barcode_value]["total_rows"] += 1
+		
+		# Convert sets to counts
+		barcode_analysis = []
+		for barcode, data in barcode_distribution.items():
+			ocr_count = len(data["ocr_ids"])
+			parcel_count = len(data["parcel_ids"])
+			total_rows = data["total_rows"]
+			
+			barcode_analysis.append({
+				"barcode": barcode,
+				"ocr_count": ocr_count,
+				"parcel_count": parcel_count,
+				"cartesian_product": ocr_count * parcel_count,
+				"total_rows": total_rows
+			})
+		
+		barcode_analysis.sort(key=lambda x: x["cartesian_product"], reverse=True)
+		
+		# Add percentage of total rows for each barcode
+		total_matched_rows = len(matched_pairs)
+		for item in barcode_analysis:
+			item["percentage"] = round((item["total_rows"] / total_matched_rows * 100), 2) if total_matched_rows > 0 else 0
+		
+		# Calculate totals from barcode distribution table
+		total_ocr_matched = sum(item["ocr_count"] for item in barcode_analysis)
+		total_parcel_matched = sum(item["parcel_count"] for item in barcode_analysis)
+		
 		# Calculate statistics
 		stats = {
 			"total_ocr_records": len(ocr_data),
-			"matched_ocr_records": len(matched_pairs),
+			"matched_barcode_count": unique_barcode_count,  # Number of unique barcodes that matched
+			"total_ocr_matched": total_ocr_matched,  # Sum of OCR counts from barcode table
+			"total_parcel_matched": total_parcel_matched,  # Sum of Parcel counts from barcode table
 			"unmatched_ocr_records": len(unmatched_ocr),
 			"total_parcel_records": len(parcel_data),
-			"matched_parcel_records": len(matched_pairs),
 			"unmatched_parcel_records": len(unmatched_parcels),
 			"chart_data": {
-				"matched_ocr": len(matched_pairs),
+				"matched_ocr": len(ocr_data) - len(unmatched_ocr),  # Total OCR that had matches
 				"unmatched_ocr": len(unmatched_ocr),
-				"matched_parcel": len(matched_pairs),
-				"unmatched_parcel": len(unmatched_parcels)
+				"matched_parcel": len(parcel_data) - len(unmatched_parcels),  # Total Parcel that had matches
+				"unmatched_parcel": len(unmatched_parcels),
+				"total_matched_rows": total_matched_rows,  # Total Cartesian product rows
+				"distinct_barcodes": len(distinct_barcodes),  # Distinct barcode values (should equal matched_barcode_count)
+				"barcode_analysis": barcode_analysis  # ALL barcodes with distribution
 			}
 		}
 		
