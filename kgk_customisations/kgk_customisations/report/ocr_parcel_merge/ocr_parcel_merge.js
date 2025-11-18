@@ -74,10 +74,6 @@ frappe.query_reports["OCR Parcel Merge"] = {
 				<div class="chart-container" style="margin: 15px 0; padding: 15px; border: 1px solid #d1d8dd; border-radius: 4px;">
 					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
 						<h5 style="margin: 0; color: #555;">Match Statistics</h5>
-						<div class="chart-toggle" style="display: flex; gap: 10px;">
-							<button class="btn btn-xs chart-toggle-btn active" data-type="bar" style="background: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 3px; font-size: 11px;">Bar Chart</button>
-							<button class="btn btn-xs chart-toggle-btn" data-type="pie" style="background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; padding: 4px 8px; border-radius: 3px; font-size: 11px;">Pie Chart</button>
-						</div>
 					</div>
 					<div class="match-stats" style="display: flex; justify-content: space-around; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
 						<div class="stat-card" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px; min-width: 110px; flex: 1;">
@@ -116,27 +112,6 @@ frappe.query_reports["OCR Parcel Merge"] = {
 			report.page.main.prepend(chart_area);
 			
 			// Add click handlers for chart toggle buttons
-			$('.chart-toggle-btn').on('click', function() {
-				var chartType = $(this).data('type');
-				
-				// Update button styles
-				$('.chart-toggle-btn').removeClass('active').css({
-					'background': '#f8f9fa',
-					'color': '#495057'
-				});
-				$(this).addClass('active').css({
-					'background': '#007bff',
-					'color': 'white'
-				});
-				
-				// Store current chart type and re-render
-				window.current_chart_type = chartType;
-				
-				// Re-render chart with new type if we have data
-				if (window.current_chart_data) {
-					frappe.query_reports["OCR Parcel Merge"].render_chart(window.current_chart_data, chartType);
-				}
-			});
 		}
 		
 		// Store reference globally for easier access
@@ -327,8 +302,8 @@ frappe.query_reports["OCR Parcel Merge"] = {
 		}
 	},
 	
-	"render_chart": function(chart_data, chart_type) {
-		// Render the match statistics chart with enhanced overlay showing unique counts and total rows
+	"render_chart": function(chart_data) {
+		// Render the match statistics chart - simplified bar chart only
 		try {
 			var chart_container = $('.chart-container .chart-area')[0];
 			if (!chart_container) return;
@@ -342,97 +317,56 @@ frappe.query_reports["OCR Parcel Merge"] = {
 				return;
 			}
 			
-			// Store chart data globally for chart type switching
-			window.current_chart_data = chart_data;
+			// DEBUG: Log what values we're actually getting
+			console.log("DEBUG: Chart data values:", {
+				matched_ocr: chart_data.matched_ocr,
+				matched_parcel: chart_data.matched_parcel,
+				full_chart_data: chart_data
+			});
 			
-			// Use provided chart type or default to bar
-			chart_type = chart_type || window.current_chart_type || 'bar';
-			window.current_chart_type = chart_type;
-			
-			// Calculate values for charts
-			var total_ocr = chart_data.matched_ocr + chart_data.unmatched_ocr;
-			var total_parcel = chart_data.matched_parcel + chart_data.unmatched_parcel;
-			var ocr_match_pct = total_ocr > 0 ? (chart_data.matched_ocr / total_ocr * 100) : 0;
-			var parcel_match_pct = total_parcel > 0 ? (chart_data.matched_parcel / total_parcel * 100) : 0;
+			// Calculate total matched rows for explanation
 			var total_matched_rows = chart_data.total_matched_rows || 0;
 			
-			if (chart_type === 'pie') {
-				// Create pie chart showing overall match distribution with total rows annotation
-				var total_records = total_ocr + total_parcel;
-				var total_matched = chart_data.matched_ocr + chart_data.matched_parcel;
-				var total_unmatched = total_records - total_matched;
-				
-				// Create container for chart and annotation
-				var wrapper = $('<div style="position: relative; height: 200px;"></div>');
-				$(chart_container).append(wrapper);
-				
-				new frappe.Chart(wrapper[0], {
-					title: "Overall Match Distribution",
-					data: {
-						labels: ["Matched", "Unmatched"],
-						datasets: [
-							{
-								values: [total_matched, total_unmatched]
-							}
-						]
-					},
-					type: 'pie',
-					height: 200,
-					colors: ['#28a745', '#dc3545']
-				});
-				
-				// Add annotation overlay for total rows
-				if (total_matched_rows > 0) {
-					var annotation = $(`
-						<div style="position: absolute; top: 10px; right: 10px; background: rgba(46, 125, 50, 0.9); color: white; 
-							padding: 8px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-							Total Rows: ${total_matched_rows}
-							<div style="font-size: 9px; font-weight: 400; margin-top: 2px;">Cartesian Product</div>
-						</div>
-					`);
-					wrapper.append(annotation);
+			// Create bar chart showing unique counts
+			new frappe.Chart(chart_container, {
+				title: "Match Analysis (Unique Records)",
+				data: {
+					labels: ["OCR Records", "Parcel Records"],
+					datasets: [
+						{
+							name: "Matched",
+							values: [chart_data.matched_ocr, chart_data.matched_parcel]
+						},
+						{
+							name: "Unmatched", 
+							values: [chart_data.unmatched_ocr, chart_data.unmatched_parcel]
+						}
+					]
+				},
+				type: 'bar',
+				height: 200,
+				colors: ['#28a745', '#dc3545'],
+				barOptions: {
+					stacked: true,
+					spaceRatio: 0.5
+				},
+				axisOptions: {
+					xAxisMode: 'tick',
+					xIsSeries: false
+				},
+				tooltipOptions: {
+					formatTooltipY: d => d + " unique records"
 				}
-			} else {
-				// Create bar chart showing unique counts (no overlay - Total Rows card is sufficient)
-				new frappe.Chart(chart_container, {
-					title: "Match Analysis (Unique Records)",
-					data: {
-						labels: ["OCR Records", "Parcel Records"],
-						datasets: [
-							{
-								name: "Matched",
-								values: [chart_data.matched_ocr, chart_data.matched_parcel]
-							},
-							{
-								name: "Unmatched", 
-								values: [chart_data.unmatched_ocr, chart_data.unmatched_parcel]
-							}
-						]
-					},
-					type: 'bar',
-					height: 200,
-					colors: ['#28a745', '#dc3545'],
-					barOptions: {
-						stacked: true,
-						spaceRatio: 0.5
-					},
-					axisOptions: {
-						xAxisMode: 'tick',
-						xIsSeries: false
-					},
-					tooltipOptions: {
-						formatTooltipY: d => d + " unique records"
-					}
-				});
-				
-				// Add explanation text showing relationship between unique counts and total rows
-				var explanation = $(`
-					<div style="text-align: center; color: #666; font-size: 10px; margin-top: 8px; padding: 0 10px;">
-						Chart shows unique record counts. When matching barcodes appear in multiple records, the Cartesian product creates ${total_matched_rows} total rows displayed below.
-					</div>
-				`);
-				$(chart_container).append(explanation);
-			}
+			});
+			
+			// Add explanation text showing relationship between unique counts and total rows
+			var explanation = $(`
+				<div style="text-align: center; color: #666; font-size: 10px; margin-top: 8px; padding: 0 10px;">
+					Chart shows unique record counts. When matching barcodes appear in multiple records, the Cartesian product creates ${total_matched_rows} total rows displayed below.
+				</div>
+			`);
+			$(chart_container).append(explanation);
+			
 		} catch (error) {
 			console.error("Chart rendering error:", error);
 			var chart_container = $('.chart-container .chart-area')[0];

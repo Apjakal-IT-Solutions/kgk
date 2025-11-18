@@ -163,15 +163,27 @@ def execute(filters=None):
 			item["percentage"] = round((item["total_rows"] / total_matched_rows * 100), 2) if total_matched_rows > 0 else 0
 		
 		# Calculate totals from barcode distribution table
-		total_ocr_matched = sum(item["ocr_count"] for item in barcode_analysis)
-		total_parcel_matched = sum(item["parcel_count"] for item in barcode_analysis)
+		total_ocr_matched = sum(item["ocr_count"] for item in barcode_analysis)  # Sum of OCR counts (used for stats cards)
+		total_parcel_matched = sum(item["parcel_count"] for item in barcode_analysis)  # Sum of Parcel counts (used for stats cards)
+		
+		# Calculate unique OCR and Parcel records that participate in matches (for chart display)
+		all_matched_ocr_ids = set()
+		all_matched_parcel_ids = set()
+		for barcode, data in barcode_distribution.items():
+			all_matched_ocr_ids.update(data["ocr_ids"])
+			all_matched_parcel_ids.update(data["parcel_ids"])
+		
+		unique_ocr_matched = len(all_matched_ocr_ids)
+		unique_parcel_matched = len(all_matched_parcel_ids)
 		
 		stats = {
 			"total_ocr_records": len(ocr_data),
 			"total_parcel_records": len(parcel_data),
 			"matched_barcode_count": unique_barcode_count,  # Number of unique barcodes that matched
-			"total_ocr_matched": total_ocr_matched,  # Sum of OCR counts from barcode table
-			"total_parcel_matched": total_parcel_matched,  # Sum of Parcel counts from barcode table
+			"total_ocr_matched": total_ocr_matched,  # Sum of OCR counts from barcode table (for stats cards)
+			"total_parcel_matched": total_parcel_matched,  # Sum of Parcel counts from barcode table (for stats cards)
+			"unique_ocr_matched": unique_ocr_matched,  # Unique OCR records that participate in matches (for chart)
+			"unique_parcel_matched": unique_parcel_matched,  # Unique Parcel records that participate in matches (for chart)
 			"unmatched_ocr_records": len(unmatched_ocr),
 			"unmatched_parcel_records": len(unmatched_parcels),
 			"total_matched_rows": total_matched_rows,  # Total Cartesian product rows
@@ -239,8 +251,8 @@ def execute(filters=None):
 		chart = generate_statistics_chart(stats)
 		message = (
 			f"Analysis Complete: {len(matched_pairs)} total rows displayed (Cartesian product). "
-			f"Matched {stats['matched_barcode_count']} unique barcode values. "
-			f"Source: {len(ocr_data)} total OCR records, {len(parcel_data)} total Parcel records."
+			f"Source: {len(ocr_data)} total OCR records, {len(parcel_data)} total Parcel records. "
+			f"DEBUG: Chart matched_ocr={chart.get('matched_ocr', 'MISSING')}, stats.total_ocr_matched={stats.get('total_ocr_matched', 'MISSING')}"
 		)
 		
 		return columns, formatted_data, message, chart
@@ -679,16 +691,19 @@ def generate_statistics_chart(stats):
 		Dict with chart configuration for Frappe charts
 	"""
 	try:
+		# DEBUG: Log what we're receiving
+		frappe.log_error(f"Chart stats: unique_ocr_matched={stats.get('unique_ocr_matched')}, total_ocr_matched={stats.get('total_ocr_matched')}", "Chart Debug")
+		
 		# Return chart data in format expected by JavaScript
-		# Include both unique counts AND total row count AND barcode analysis
+		# Use unique record counts for the chart (not the sum from barcode table)
 		return {
-			"matched_ocr": stats["matched_ocr_records"],
-			"matched_parcel": stats["matched_parcel_records"], 
-			"unmatched_ocr": stats["unmatched_ocr_records"],
-			"unmatched_parcel": stats["unmatched_parcel_records"],
-			"total_matched_rows": stats["total_matched_rows"],  # Cartesian product total
+			"matched_ocr": stats.get("unique_ocr_matched", 0),  # Unique OCR records (not sum)
+			"matched_parcel": stats.get("unique_parcel_matched", 0),  # Unique Parcel records (not sum)
+			"unmatched_ocr": stats.get("unmatched_ocr_records", 0),
+			"unmatched_parcel": stats.get("unmatched_parcel_records", 0),
+			"total_matched_rows": stats.get("total_matched_rows", 0),  # Cartesian product total
 			"distinct_barcodes": stats.get("distinct_barcodes", 0),  # Distinct barcode values
-			"barcode_analysis": stats.get("barcode_analysis", [])  # Top duplicate barcodes
+			"barcode_analysis": stats.get("barcode_analysis", [])  # All barcodes with distribution
 		}
 		
 	except Exception as e:
@@ -1011,22 +1026,34 @@ def get_statistics(filters):
 			item["percentage"] = round((item["total_rows"] / total_matched_rows * 100), 2) if total_matched_rows > 0 else 0
 		
 		# Calculate totals from barcode distribution table
-		total_ocr_matched = sum(item["ocr_count"] for item in barcode_analysis)
-		total_parcel_matched = sum(item["parcel_count"] for item in barcode_analysis)
+		total_ocr_matched = sum(item["ocr_count"] for item in barcode_analysis)  # Sum of OCR counts (used for stats cards)
+		total_parcel_matched = sum(item["parcel_count"] for item in barcode_analysis)  # Sum of Parcel counts (used for stats cards)
+		
+		# Calculate unique OCR and Parcel records that participate in matches (for chart display)
+		all_matched_ocr_ids = set()
+		all_matched_parcel_ids = set()
+		for barcode, data in barcode_distribution.items():
+			all_matched_ocr_ids.update(data["ocr_ids"])
+			all_matched_parcel_ids.update(data["parcel_ids"])
+		
+		unique_ocr_matched = len(all_matched_ocr_ids)
+		unique_parcel_matched = len(all_matched_parcel_ids)
 		
 		# Calculate statistics
 		stats = {
 			"total_ocr_records": len(ocr_data),
 			"matched_barcode_count": unique_barcode_count,  # Number of unique barcodes that matched
-			"total_ocr_matched": total_ocr_matched,  # Sum of OCR counts from barcode table
-			"total_parcel_matched": total_parcel_matched,  # Sum of Parcel counts from barcode table
+			"total_ocr_matched": total_ocr_matched,  # Sum of OCR counts from barcode table (for stats cards)
+			"total_parcel_matched": total_parcel_matched,  # Sum of Parcel counts from barcode table (for stats cards)
+			"unique_ocr_matched": unique_ocr_matched,  # Unique OCR records that participate in matches (for chart)
+			"unique_parcel_matched": unique_parcel_matched,  # Unique Parcel records that participate in matches (for chart)
 			"unmatched_ocr_records": len(unmatched_ocr),
 			"total_parcel_records": len(parcel_data),
 			"unmatched_parcel_records": len(unmatched_parcels),
 			"chart_data": {
-				"matched_ocr": len(ocr_data) - len(unmatched_ocr),  # Total OCR that had matches
+				"matched_ocr": unique_ocr_matched,  # Use calculated unique OCR count
 				"unmatched_ocr": len(unmatched_ocr),
-				"matched_parcel": len(parcel_data) - len(unmatched_parcels),  # Total Parcel that had matches
+				"matched_parcel": unique_parcel_matched,  # Use calculated unique Parcel count
 				"unmatched_parcel": len(unmatched_parcels),
 				"total_matched_rows": total_matched_rows,  # Total Cartesian product rows
 				"distinct_barcodes": len(distinct_barcodes),  # Distinct barcode values (should equal matched_barcode_count)
