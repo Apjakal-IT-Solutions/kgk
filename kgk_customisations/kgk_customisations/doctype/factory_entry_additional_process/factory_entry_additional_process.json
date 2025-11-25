@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-24 09:15:05.159744",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "column_break_oflj",
+  "factory_process",
+  "column_break_knyd",
+  "stones",
+  "column_break_bwec",
+  "process_reason",
+  "column_break_byvt",
+  "parent_row_idx"
+ ],
+ "fields": [
+  {
+   "fieldname": "factory_process",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Factory Process",
+   "options": "Factory Process"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_oflj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_knyd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "stones",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Stones"
+  },
+  {
+   "fieldname": "column_break_bwec",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "process_reason",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Process Reason",
+   "options": "Reason"
+  },
+  {
+   "fieldname": "column_break_byvt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "parent_row_idx",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Parent Row Idx"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-11-24 13:58:45.235961",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Factory Entry Additional Process",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

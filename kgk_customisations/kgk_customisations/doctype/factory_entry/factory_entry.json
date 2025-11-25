@@ -13,7 +13,9 @@
   "section",
   "section_break_hrmb",
   "factory_entry_item_table",
-  "amended_from"
+  "amended_from",
+  "additional_processes_section",
+  "table_aary"
  ],
  "fields": [
   {
@@ -37,7 +39,8 @@
   },
   {
    "fieldname": "section_break_hrmb",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Primary Processes"
   },
   {
    "default": "Factory - KD",
@@ -63,13 +66,23 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "additional_processes_section",
+   "fieldtype": "Section Break",
+   "label": "Additional Processes"
+  },
+  {
+   "fieldname": "table_aary",
+   "fieldtype": "Table",
+   "options": "Factory Entry Additional Process"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-11 08:50:47.163940",
+ "modified": "2025-11-24 14:01:48.231937",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry",
