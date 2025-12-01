@@ -15,7 +15,7 @@
   "factory_entry_item_table",
   "amended_from",
   "additional_processes_section",
-  "table_aary"
+  "additional_process_item_table"
  ],
  "fields": [
   {
@@ -73,7 +73,7 @@
    "label": "Additional Processes"
   },
   {
-   "fieldname": "table_aary",
+   "fieldname": "additional_process_item_table",
    "fieldtype": "Table",
    "options": "Factory Entry Additional Process"
   }
@@ -82,7 +82,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-24 14:01:48.231937",
+ "modified": "2025-12-01 10:06:53.099545",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry",

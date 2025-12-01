@@ -58,7 +58,8 @@ def get_columns():
 			"fieldname": "achievement",
 			"label": _("Achievement %"),
 			"fieldtype": "Percent",
-			"width": 100
+			"width": 100,
+			"precision": 0
 		},
 		{
 			"fieldname": "reason",

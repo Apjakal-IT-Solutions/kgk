@@ -11,58 +11,57 @@
   {
    "fieldname": "employee_name",
    "fieldtype": "Data",
-   "label": "Employee Name",
+   "label": "Employee",
    "width": 180
-  },
-  {
-   "fieldname": "employee",
-   "fieldtype": "Link",
-   "label": "Employee ID",
-   "options": "Employee Target",
-   "width": 140
   },
   {
    "fieldname": "factory_process",
    "fieldtype": "Link",
    "label": "Factory Process",
-   "options": "Factory Process",
+   "options": "Process",
    "width": 150
   },
   {
    "fieldname": "target",
    "fieldtype": "Float",
    "label": "Target",
-   "width": 100
+   "width": 100,
+   "precision": 2
   },
   {
    "fieldname": "actual",
    "fieldtype": "Float",
    "label": "Actual",
-   "width": 100
+   "width": 100,
+   "precision": 2
   },
   {
    "fieldname": "deviation",
    "fieldtype": "Float",
-   "label": "Deviation (Actual - Target)",
-   "width": 150
+   "label": "Dev.",
+   "width": 150,
+   "precision": 2
   },
   {
    "fieldname": "deviation_percentage",
    "fieldtype": "Percent",
-   "label": "Deviation %",
-   "width": 100
+   "label": "Dev. %",
+   "width": 100,
+   "precision": 0
   },
   {
    "fieldname": "variance",
    "fieldtype": "Float",
-   "label": "Absolute Variance",
-   "width": 130
+   "label": "Abs. Var.",
+   "width": 130,
+   "precision": 2
   },
   {
    "fieldname": "variance_percentage",
    "fieldtype": "Percent",
-   "label": "Variance %",
-   "width": 100
+   "label": "Var. %",
+   "width": 100,
+   "precision": 0
   },
   {
    "fieldname": "reason",
@@ -103,7 +102,7 @@
    "default": "0",
    "fieldname": "negative_variance_only",
    "fieldtype": "Check",
-   "label": "Show Only Negative Variance",
+   "label": "Show Only Neg. Var.",
    "mandatory": 0,
    "wildcard_filter": 0
   },
@@ -133,6 +132,9 @@
   },
   {
    "role": "Fulfillment User"
+  },
+  {
+   "role": "Report Manager"
   }
  ],
  "timeout": 0

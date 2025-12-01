@@ -25,24 +25,28 @@
    "fieldname": "target",
    "fieldtype": "Float",
    "label": "Target",
-   "width": 100
+   "width": 100,
+   "precision": 2
   },
   {
    "fieldname": "actual",
    "fieldtype": "Float",
    "label": "Actual",
-   "width": 100
+   "width": 100,
+   "precision": 2
   },
   {
    "fieldname": "variance",
    "fieldtype": "Float",
    "label": "Variance",
-   "width": 100
+   "width": 100,
+   "precision": 2
   },
   {
    "fieldname": "achievement",
    "fieldtype": "Percent",
    "label": "Achievement %",
+   "precision": "0",
    "width": 100
   },
   {

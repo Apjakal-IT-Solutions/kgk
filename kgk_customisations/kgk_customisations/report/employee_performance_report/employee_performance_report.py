@@ -20,13 +20,6 @@ def get_columns():
 			"width": 180
 		},
 		{
-			"fieldname": "employee",
-			"label": _("Employee ID"),
-			"fieldtype": "Link",
-			"options": "Employee Target",
-			"width": 140
-		},
-		{
 			"fieldname": "section",
 			"label": _("Section"),
 			"fieldtype": "Link",
@@ -35,27 +28,27 @@ def get_columns():
 		},
 		{
 			"fieldname": "total_days_worked",
-			"label": _("Total Days Worked"),
+			"label": _("Days Worked"),
 			"fieldtype": "Int",
 			"width": 120
 		},
 		{
 			"fieldname": "total_target",
-			"label": _("Total Target"),
+			"label": _("Target"),
 			"fieldtype": "Float",
 			"width": 100,
 			"precision": 2
 		},
 		{
 			"fieldname": "total_actual",
-			"label": _("Total Actual"),
+			"label": _("Actual"),
 			"fieldtype": "Float",
 			"width": 100,
 			"precision": 2
 		},
 		{
 			"fieldname": "average_daily_output",
-			"label": _("Average Daily Output"),
+			"label": _("Avg. Daily Output"),
 			"fieldtype": "Float",
 			"width": 140,
 			"precision": 2
@@ -64,7 +57,8 @@ def get_columns():
 			"fieldname": "achievement",
 			"label": _("Achievement %"),
 			"fieldtype": "Percent",
-			"width": 110
+			"width": 130,
+			"precision": 0
 		},
 		{
 			"fieldname": "trend",
@@ -84,12 +78,12 @@ def get_data(filters):
 			et.employee_name,
 			fe.section,
 			COUNT(DISTINCT fe.work_date) as total_days_worked,
-			SUM(CAST(fei.target AS DECIMAL(10,2))) as total_target,
+			SUM(CAST(fei.target AS DECIMAL(10,0))) as total_target,
 			SUM(fei.actual) as total_actual,
 			AVG(fei.actual) as average_daily_output,
 			CASE 
-				WHEN SUM(CAST(fei.target AS DECIMAL(10,2))) > 0 
-				THEN (SUM(fei.actual) * 100.0 / SUM(CAST(fei.target AS DECIMAL(10,2))))
+				WHEN SUM(CAST(fei.target AS DECIMAL(10,0))) > 0 
+				THEN (SUM(fei.actual) * 100.0 / SUM(CAST(fei.target AS DECIMAL(10,0))))
 				ELSE 0 
 			END as achievement
 		FROM `tabFactory Entry` fe
@@ -153,7 +147,7 @@ def calculate_trend(employee, filters):
 		SELECT 
 			CASE 
 				WHEN SUM(CAST(fei.target AS DECIMAL(10,2))) > 0 
-				THEN (SUM(fei.actual) * 100.0 / SUM(CAST(fei.target AS DECIMAL(10,2))))
+				THEN (SUM(fei.actual) * 100.0 / SUM(CAST(fei.target AS DECIMAL(10,0))))
 				ELSE 0 
 			END as achievement
 		FROM `tabFactory Entry` fe
@@ -169,7 +163,7 @@ def calculate_trend(employee, filters):
 		SELECT 
 			CASE 
 				WHEN SUM(CAST(fei.target AS DECIMAL(10,2))) > 0 
-				THEN (SUM(fei.actual) * 100.0 / SUM(CAST(fei.target AS DECIMAL(10,2))))
+				THEN (SUM(fei.actual) * 100.0 / SUM(CAST(fei.target AS DECIMAL(10,0))))
 				ELSE 0 
 			END as achievement
 		FROM `tabFactory Entry` fe
@@ -199,7 +193,7 @@ def get_chart_data(data):
 	if not data or len(data) == 0:
 		return None
 	
-	# Show all employees in the filtered data (not just top 10)
+	# Show all employees in the filtered data
 	employees_sorted = sorted(data, key=lambda x: x.get("achievement", 0), reverse=True)
 	
 	return {

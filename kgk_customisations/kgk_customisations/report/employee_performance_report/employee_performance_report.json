@@ -26,25 +26,29 @@
    "fieldname": "total_target",
    "fieldtype": "Float",
    "label": "Total Target",
-   "width": 100
+   "width": 100,
+   "precision": 2
   },
   {
    "fieldname": "total_actual",
    "fieldtype": "Float",
    "label": "Total Actual",
-   "width": 100
+   "width": 100,
+   "precision": 2
   },
   {
    "fieldname": "average_daily_output",
    "fieldtype": "Float",
    "label": "Average Daily Output",
-   "width": 140
+   "width": 140,
+   "precision": 2
   },
   {
    "fieldname": "achievement",
    "fieldtype": "Percent",
    "label": "Achievement %",
-   "width": 110
+   "width": 110,
+   "precision": 0   
   },
   {
    "fieldname": "trend",

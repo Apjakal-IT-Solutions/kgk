@@ -23,20 +23,20 @@ def get_columns():
 		},
 		{
 			"fieldname": "total_employees_assigned",
-			"label": _("Total Employees Assigned"),
+			"label": _("Employees Assigned"),
 			"fieldtype": "Int",
 			"width": 180
 		},
 		{
 			"fieldname": "total_target",
-			"label": _("Total Target"),
+			"label": _("Target"),
 			"fieldtype": "Float",
 			"width": 120,
 			"precision": 2
 		},
 		{
 			"fieldname": "total_actual",
-			"label": _("Total Actual"),
+			"label": _("Actual"),
 			"fieldtype": "Float",
 			"width": 120,
 			"precision": 2
@@ -45,7 +45,8 @@ def get_columns():
 			"fieldname": "achievement",
 			"label": _("Achievement %"),
 			"fieldtype": "Percent",
-			"width": 120
+			"width": 120,
+			"precision": 0
 		}
 	]
 

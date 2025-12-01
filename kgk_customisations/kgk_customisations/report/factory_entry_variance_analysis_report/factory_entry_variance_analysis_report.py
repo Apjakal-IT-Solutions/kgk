@@ -22,13 +22,13 @@ def get_columns():
 		},
 		{
 			"fieldname": "employee_name",
-			"label": _("Employee Name"),
+			"label": _("Employee"),
 			"fieldtype": "Data",
 			"width": 180
 		},
 		{
 			"fieldname": "factory_process",
-			"label": _("Factory Process"),
+			"label": _("Process"),
 			"fieldtype": "Link",
 			"options": "Factory Process",
 			"width": 150
@@ -49,7 +49,7 @@ def get_columns():
 		},
 		{
 			"fieldname": "deviation",
-			"label": _("Deviation (Actual - Target)"),
+			"label": _("Dev."),
 			"fieldtype": "Float",
 			"width": 150,
 			"precision": 2
@@ -58,7 +58,8 @@ def get_columns():
 			"fieldname": "deviation_percentage",
 			"label": _("Deviation %"),
 			"fieldtype": "Percent",
-			"width": 100
+			"width": 100,
+			"precision": 0
 		},
 		{
 			"fieldname": "variance",
@@ -71,7 +72,8 @@ def get_columns():
 			"fieldname": "variance_percentage",
 			"label": _("Variance %"),
 			"fieldtype": "Percent",
-			"width": 100
+			"width": 100,
+			"precision": 0
 		},
 		{
 			"fieldname": "reason",
@@ -177,13 +179,13 @@ def get_summary(data):
 		},
 		{
 			"value": avg_variance,
-			"label": _("Avg Abs Var"),
+			"label": _("Avg. Abs. Var."),
 			"datatype": "Float",
 			"indicator": "Orange"
 		},
 		{
 			"value": avg_variance_pct,
-			"label": _("Avg Var %"),
+			"label": _("Avg. Var. %"),
 			"datatype": "Percent",
 			"indicator": "Orange"
 		}
@@ -213,11 +215,11 @@ def get_chart_data(data):
 			"labels": dates,
 			"datasets": [
 				{
-					"name": "Positive Deviation",
+					"name": "+ Dev.",
 					"values": [date_deviation[d]["positive"] for d in dates]
 				},
 				{
-					"name": "Negative Deviation",
+					"name": "- Dev.",
 					"values": [date_deviation[d]["negative"] for d in dates]
 				}
 			]

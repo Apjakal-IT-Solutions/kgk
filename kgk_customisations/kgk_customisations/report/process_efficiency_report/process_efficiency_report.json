@@ -31,7 +31,8 @@
    "fieldname": "achievement",
    "fieldtype": "Percent",
    "label": "Achievement %",
-   "width": 120
+   "width": 120,
+   "precision": 0
   }
  ],
  "creation": "2025-11-25 11:03:35.865601",
