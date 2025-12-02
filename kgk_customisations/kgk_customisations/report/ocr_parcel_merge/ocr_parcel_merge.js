@@ -20,12 +20,12 @@ function toggleBarcodeAnalysis() {
 frappe.query_reports["OCR Parcel Merge"] = {
 	"filters": [
 		{
-			"fieldname": "parcel_file",
-			"label": __("Parcel File"),
-			"fieldtype": "Attach",
+			"fieldname": "parcel_name",
+			"label": __("Parcel"),
+			"fieldtype": "Link",
+			"options": "Parcel",
 			"width": "200px",
-			"reqd": 1,
-			"description": "Upload Excel file containing Parcel data with barcode column for matching"
+			"description": "Optional: Filter by specific Parcel (leave empty to include all Parcels)"
 		},
 		{
 			"fieldname": "matching_mode",
@@ -173,14 +173,8 @@ frappe.query_reports["OCR Parcel Merge"] = {
 				}
 				
 				var filters = frappe.query_report.get_values();
-				if (!filters || !filters.parcel_file) {
-					console.log("No parcel file selected, skipping statistics");
-					// Hide the statistics area if no file is selected
-					$('.chart-container').hide();
-					return;
-				}
 				
-				// Show the statistics area if we have a parcel file
+				// Always show the statistics area (data comes from database now)
 				$('.chart-container').show();
 				
 				// Call API to get statistics (don't try to parse message)
@@ -207,10 +201,6 @@ frappe.query_reports["OCR Parcel Merge"] = {
 			}
 			
 			var filters = frappe.query_report.get_values();
-			if (!filters || !filters.parcel_file) {
-				console.log("No parcel file in filters, skipping statistics update");
-				return;
-			}
 			
 			frappe.call({
 				method: "kgk_customisations.kgk_customisations.report.ocr_parcel_merge.ocr_parcel_merge.get_statistics",
