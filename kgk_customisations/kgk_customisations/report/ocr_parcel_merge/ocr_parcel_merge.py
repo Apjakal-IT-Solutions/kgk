@@ -300,9 +300,7 @@ def validate_filters(filters):
 	if not filters:
 		return {"valid": False, "message": "No filters provided"}
 	
-	if not filters.get("parcel_file"):
-		return {"valid": False, "message": "Please upload a Parcel file to proceed with merge analysis"}
-	
+	# No specific validation needed - will fetch all Parcels from database
 	return {"valid": True, "message": "Validation successful"}
 
 
@@ -354,29 +352,72 @@ def get_ocr_data(filters):
 
 def get_parcel_data(filters):
 	"""
-	Read and validate Parcel data from uploaded Excel file.
+	Fetch Parcel data from database by reading Excel files attached to Parcel doctypes.
 	
 	Args:
-		filters: Dict containing parcel_file attachment
+		filters: Dict containing optional parcel_name filter
 		
 	Returns:
-		Dict with success status and parcel data
+		Dict with success status and aggregated parcel data from all Parcels
 	"""
 	try:
-		parcel_file_url = filters.get("parcel_file")
+		# Query Parcel doctypes from database
+		parcel_filters = {}
+		if filters.get("parcel_name"):
+			parcel_filters["name"] = filters.get("parcel_name")
 		
-		# Get file path from URL using centralized utility
-		file_path = get_file_path_from_url(parcel_file_url)
+		parcels = frappe.get_all(
+			"Parcel",
+			filters=parcel_filters,
+			fields=["name", "parcel_name", "import_file"],
+			order_by="creation desc"
+		)
 		
-		# Read Excel file using centralized utility
-		excel_result = read_excel_file_safely(parcel_file_url)
-		if not excel_result["success"]:
-			return {"success": False, "message": f"Cannot read parcel file: {excel_result['error']}"}
+		if not parcels:
+			return {"success": False, "message": "No Parcels found in the system"}
 		
-		df = excel_result["dataframe"]
+		# Aggregate data from all Parcel Excel files
+		all_parcel_records = []
+		original_columns = set()
+		barcode_field = None
+		parcels_processed = 0
+		parcels_with_files = 0
+		parcels_without_files = 0
 		
-		# Validate required columns - check for either "barcode" or "main_barcode"
-		normalized_columns = [col.lower().strip().replace(' ', '_') for col in df.columns]
+		frappe.log_error(
+			f"Found {len(parcels)} Parcel(s) in database",
+			"OCR Parcel Merge - Parcel Query"
+		)
+		
+		for parcel in parcels:
+			parcels_processed += 1
+			
+			if not parcel.get("import_file"):
+				parcels_without_files += 1
+				frappe.log_error(
+					f"Parcel '{parcel.name}' has no import_file attached",
+					"OCR Parcel Merge - Skipped Parcel"
+				)
+				continue
+			
+			parcels_with_files += 1
+			
+			# Read Excel file attached to this Parcel
+			excel_result = read_excel_file_safely(parcel.import_file)
+			if not excel_result["success"]:
+				frappe.log_error(
+					f"Failed to read Excel for Parcel '{parcel.name}': {excel_result.get('error')}",
+					"OCR Parcel Merge - Excel Read Error"
+				)
+				continue
+			
+			df = excel_result["dataframe"]
+			
+			# Track original column names
+			original_columns.update(df.columns.tolist())
+			
+			# Validate required columns - check for either "barcode" or "main_barcode"
+			normalized_columns = [col.lower().strip().replace(' ', '_') for col in df.columns]
 		
 		has_barcode = "barcode" in normalized_columns
 		has_main_barcode = "main_barcode" in normalized_columns
