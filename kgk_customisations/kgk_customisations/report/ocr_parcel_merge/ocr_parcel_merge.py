@@ -502,11 +502,9 @@ def get_parcel_data(filters):
 		parcels_processed = 0
 		parcels_with_files = 0
 		parcels_without_files = 0
+		total_parcel_records_before_filter = 0
+		invalid_parcel_count = 0
 		
-<<<<<<< HEAD
-		# Validate required columns - ONLY accept "main_barcode" (not "barcode")
-		normalized_columns = [col.lower().strip().replace(' ', '_') for col in df.columns]
-=======
 		frappe.log_error(
 			f"Found {len(parcels)} Parcel(s) in database",
 			"OCR Parcel Merge - Parcel Query"
@@ -539,56 +537,57 @@ def get_parcel_data(filters):
 			# Track original column names
 			original_columns.update(df.columns.tolist())
 			
-			# Validate required columns - check for either "barcode" or "main_barcode"
+			# Validate required columns - check for "main_barcode"
 			normalized_columns = [col.lower().strip().replace(' ', '_') for col in df.columns]
->>>>>>> ocrmerge
-		
-		has_main_barcode = "main_barcode" in normalized_columns
-		
-		if not has_main_barcode:
-			available_cols = ", ".join(df.columns.tolist())
-			return {
-				"success": False, 
-				"message": f"Missing required column 'Main Barcode'. Available columns: {available_cols}. Note: Only 'Main Barcode' is used for matching, 'Barcode' column is ignored."
-			}
-		
-		# Normalize column names (case-insensitive, replace spaces with underscores)
-		original_columns = df.columns.tolist()  # Keep original names for display
-		df.columns = [col.lower().strip().replace(' ', '_') for col in df.columns]
-		
-		# ALWAYS use main_barcode for matching (no fallback to barcode)
-		barcode_field = "main_barcode"
-		
-		# Convert to list of dicts for processing
-		parcel_records_raw = df.to_dict("records")
-		total_parcel_records_before_filter = len(parcel_records_raw)  # Track original count
-		
-		# Clean and filter records - ONLY keep records with valid main_barcode
-		valid_parcel_records = []
-		invalid_parcel_count = 0
-		
-		for record in parcel_records_raw:
-			if "main_barcode" in record:
-				value = str(record["main_barcode"])
-				# Remove trailing .0 if present (from float conversion)
-				if value.endswith('.0'):
-					record["main_barcode"] = value[:-2]
-				else:
-					record["main_barcode"] = value
+			has_main_barcode = "main_barcode" in normalized_columns
+			
+			if not has_main_barcode:
+				frappe.log_error(
+					f"Parcel '{parcel.name}' missing 'Main Barcode' column. Available: {', '.join(df.columns.tolist())}",
+					"OCR Parcel Merge - Invalid Column"
+				)
+				continue
+			
+			# Normalize column names
+			df.columns = [col.lower().strip().replace(' ', '_') for col in df.columns]
+			
+			# Set barcode field if not already set
+			if barcode_field is None:
+				barcode_field = "main_barcode"
+			
+			# Convert to list of dicts for processing
+			parcel_records_raw = df.to_dict("records")
+			total_parcel_records_before_filter += len(parcel_records_raw)
+			
+			# Clean and filter records - ONLY keep records with valid main_barcode
+			for record in parcel_records_raw:
+				# Add Parcel metadata to each record
+				record["_parcel_name"] = parcel.name
+				record["_parcel_display_name"] = parcel.get("parcel_name", parcel.name)
 				
-				# Only include if main_barcode is not empty/None/NaN
-				if record["main_barcode"] and str(record["main_barcode"]).strip().upper() not in ['', 'NAN', 'NONE', 'NULL']:
-					valid_parcel_records.append(record)
+				if "main_barcode" in record:
+					value = str(record["main_barcode"])
+					# Remove trailing .0 if present (from float conversion)
+					if value.endswith('.0'):
+						record["main_barcode"] = value[:-2]
+					else:
+						record["main_barcode"] = value
+					
+					# Only include if main_barcode is not empty/None/NaN
+					if record["main_barcode"] and str(record["main_barcode"]).strip().upper() not in ['', 'NAN', 'NONE', 'NULL']:
+						all_parcel_records.append(record)
+					else:
+						invalid_parcel_count += 1
 				else:
 					invalid_parcel_count += 1
-			else:
-				invalid_parcel_count += 1
 		
-		parcel_records = valid_parcel_records
+		# Set default barcode field if none was found
+		if barcode_field is None:
+			barcode_field = "main_barcode"
 		
 		# DEBUG: Analyze duplicates
 		barcode_counts = {}
-		for record in parcel_records:
+		for record in all_parcel_records:
 			barcode = str(record.get("main_barcode", "")).strip().upper()
 			if barcode:
 				barcode_counts[barcode] = barcode_counts.get(barcode, 0) + 1
@@ -598,7 +597,7 @@ def get_parcel_data(filters):
 		
 		frappe.log_error(
 			f"PARCEL DUPLICATE ANALYSIS:\n"
-			f"Total parcel records: {len(parcel_records)}\n"
+			f"Total parcel records: {len(all_parcel_records)}\n"
 			f"Unique main_barcodes: {len(barcode_counts)}\n"
 			f"Barcodes with duplicates: {len(duplicate_barcodes)}\n"
 			f"Total duplicate rows: {total_duplicates}\n"
@@ -607,6 +606,7 @@ def get_parcel_data(filters):
 		)
 		
 		# Filter by barcode pattern if specified
+		parcel_records = all_parcel_records
 		if filters.get("barcode_filter"):
 			barcode_filter = filters.get("barcode_filter").upper()
 			parcel_records = [

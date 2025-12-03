@@ -8,6 +8,8 @@
  "field_order": [
   "section_break_a3zt",
   "wroking_date",
+  "column_break_lcvh",
+  "target",
   "section_break_dxhd",
   "stones",
   "column_break_cjwn",
@@ -67,13 +69,22 @@
   {
    "fieldname": "section_break_rbgc",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_lcvh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "target",
+   "fieldtype": "Float",
+   "label": "Target"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-02 11:50:00.604108",
+ "modified": "2025-12-02 14:21:16.284528",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "India Planning",
