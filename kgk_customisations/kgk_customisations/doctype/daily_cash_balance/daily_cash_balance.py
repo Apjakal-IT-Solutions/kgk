@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import getdate, flt
+from kgk_customisations.kgk_customisations.audit_trail import AuditTrail
 
 class DailyCashBalance(Document):
 	def autoname(self):
@@ -106,6 +107,8 @@ class DailyCashBalance(Document):
 		if abs(flt(self.variance_percentage)) > variance_threshold:
 			self.reconciliation_required = 1
 			self.status = "Variance Identified"
+			# Log variance alert
+			AuditTrail.log_variance_alert(self.name, self.variance_amount, self.variance_percentage)
 		elif self.variance_amount == 0 and self.variance_count == 0:
 			self.status = "Reconciled"
 		else:
@@ -123,6 +126,10 @@ class DailyCashBalance(Document):
 			self.notes = (self.notes or "") + f"\n\nReconciliation Notes ({frappe.utils.now()}):\n{reconciliation_notes}"
 		
 		self.save()
+		
+		# Log reconciliation in audit trail
+		AuditTrail.log_reconciliation(self.name, "manual", reconciliation_notes)
+		
 		return "Balance marked as reconciled successfully"
 	
 	@frappe.whitelist()
@@ -186,3 +193,168 @@ class DailyCashBalance(Document):
 		""", (self.balance_date, self.currency), as_dict=True)
 		
 		return cash_docs
+	
+	@frappe.whitelist()
+	def calculate_document_totals(self, company=None):
+		"""Calculate totals from Cash Documents for this date and optionally company
+		
+		Args:
+			company: Optional company filter
+			
+		Returns:
+			dict: Dictionary containing receipt totals, payment totals, net balance
+		"""
+		filters = {
+			"transaction_date": self.balance_date,
+			"docstatus": 1  # Only submitted documents
+		}
+		
+		if company:
+			filters["company"] = company
+		
+		# Get all submitted Cash Documents
+		documents = frappe.get_all(
+			"Cash Document",
+			filters=filters,
+			fields=["main_document_type", "amount", "currency"]
+		)
+		
+		totals = {
+			"total_receipts": 0,
+			"total_payments": 0,
+			"total_invoices": 0,
+			"total_petty_cash": 0,
+			"document_count": len(documents),
+			"net_balance": 0
+		}
+		
+		for doc in documents:
+			amount = flt(doc.amount)
+			
+			if doc.main_document_type == "Receipt":
+				totals["total_receipts"] += amount
+			elif doc.main_document_type == "Payment":
+				totals["total_payments"] += amount
+			elif doc.main_document_type == "Invoice":
+				totals["total_invoices"] += amount
+			elif doc.main_document_type == "Petty Cash":
+				totals["total_petty_cash"] += amount
+		
+		# Calculate net balance (receipts + invoices - payments - petty cash)
+		totals["net_balance"] = (
+			totals["total_receipts"] + 
+			totals["total_invoices"] - 
+			totals["total_payments"] - 
+			totals["total_petty_cash"]
+		)
+		
+		return totals
+	
+	@frappe.whitelist()
+	def check_variance(self, submitted_balance=None):
+		"""Check variance between submitted balance and calculated balance
+		
+		Args:
+			submitted_balance: The balance submitted by users (default: use total_manual_balance)
+			
+		Returns:
+			dict: Variance details including amount, percentage, and status
+		"""
+		if submitted_balance is None:
+			submitted_balance = self.total_manual_balance or 0
+		
+		# Calculate document totals
+		document_totals = self.calculate_document_totals()
+		calculated_balance = document_totals["net_balance"]
+		
+		# Calculate variance
+		variance_amount = flt(submitted_balance) - flt(calculated_balance)
+		
+		# Calculate percentage variance
+		if calculated_balance != 0:
+			variance_percentage = (variance_amount / calculated_balance) * 100
+		else:
+			variance_percentage = 100 if variance_amount != 0 else 0
+		
+		# Get threshold from settings
+		variance_threshold = frappe.db.get_single_value(
+			"Cash Management Settings", 
+			"variance_threshold"
+		) or 5
+		
+		# Determine status
+		exceeds_threshold = abs(variance_percentage) > variance_threshold
+		
+		return {
+			"submitted_balance": submitted_balance,
+			"calculated_balance": calculated_balance,
+			"variance_amount": variance_amount,
+			"variance_percentage": variance_percentage,
+			"variance_threshold": variance_threshold,
+			"exceeds_threshold": exceeds_threshold,
+			"status": "Variance Exceeds Threshold" if exceeds_threshold else "Within Threshold",
+			"document_totals": document_totals
+		}
+	
+	@frappe.whitelist()
+	def get_variance_percentage(self, submitted_balance=None, calculated_balance=None):
+		"""Calculate percentage variance between submitted and calculated balance
+		
+		Args:
+			submitted_balance: User-submitted balance (default: total_manual_balance)
+			calculated_balance: System-calculated balance (default: from calculate_document_totals)
+			
+		Returns:
+			float: Variance percentage
+		"""
+		if submitted_balance is None:
+			submitted_balance = self.total_manual_balance or 0
+		
+		if calculated_balance is None:
+			document_totals = self.calculate_document_totals()
+			calculated_balance = document_totals["net_balance"]
+		
+		variance_amount = flt(submitted_balance) - flt(calculated_balance)
+		
+		if calculated_balance != 0:
+			variance_percentage = (variance_amount / calculated_balance) * 100
+		else:
+			variance_percentage = 100 if variance_amount != 0 else 0
+		
+		return variance_percentage
+	
+	@frappe.whitelist()
+	def get_reconciliation_report(self):
+		"""Generate comprehensive reconciliation report
+		
+		Returns:
+			dict: Complete reconciliation data including balances, variances, and document breakdown
+		"""
+		# Get document totals
+		document_totals = self.calculate_document_totals()
+		
+		# Get variance details
+		variance_details = self.check_variance()
+		
+		# Get related documents
+		documents = self.get_related_documents()
+		
+		# Get role breakdown
+		role_breakdown = self.get_role_breakdown()
+		
+		return {
+			"balance_date": self.balance_date,
+			"company": self.company if hasattr(self, "company") else None,
+			"opening_balance": self.opening_balance if hasattr(self, "opening_balance") else 0,
+			"closing_balance": self.closing_balance if hasattr(self, "closing_balance") else 0,
+			"document_totals": document_totals,
+			"variance_details": variance_details,
+			"role_breakdown": role_breakdown,
+			"reconciliation_required": variance_details["exceeds_threshold"],
+			"status": self.status,
+			"verified": self.verified if hasattr(self, "verified") else 0,
+			"verified_by": self.verified_by if hasattr(self, "verified_by") else None,
+			"verified_at": self.verified_at if hasattr(self, "verified_at") else None,
+			"total_documents": len(documents),
+			"documents": documents
+		}

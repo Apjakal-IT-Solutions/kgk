@@ -1,0 +1,23 @@
+{
+ "name": "Daily Cash Balance - Variance Alert",
+ "creation": "2025-02-03 12:00:00.000000",
+ "modified": "2025-02-03 12:00:00.000000",
+ "doctype": "Notification",
+ "subject": "Variance Alert - Daily Cash Balance {{ doc.name }}",
+ "enabled": 1,
+ "document_type": "Daily Cash Balance",
+ "send_alert_on": "Custom",
+ "event": "Save",
+ "condition": "doc.reconciliation_required == 1",
+ "recipients": [
+  {
+   "receiver_by_role": "Accounts Manager"
+  },
+  {
+   "receiver_by_role": "System Manager"
+  }
+ ],
+ "message": "<h3>High Variance Detected - Reconciliation Required</h3>\n<p>A daily cash balance variance has exceeded the threshold:</p>\n<ul>\n<li><strong>Date:</strong> {{ doc.get_formatted('balance_date') }}</li>\n<li><strong>Balance:</strong> {{ doc.name }}</li>\n<li><strong>Manual Balance:</strong> {{ doc.get_formatted('total_manual_balance') }}</li>\n<li><strong>ERP Balance:</strong> {{ doc.get_formatted('erp_balance') }}</li>\n<li><strong>Variance Amount:</strong> {{ doc.get_formatted('variance_amount') }}</li>\n<li><strong>Variance %:</strong> {{ doc.variance_percentage }}%</li>\n<li><strong>Status:</strong> {{ doc.status }}</li>\n</ul>\n<p>Immediate reconciliation is required.</p>\n<p><a href=\"{{ frappe.utils.get_url() }}/app/daily-cash-balance/{{ doc.name }}\">View Balance Details</a></p>",
+ "attach_print": 0,
+ "is_standard": 0
+}

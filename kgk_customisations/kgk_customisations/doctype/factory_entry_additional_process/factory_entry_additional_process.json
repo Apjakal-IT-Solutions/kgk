@@ -8,7 +8,7 @@
  "field_order": [
   "factory_process",
   "column_break_oflj",
-  "stones",
+  "actual",
   "column_break_knyd",
   "process_reason",
   "column_break_bwec",
@@ -32,12 +32,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "stones",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Stones"
-  },
-  {
    "fieldname": "column_break_bwec",
    "fieldtype": "Column Break"
   },
@@ -57,13 +51,19 @@
   {
    "fieldname": "column_break_sonz",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "actual",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Actual"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-12-01 10:03:12.150624",
+ "modified": "2025-12-03 12:12:23.638310",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry Additional Process",

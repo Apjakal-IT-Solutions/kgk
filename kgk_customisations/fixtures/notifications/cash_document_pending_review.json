@@ -1,0 +1,20 @@
+{
+ "name": "Cash Document - Pending Review",
+ "creation": "2025-02-03 12:00:00.000000",
+ "modified": "2025-02-03 12:00:00.000000",
+ "doctype": "Notification",
+ "subject": "Cash Document {{ doc.name }} - Pending Your Review",
+ "enabled": 1,
+ "document_type": "Cash Document",
+ "send_alert_on": "Custom",
+ "event": "Status Change",
+ "condition": "doc.status == 'Pending Review'",
+ "recipients": [
+  {
+   "receiver_by_role": "Accounts Manager"
+  }
+ ],
+ "message": "<h3>Cash Document Pending Review</h3>\n<p>A new cash document has been submitted and requires your review:</p>\n<ul>\n<li><strong>Document:</strong> {{ doc.name }}</li>\n<li><strong>Company:</strong> {{ doc.company }}</li>\n<li><strong>Document Type:</strong> {{ doc.main_document_type }}</li>\n<li><strong>Amount:</strong> {{ doc.get_formatted('amount') }}</li>\n<li><strong>Transaction Date:</strong> {{ doc.get_formatted('transaction_date') }}</li>\n<li><strong>Party:</strong> {{ doc.party or 'N/A' }}</li>\n<li><strong>Submitted By:</strong> {{ doc.created_by_user }}</li>\n</ul>\n<p><a href=\"{{ frappe.utils.get_url() }}/app/cash-document/{{ doc.name }}\">Click here to review</a></p>",
+ "attach_print": 0,
+ "is_standard": 0
+}

@@ -148,23 +148,19 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"kgk_customisations.tasks.all"
-# 	],
-# 	"daily": [
-# 		"kgk_customisations.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"kgk_customisations.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"kgk_customisations.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"kgk_customisations.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"daily": [
+		"kgk_customisations.kgk_customisations.tasks.daily_balance_calculation",
+		"kgk_customisations.kgk_customisations.tasks.auto_reconcile_balances",
+		"kgk_customisations.kgk_customisations.tasks.send_daily_balance_reminder"
+	],
+	"hourly": [
+		"kgk_customisations.kgk_customisations.tasks.check_pending_verifications"
+	],
+	"weekly": [
+		"kgk_customisations.kgk_customisations.tasks.weekly_reconciliation_report"
+	]
+}
 
 # Testing
 # -------

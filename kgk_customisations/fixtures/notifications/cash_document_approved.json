@@ -1,0 +1,20 @@
+{
+ "name": "Cash Document - Approved",
+ "creation": "2025-02-03 12:00:00.000000",
+ "modified": "2025-02-03 12:00:00.000000",
+ "doctype": "Notification",
+ "subject": "Cash Document {{ doc.name }} - Approved",
+ "enabled": 1,
+ "document_type": "Cash Document",
+ "send_alert_on": "Custom",
+ "event": "Status Change",
+ "condition": "doc.status == 'Approved'",
+ "recipients": [
+  {
+   "receiver_by_document_field": "created_by_user"
+  }
+ ],
+ "message": "<h3>Cash Document Approved</h3>\n<p>Your cash document has been approved:</p>\n<ul>\n<li><strong>Document:</strong> {{ doc.name }}</li>\n<li><strong>Company:</strong> {{ doc.company }}</li>\n<li><strong>Document Type:</strong> {{ doc.main_document_type }}</li>\n<li><strong>Amount:</strong> {{ doc.get_formatted('amount') }}</li>\n<li><strong>Approved By:</strong> {{ doc.last_modified_by }}</li>\n</ul>\n<p><a href=\"{{ frappe.utils.get_url() }}/app/cash-document/{{ doc.name }}\">View Document</a></p>",
+ "attach_print": 1,
+ "is_standard": 0
+}

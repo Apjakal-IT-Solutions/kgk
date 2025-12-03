@@ -8,6 +8,14 @@
  "field_order": [
   "variance_threshold",
   "auto_reconcile",
+  "file_settings",
+  "max_file_size_mb",
+  "allowed_file_types",
+  "network_storage_settings",
+  "enable_network_storage",
+  "network_file_path",
+  "network_username",
+  "network_password",
   "notification_settings",
   "notify_on_variance"
  ],
@@ -27,6 +35,59 @@
    "fieldname": "auto_reconcile",
    "fieldtype": "Check",
    "label": "Auto Reconcile Zero Variance"
+  },
+  {
+   "fieldname": "file_settings",
+   "fieldtype": "Section Break",
+   "label": "File Upload Settings"
+  },
+  {
+   "default": "10",
+   "description": "Maximum file size in megabytes (MB)",
+   "fieldname": "max_file_size_mb",
+   "fieldtype": "Int",
+   "label": "Max File Size (MB)",
+   "reqd": 1
+  },
+  {
+   "default": ".pdf, .jpg, .jpeg, .png, .gif, .doc, .docx, .xls, .xlsx, .txt, .zip",
+   "description": "Comma-separated list of allowed file extensions",
+   "fieldname": "allowed_file_types",
+   "fieldtype": "Small Text",
+   "label": "Allowed File Types"
+  },
+  {
+   "fieldname": "network_storage_settings",
+   "fieldtype": "Section Break",
+   "label": "Network Storage Settings"
+  },
+  {
+   "default": "0",
+   "description": "Enable network file storage integration (e.g., \\\\192.168.1.114\\Fantasy\\e-dox)",
+   "fieldname": "enable_network_storage",
+   "fieldtype": "Check",
+   "label": "Enable Network Storage"
+  },
+  {
+   "depends_on": "eval:doc.enable_network_storage",
+   "description": "UNC path to network file storage (e.g., \\\\192.168.1.114\\Fantasy\\e-dox)",
+   "fieldname": "network_file_path",
+   "fieldtype": "Data",
+   "label": "Network File Path"
+  },
+  {
+   "depends_on": "eval:doc.enable_network_storage",
+   "description": "Username for network authentication (optional)",
+   "fieldname": "network_username",
+   "fieldtype": "Data",
+   "label": "Network Username"
+  },
+  {
+   "depends_on": "eval:doc.enable_network_storage",
+   "description": "Password for network authentication (optional)",
+   "fieldname": "network_password",
+   "fieldtype": "Password",
+   "label": "Network Password"
   },
   {
    "fieldname": "notification_settings",

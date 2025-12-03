@@ -55,6 +55,33 @@ frappe.ui.form.on('Cash Document', {
 		update_transaction_type_layout(frm);
 	},
 	
+	main_document_type: function(frm) {
+		// Clear sub_document_type when main_document_type changes
+		frm.set_value('sub_document_type', '');
+		
+		// Set up filter for sub_document_type based on selected main_document_type
+		if (frm.doc.main_document_type) {
+			frm.set_query('sub_document_type', function() {
+				return {
+					filters: {
+						'main_document_type': frm.doc.main_document_type,
+						'is_active': 1
+					}
+				};
+			});
+		}
+		
+		// Update layout based on document type
+		update_document_type_layout(frm);
+	},
+	
+	company: function(frm) {
+		// Refresh display when company changes
+		if (frm.doc.company) {
+			frm.refresh_field('company');
+		}
+	},
+	
 	amount: function(frm) {
 		// Format amount display and validate
 		if (frm.doc.amount) {
@@ -462,4 +489,31 @@ function populate_contact_details(frm) {
 			}
 		}
 	});
+}
+function update_document_type_layout(frm) {
+// Update form layout based on main_document_type selection
+if (!frm.doc.main_document_type) {
+return;
+}
+
+// Show/hide fields based on document type
+let show_party = ['Payment', 'Receipt', 'Invoice'].includes(frm.doc.main_document_type);
+frm.toggle_display('section_break_6', show_party);
+
+// Set field labels based on document type
+if (frm.doc.main_document_type === 'Invoice') {
+frm.set_df_property('amount', 'label', 'Invoice Amount');
+frm.set_df_property('description', 'label', 'Invoice Description');
+} else if (frm.doc.main_document_type === 'Payment') {
+frm.set_df_property('amount', 'label', 'Payment Amount');
+frm.set_df_property('description', 'label', 'Payment Description');
+} else if (frm.doc.main_document_type === 'Receipt') {
+frm.set_df_property('amount', 'label', 'Receipt Amount');
+frm.set_df_property('description', 'label', 'Receipt Description');
+} else {
+frm.set_df_property('amount', 'label', 'Amount');
+frm.set_df_property('description', 'label', 'Description');
+}
+
+frm.refresh_fields();
 }

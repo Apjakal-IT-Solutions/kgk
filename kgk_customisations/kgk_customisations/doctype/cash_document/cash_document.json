@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:CD-{YYYY}-{MM}-{#####}",
+ "autoname": "format:CD-{company_abbr}-{YYYY}-{MM}-{#####}",
  "creation": "2024-01-01 00:00:00.000000",
  "default_view": "List",
  "doctype": "DocType",
@@ -12,14 +12,26 @@
   "document_number",
   "column_break_2",
   "status",
+  "section_break_business",
+  "company",
+  "year",
+  "column_break_invoice",
+  "invoice_number",
   "section_break_3",
   "transaction_type",
+  "main_document_type",
+  "sub_document_type",
   "transaction_date",
   "column_break_4",
   "amount",
   "currency",
+  "section_break_balance",
+  "balance_entry",
+  "auto_update_balance",
   "section_break_5",
   "description",
+  "section_break_files",
+  "primary_document_file",
   "section_break_6",
   "party_type",
   "party",
@@ -36,6 +48,8 @@
   "column_break_11",
   "last_modified_by",
   "last_modified_date",
+  "section_break_migration",
+  "migration_reference",
   "section_break_12",
   "remarks"
  ],
@@ -65,6 +79,36 @@
    "reqd": 1
   },
   {
+   "fieldname": "section_break_business",
+   "fieldtype": "Section Break",
+   "label": "Business Information"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Int",
+   "label": "Year",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_invoice",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "invoice_number",
+   "fieldtype": "Data",
+   "label": "Invoice Number",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
    "fieldname": "section_break_3",
    "fieldtype": "Section Break",
    "label": "Transaction Details"
@@ -72,9 +116,23 @@
   {
    "fieldname": "transaction_type",
    "fieldtype": "Select",
-   "label": "Transaction Type",
-   "options": "Payment\nReceipt",
+   "label": "Transaction Type (Legacy)",
+   "options": "Payment\nReceipt"
+  },
+  {
+   "fieldname": "main_document_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "Payment\nReceipt\nInvoice\nCredit Note\nDebit Note\nJournal Entry\nPetty Cash",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.main_document_type",
+   "fieldname": "sub_document_type",
+   "fieldtype": "Link",
+   "label": "Sub Type",
+   "options": "Cash Document Sub Type"
   },
   {
    "fieldname": "transaction_date",
@@ -101,6 +159,26 @@
    "options": "Currency"
   },
   {
+   "collapsible": 1,
+   "fieldname": "section_break_balance",
+   "fieldtype": "Section Break",
+   "label": "Balance Integration"
+  },
+  {
+   "description": "Link to Daily Cash Balance entry for automatic balance updates",
+   "fieldname": "balance_entry",
+   "fieldtype": "Link",
+   "label": "Balance Entry",
+   "options": "Daily Cash Balance"
+  },
+  {
+   "default": "1",
+   "description": "Automatically update linked Daily Cash Balance on submit",
+   "fieldname": "auto_update_balance",
+   "fieldtype": "Check",
+   "label": "Auto Update Balance"
+  },
+  {
    "fieldname": "section_break_5",
    "fieldtype": "Section Break",
    "label": "Description"
@@ -110,6 +188,16 @@
    "fieldtype": "Long Text",
    "label": "Description",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_files",
+   "fieldtype": "Section Break",
+   "label": "Primary Document"
+  },
+  {
+   "fieldname": "primary_document_file",
+   "fieldtype": "Attach",
+   "label": "Primary Document File"
   },
   {
    "fieldname": "section_break_6",
@@ -198,6 +286,20 @@
    "fieldtype": "Datetime",
    "label": "Last Modified Date",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_migration",
+   "fieldtype": "Section Break",
+   "label": "Migration Information"
+  },
+  {
+   "fieldname": "migration_reference",
+   "fieldtype": "Data",
+   "label": "Migration Reference",
+   "read_only": 1,
+   "description": "Original Django unique_number for migrated documents",
+   "unique": 1
   },
   {
    "fieldname": "section_break_12",

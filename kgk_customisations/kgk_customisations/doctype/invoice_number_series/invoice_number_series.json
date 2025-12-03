@@ -1,0 +1,177 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{document_type}-{company}-{prefix}",
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "company",
+  "column_break_2",
+  "prefix",
+  "is_active",
+  "section_break_3",
+  "current_number",
+  "padding",
+  "column_break_4",
+  "year_based",
+  "reset_on_year_change",
+  "section_break_5",
+  "last_generated",
+  "last_generated_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "Payment\nReceipt\nInvoice\nCredit Note\nDebit Note\nJournal Entry\nPetty Cash",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Prefix for invoice numbers (e.g., INV, REC, CN)",
+   "fieldname": "prefix",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Prefix",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Active"
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "Numbering Configuration"
+  },
+  {
+   "default": "1",
+   "description": "Current number in the sequence",
+   "fieldname": "current_number",
+   "fieldtype": "Int",
+   "label": "Current Number",
+   "reqd": 1
+  },
+  {
+   "default": "5",
+   "description": "Number of digits to pad with zeros (e.g., 5 = 00001)",
+   "fieldname": "padding",
+   "fieldtype": "Int",
+   "label": "Padding",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "Include year in invoice number (e.g., INV-2024-00001)",
+   "fieldname": "year_based",
+   "fieldtype": "Check",
+   "label": "Year Based"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.year_based",
+   "description": "Reset current_number to 1 when year changes",
+   "fieldname": "reset_on_year_change",
+   "fieldtype": "Check",
+   "label": "Reset on Year Change"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "Last Generated"
+  },
+  {
+   "fieldname": "last_generated",
+   "fieldtype": "Data",
+   "label": "Last Generated Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_generated_on",
+   "fieldtype": "Datetime",
+   "label": "Last Generated On",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Invoice Number Series",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Super User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Accountant",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Cash Checker"
+  },
+  {
+   "read": 1,
+   "role": "Cash Basic User"
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

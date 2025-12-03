@@ -1,0 +1,280 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:CBS-{company_abbr}-{YYYY}-{MM}-{DD}-{###}",
+ "creation": "2025-02-03 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "submission_date",
+  "company",
+  "balance_type",
+  "column_break_4",
+  "submitted_by",
+  "verification_status",
+  "section_break_balance",
+  "basic_balance",
+  "basic_submitted_at",
+  "basic_submitted_by",
+  "column_break_10",
+  "checker_balance",
+  "checker_submitted_at",
+  "checker_submitted_by",
+  "column_break_14",
+  "accountant_balance",
+  "accountant_submitted_at",
+  "accountant_submitted_by",
+  "section_break_calculated",
+  "calculated_balance",
+  "variance",
+  "variance_percentage",
+  "column_break_22",
+  "total_receipts",
+  "total_payments",
+  "opening_balance",
+  "section_break_comments",
+  "basic_comments",
+  "checker_comments",
+  "accountant_comments"
+ ],
+ "fields": [
+  {
+   "fieldname": "submission_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Submission Date",
+   "reqd": 1,
+   "default": "Today"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "balance_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Balance Type",
+   "options": "Cash\nBank",
+   "reqd": 1,
+   "default": "Cash"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "submitted_by",
+   "fieldtype": "Link",
+   "label": "Submitted By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "verification_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Verification Status",
+   "options": "Draft\nBasic Submitted\nChecker Verified\nAccountant Verified\nRejected",
+   "default": "Draft",
+   "read_only": 1
+  },
+  {
+   "collapsible": 0,
+   "fieldname": "section_break_balance",
+   "fieldtype": "Section Break",
+   "label": "Balance Verification Workflow"
+  },
+  {
+   "fieldname": "basic_balance",
+   "fieldtype": "Currency",
+   "label": "Basic User Balance",
+   "precision": "2"
+  },
+  {
+   "fieldname": "basic_submitted_at",
+   "fieldtype": "Datetime",
+   "label": "Basic Submitted At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "basic_submitted_by",
+   "fieldtype": "Link",
+   "label": "Basic Submitted By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "checker_balance",
+   "fieldtype": "Currency",
+   "label": "Checker Balance",
+   "precision": "2"
+  },
+  {
+   "fieldname": "checker_submitted_at",
+   "fieldtype": "Datetime",
+   "label": "Checker Submitted At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "checker_submitted_by",
+   "fieldtype": "Link",
+   "label": "Checker Submitted By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_14",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "accountant_balance",
+   "fieldtype": "Currency",
+   "label": "Accountant Balance",
+   "precision": "2"
+  },
+  {
+   "fieldname": "accountant_submitted_at",
+   "fieldtype": "Datetime",
+   "label": "Accountant Submitted At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "accountant_submitted_by",
+   "fieldtype": "Link",
+   "label": "Accountant Submitted By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_calculated",
+   "fieldtype": "Section Break",
+   "label": "Calculated Balances"
+  },
+  {
+   "fieldname": "calculated_balance",
+   "fieldtype": "Currency",
+   "label": "Calculated Balance",
+   "precision": "2",
+   "read_only": 1,
+   "description": "Auto-calculated from Cash Documents"
+  },
+  {
+   "fieldname": "variance",
+   "fieldtype": "Currency",
+   "label": "Variance",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "variance_percentage",
+   "fieldtype": "Percent",
+   "label": "Variance %",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_22",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_receipts",
+   "fieldtype": "Currency",
+   "label": "Total Receipts",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_payments",
+   "fieldtype": "Currency",
+   "label": "Total Payments",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "opening_balance",
+   "fieldtype": "Currency",
+   "label": "Opening Balance",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_comments",
+   "fieldtype": "Section Break",
+   "label": "Comments & Notes"
+  },
+  {
+   "fieldname": "basic_comments",
+   "fieldtype": "Small Text",
+   "label": "Basic User Comments"
+  },
+  {
+   "fieldname": "checker_comments",
+   "fieldtype": "Small Text",
+   "label": "Checker Comments"
+  },
+  {
+   "fieldname": "accountant_comments",
+   "fieldtype": "Small Text",
+   "label": "Accountant Comments"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-03 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "KGK Customisations",
+ "name": "Cash Balance Submission",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

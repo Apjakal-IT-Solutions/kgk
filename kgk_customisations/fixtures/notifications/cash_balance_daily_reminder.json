@@ -1,0 +1,21 @@
+{
+ "name": "Cash Balance Submission - Daily Reminder",
+ "creation": "2025-02-03 12:00:00.000000",
+ "modified": "2025-02-03 12:00:00.000000",
+ "doctype": "Notification",
+ "subject": "Daily Reminder - Submit Cash Balance",
+ "enabled": 1,
+ "document_type": "Cash Balance Submission",
+ "send_alert_on": "Days After",
+ "days_in_advance": 0,
+ "event": "Days After",
+ "date_changed": "submission_date",
+ "recipients": [
+  {
+   "receiver_by_role": "Accounts User"
+  }
+ ],
+ "message": "<h3>Daily Cash Balance Submission Reminder</h3>\n<p>This is a reminder to submit your daily cash balance for today.</p>\n<p>Please ensure all cash documents are entered and submit your balance for verification.</p>\n<p><a href=\"{{ frappe.utils.get_url() }}/app/cash-balance-submission/new\">Submit Cash Balance</a></p>",
+ "attach_print": 0,
+ "is_standard": 0
+}

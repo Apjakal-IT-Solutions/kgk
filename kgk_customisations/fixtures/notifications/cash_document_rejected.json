@@ -1,0 +1,20 @@
+{
+ "name": "Cash Document - Rejected",
+ "creation": "2025-02-03 12:00:00.000000",
+ "modified": "2025-02-03 12:00:00.000000",
+ "doctype": "Notification",
+ "subject": "Cash Document {{ doc.name }} - Rejected",
+ "enabled": 1,
+ "document_type": "Cash Document",
+ "send_alert_on": "Custom",
+ "event": "Status Change",
+ "condition": "doc.status == 'Rejected'",
+ "recipients": [
+  {
+   "receiver_by_document_field": "created_by_user"
+  }
+ ],
+ "message": "<h3>Cash Document Rejected</h3>\n<p>Your cash document has been rejected and requires revision:</p>\n<ul>\n<li><strong>Document:</strong> {{ doc.name }}</li>\n<li><strong>Company:</strong> {{ doc.company }}</li>\n<li><strong>Document Type:</strong> {{ doc.main_document_type }}</li>\n<li><strong>Amount:</strong> {{ doc.get_formatted('amount') }}</li>\n<li><strong>Rejected By:</strong> {{ doc.last_modified_by }}</li>\n<li><strong>Comments:</strong> {{ doc.comments or 'No comments provided' }}</li>\n</ul>\n<p>Please review and make necessary corrections before resubmitting.</p>\n<p><a href=\"{{ frappe.utils.get_url() }}/app/cash-document/{{ doc.name }}\">Edit Document</a></p>",
+ "attach_print": 0,
+ "is_standard": 0
+}
