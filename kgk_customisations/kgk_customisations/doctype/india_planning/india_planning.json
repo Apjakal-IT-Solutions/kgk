@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:IP-{DD}{MM}{YY}",
+ "autoname": "format:IP-{DD}{MM}{YY}-{###}",
  "creation": "2025-12-02 11:36:20.834182",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -76,7 +76,7 @@
   },
   {
    "fieldname": "target",
-   "fieldtype": "Float",
+   "fieldtype": "Int",
    "label": "Target"
   }
  ],
@@ -84,7 +84,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-02 14:21:16.284528",
+ "modified": "2025-12-03 09:03:17.068585",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "India Planning",

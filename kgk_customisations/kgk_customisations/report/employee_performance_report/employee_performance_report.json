@@ -6,55 +6,49 @@
    "fieldname": "employee",
    "fieldtype": "Link",
    "label": "Employee",
-   "options": "Employee Target",
-   "width": 180
+   "width": 0
   },
   {
    "fieldname": "section",
    "fieldtype": "Link",
    "label": "Section",
-   "options": "Section",
-   "width": 120
+   "width": 0
   },
   {
    "fieldname": "total_days_worked",
    "fieldtype": "Int",
    "label": "Total Days Worked",
-   "width": 120
+   "width": 0
   },
   {
    "fieldname": "total_target",
    "fieldtype": "Float",
    "label": "Total Target",
-   "width": 100,
-   "precision": 2
+   "width": 0
   },
   {
    "fieldname": "total_actual",
-   "fieldtype": "Float",
+   "fieldtype": "Int",
    "label": "Total Actual",
-   "width": 100,
-   "precision": 2
+   "width": 0
   },
   {
-   "fieldname": "average_daily_output",
+   "fieldname": "average_daily_outpu",
    "fieldtype": "Float",
    "label": "Average Daily Output",
-   "width": 140,
-   "precision": 2
+   "width": 0
   },
   {
    "fieldname": "achievement",
-   "fieldtype": "Percent",
+   "fieldtype": "Float",
    "label": "Achievement %",
-   "width": 110,
-   "precision": 0   
+   "width": 0
   },
   {
    "fieldname": "trend",
    "fieldtype": "Data",
    "label": "Trend",
-   "width": 80
+   "width": 0
   }
  ],
  "creation": "2025-11-25 10:22:30.410603",
@@ -66,14 +60,14 @@
    "fieldname": "from_date",
    "fieldtype": "Date",
    "label": "From Date",
-   "mandatory": 1,
+   "mandatory": 0,
    "wildcard_filter": 0
   },
   {
    "fieldname": "to_date",
    "fieldtype": "Date",
    "label": "To Date",
-   "mandatory": 1,
+   "mandatory": 0,
    "wildcard_filter": 0
   },
   {
@@ -95,7 +89,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-11-25 10:34:31.463371",
+ "modified": "2025-12-03 09:41:12.727497",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Employee Performance Report",
@@ -110,6 +104,12 @@
   },
   {
    "role": "System Manager"
+  },
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "Report Manager"
   }
  ],
  "timeout": 0

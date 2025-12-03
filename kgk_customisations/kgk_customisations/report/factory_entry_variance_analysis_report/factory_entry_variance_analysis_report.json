@@ -6,69 +6,43 @@
    "fieldname": "work_date",
    "fieldtype": "Date",
    "label": "Work Date",
-   "width": 100
+   "width": 0
   },
   {
-   "fieldname": "employee_name",
-   "fieldtype": "Data",
+   "fieldname": "Employee",
+   "fieldtype": "Link",
    "label": "Employee",
-   "width": 180
+   "width": 0
   },
   {
    "fieldname": "factory_process",
    "fieldtype": "Link",
    "label": "Factory Process",
-   "options": "Process",
-   "width": 150
+   "width": 0
   },
   {
    "fieldname": "target",
    "fieldtype": "Float",
    "label": "Target",
-   "width": 100,
-   "precision": 2
+   "width": 0
   },
   {
    "fieldname": "actual",
    "fieldtype": "Float",
    "label": "Actual",
-   "width": 100,
-   "precision": 2
+   "width": 0
   },
   {
-   "fieldname": "deviation",
+   "fieldname": "Variance",
    "fieldtype": "Float",
-   "label": "Dev.",
-   "width": 150,
-   "precision": 2
-  },
-  {
-   "fieldname": "deviation_percentage",
-   "fieldtype": "Percent",
-   "label": "Dev. %",
-   "width": 100,
-   "precision": 0
-  },
-  {
-   "fieldname": "variance",
-   "fieldtype": "Float",
-   "label": "Abs. Var.",
-   "width": 130,
-   "precision": 2
+   "label": "Variance",
+   "width": 0
   },
   {
    "fieldname": "variance_percentage",
-   "fieldtype": "Percent",
-   "label": "Var. %",
-   "width": 100,
-   "precision": 0
-  },
-  {
-   "fieldname": "reason",
-   "fieldtype": "Link",
-   "label": "Reason",
-   "options": "Reason",
-   "width": 120
+   "fieldtype": "Float",
+   "label": "Variance Percentage",
+   "width": 0
   }
  ],
  "creation": "2025-11-25 12:07:54.332083",
@@ -77,47 +51,24 @@
  "doctype": "Report",
  "filters": [
   {
-   "fieldname": "from_date",
-   "fieldtype": "Date",
-   "label": "From Date",
-   "mandatory": 1,
-   "wildcard_filter": 0
-  },
-  {
-   "fieldname": "to_date",
-   "fieldtype": "Date",
-   "label": "To Date",
-   "mandatory": 1,
-   "wildcard_filter": 0
-  },
-  {
-   "fieldname": "section",
-   "fieldtype": "Link",
-   "label": "Section",
-   "mandatory": 0,
-   "options": "Section",
-   "wildcard_filter": 0
-  },
-  {
-   "default": "0",
    "fieldname": "negative_variance_only",
-   "fieldtype": "Check",
-   "label": "Show Only Neg. Var.",
+   "fieldtype": "Float",
+   "label": "Sow Only Negativce Variance",
    "mandatory": 0,
    "wildcard_filter": 0
   },
   {
    "fieldname": "variance_threshold",
    "fieldtype": "Float",
-   "label": "Variance Threshold %",
+   "label": "Variance Threshold",
    "mandatory": 0,
    "wildcard_filter": 0
   }
  ],
- "idx": 0,
+ "idx": 1,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-11-25 12:07:54.332083",
+ "modified": "2025-12-03 09:40:18.702974",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry Variance Analysis Report",
@@ -135,6 +86,9 @@
   },
   {
    "role": "Report Manager"
+  },
+  {
+   "role": "Administrator"
   }
  ],
  "timeout": 0

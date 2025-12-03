@@ -6,55 +6,49 @@
    "fieldname": "work_date",
    "fieldtype": "Date",
    "label": "Work Date",
-   "width": 100
+   "width": 0
   },
   {
    "fieldname": "section",
    "fieldtype": "Link",
    "label": "Section",
-   "options": "Section",
-   "width": 120
+   "width": 0
   },
   {
-   "fieldname": "type",
-   "fieldtype": "Data",
-   "label": "Type",
-   "width": 150
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "width": 0
+  },
+  {
+   "fieldname": "process",
+   "fieldtype": "Link",
+   "label": "Process",
+   "width": 0
   },
   {
    "fieldname": "target",
    "fieldtype": "Float",
    "label": "Target",
-   "width": 100,
-   "precision": 2
+   "width": 0
   },
   {
    "fieldname": "actual",
    "fieldtype": "Float",
    "label": "Actual",
-   "width": 100,
-   "precision": 2
+   "width": 0
   },
   {
    "fieldname": "variance",
    "fieldtype": "Float",
    "label": "Variance",
-   "width": 100,
-   "precision": 2
+   "width": 0
   },
   {
    "fieldname": "achievement",
-   "fieldtype": "Percent",
-   "label": "Achievement %",
-   "precision": "0",
-   "width": 100
-  },
-  {
-   "fieldname": "reason",
-   "fieldtype": "Link",
-   "label": "Reason",
-   "options": "Reason",
-   "width": 120
+   "fieldtype": "Float",
+   "label": "Achievement",
+   "width": 0
   }
  ],
  "creation": "2025-11-25 09:01:24.701509",
@@ -63,17 +57,17 @@
  "doctype": "Report",
  "filters": [
   {
-   "fieldname": "from_date",
+   "fieldname": "start_date",
    "fieldtype": "Date",
-   "label": "From Date",
-   "mandatory": 1,
+   "label": "Start Date",
+   "mandatory": 0,
    "wildcard_filter": 0
   },
   {
-   "fieldname": "to_date",
+   "fieldname": "end_date",
    "fieldtype": "Date",
-   "label": "To Date",
-   "mandatory": 1,
+   "label": "End Date",
+   "mandatory": 0,
    "wildcard_filter": 0
   },
   {
@@ -85,17 +79,26 @@
    "wildcard_filter": 0
   },
   {
-   "fieldname": "type",
-   "fieldtype": "Data",
-   "label": "Type",
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
    "mandatory": 0,
+   "options": "Employee",
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "factory_process",
+   "fieldtype": "Link",
+   "label": "Factory Process",
+   "mandatory": 0,
+   "options": "Factory Process",
    "wildcard_filter": 0
   }
  ],
- "idx": 0,
+ "idx": 1,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-11-25 09:44:19.333278",
+ "modified": "2025-12-03 09:41:35.320869",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Daily Production Summary",
@@ -110,6 +113,12 @@
   },
   {
    "role": "Fulfillment User"
+  },
+  {
+   "role": "Report Manager"
+  },
+  {
+   "role": "Administrator"
   }
  ],
  "timeout": 0

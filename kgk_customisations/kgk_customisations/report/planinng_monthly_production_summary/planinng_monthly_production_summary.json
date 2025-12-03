@@ -1,7 +1,44 @@
 {
  "add_total_row": 1,
  "add_translate_data": 0,
- "disable_column_filters": 1,
+ "columns": [
+  {
+   "fieldname": "month",
+   "fieldtype": "Data",
+   "label": "Month",
+   "width": 0
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "width": 0
+  },
+  {
+   "fieldname": "target",
+   "fieldtype": "Int",
+   "label": "Target",
+   "width": 0
+  },
+  {
+   "fieldname": "actual",
+   "fieldtype": "Int",
+   "label": "Actual",
+   "width": 0
+  },
+  {
+   "fieldname": "diff",
+   "fieldtype": "Int",
+   "label": "Diff.",
+   "width": 0
+  },
+  {
+   "fieldname": "diff_percentage",
+   "fieldtype": "Int",
+   "label": "Diff %",
+   "width": 0
+  }
+ ],
  "creation": "2025-12-01 10:50:22.230436",
  "disabled": 0,
  "docstatus": 0,
@@ -19,15 +56,6 @@
    "fieldtype": "Date",
    "label": "To Date",
    "mandatory": 1,
-   "wildcard_filter": 0
-  },
-  {
-   "fieldname": "view_type",
-   "fieldtype": "Select",
-   "label": "View Type",
-   "mandatory": 1,
-   "options": "Monthly\nReason-wise",
-   "default": "Monthly",
    "wildcard_filter": 0
   },
   {
@@ -50,7 +78,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-12-01 12:33:03.648054",
+ "modified": "2025-12-03 09:40:32.426003",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Planinng Monthly Production Summary",
@@ -68,6 +96,9 @@
   },
   {
    "role": "Report Manager"
+  },
+  {
+   "role": "Administrator"
   }
  ],
  "timeout": 0
