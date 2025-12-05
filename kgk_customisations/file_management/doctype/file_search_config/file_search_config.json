@@ -8,6 +8,10 @@
   "azure_base_url",
   "column_break_usum",
   "search_timeout",
+  "section_break_indexing",
+  "last_indexed_on",
+  "column_break_indexing",
+  "indexing_status",
   "section_break_hygg",
   "file_directories"
  ],
@@ -28,8 +32,30 @@
    "label": "Search Timeout"
   },
   {
+   "fieldname": "section_break_indexing",
+   "fieldtype": "Section Break",
+   "label": "File Indexing"
+  },
+  {
+   "fieldname": "last_indexed_on",
+   "fieldtype": "Datetime",
+   "label": "Last Indexed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_indexing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "indexing_status",
+   "fieldtype": "Data",
+   "label": "Indexing Status",
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_hygg",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Directory Configuration"
   },
   {
    "fieldname": "file_directories",

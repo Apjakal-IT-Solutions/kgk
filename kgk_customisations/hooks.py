@@ -148,6 +148,15 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
+scheduler_events = {
+	"daily": [
+		"kgk_customisations.file_management.Utils.indexer.index_all_files"
+	],
+	"weekly": [
+		"kgk_customisations.file_management.Utils.file_operations.validate_indexed_files"
+	]
+}
+
 # scheduler_events = {
 # 	"all": [
 # 		"kgk_customisations.tasks.all"
