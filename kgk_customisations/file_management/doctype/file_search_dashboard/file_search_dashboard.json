@@ -1,0 +1,89 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-05 11:35:57.561748",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "search_section",
+  "lot_number",
+  "cb1",
+  "search_button",
+  "results_section",
+  "last_search_results",
+  "stats_section",
+  "total_indexed_files",
+  "cb2",
+  "last_indexed_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "search_section",
+   "fieldtype": "Section Break",
+   "label": "Quick Search"
+  },
+  {
+   "fieldname": "lot_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Lot Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "search_button",
+   "fieldtype": "Button",
+   "label": "Search Files"
+  },
+  {
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "label": "Search Results"
+  },
+  {
+   "fieldname": "last_search_results",
+   "fieldtype": "JSON",
+   "label": "Last Search Results",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stats_section",
+   "fieldtype": "Section Break",
+   "label": "Statistics"
+  },
+  {
+   "fieldname": "total_indexed_files",
+   "fieldtype": "Int",
+   "label": "Total Indexed Files",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_indexed_on",
+   "fieldtype": "Datetime",
+   "label": "Last Indexed",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-12-05 11:35:57.561748",
+ "modified_by": "Administrator",
+ "module": "File Management",
+ "name": "File Search Dashboard",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
