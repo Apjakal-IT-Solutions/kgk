@@ -1,36 +1,10 @@
-// Copyright (c) 2025, KGK and contributors
-// For license information, please see license.txt
-
 frappe.ui.form.on('File Search Dashboard', {
-    onload: function(frm) {
-        // Disable auto-save - this is a search form, not a data entry form
-        frm.disable_save();
-        
-        // Set default on first load
-        if (!frm.doc.search_type) {
-            frm.doc.search_type = 'All';
-        }
-    },
-    
     refresh: function(frm) {
-        // Disable save button - this is a search interface only
-        frm.disable_save();
-        
-        // Ensure search_type has a valid default value
-        if (!frm.doc.search_type || !['All', 'Polish Video', 'Rough Video', 'Advisor', 'Scan'].includes(frm.doc.search_type)) {
-            frm.doc.search_type = 'All';
-        }
-        
         // Add Search button
         frm.add_custom_button(__('Search Files'), function() {
             if (!frm.doc.lot_number) {
                 frappe.msgprint(__('Please enter a Lot Number'));
                 return;
-            }
-            
-            // Ensure search_type is valid before proceeding
-            if (!frm.doc.search_type) {
-                frm.doc.search_type = 'All';
             }
             
             frappe.call({
@@ -119,59 +93,35 @@ frappe.ui.form.on('File Search Dashboard', {
             );
         }, __('Actions'));
         
-        // Load statistics directly - no server method needed
-        // Load statistics - use count of name field instead of count(*)
+        // Load statistics
+        frm.call('load_statistics');
+    },
+    
+    load_statistics: function(frm) {
         frappe.call({
-            method: 'frappe.client.get_count',
+            method: 'frappe.client.get_list',
             args: {
                 doctype: 'File Index',
-                filters: [['file_type', '=', 'polish_video']]
+                fields: ['file_type', 'count(*) as count'],
+                group_by: 'file_type'
             },
             callback: function(r) {
-                frm.set_value('polish_count', r.message || 0);
-            }
-        });
-        
-        frappe.call({
-            method: 'frappe.client.get_count',
-            args: {
-                doctype: 'File Index',
-                filters: [['file_type', '=', 'rough_video']]
-            },
-            callback: function(r) {
-                frm.set_value('rough_count', r.message || 0);
-            }
-        });
-        
-        frappe.call({
-            method: 'frappe.client.get_count',
-            args: {
-                doctype: 'File Index',
-                filters: [['file_type', '=', 'advisor']]
-            },
-            callback: function(r) {
-                frm.set_value('advisor_count', r.message || 0);
-            }
-        });
-        
-        frappe.call({
-            method: 'frappe.client.get_count',
-            args: {
-                doctype: 'File Index',
-                filters: [['file_type', '=', 'scan']]
-            },
-            callback: function(r) {
-                frm.set_value('scan_count', r.message || 0);
-            }
-        });
-        
-        frappe.call({
-            method: 'frappe.client.get_count',
-            args: {
-                doctype: 'File Index'
-            },
-            callback: function(r) {
-                frm.set_value('total_files', r.message || 0);
+                if (r.message) {
+                    let total = 0;
+                    r.message.forEach(function(row) {
+                        total += row.count;
+                        if (row.file_type === 'polish_video') {
+                            frm.set_value('polish_count', row.count);
+                        } else if (row.file_type === 'rough_video') {
+                            frm.set_value('rough_count', row.count);
+                        } else if (row.file_type === 'advisor') {
+                            frm.set_value('advisor_count', row.count);
+                        } else if (row.file_type === 'scan') {
+                            frm.set_value('scan_count', row.count);
+                        }
+                    });
+                    frm.set_value('total_files', total);
+                }
             }
         });
     }

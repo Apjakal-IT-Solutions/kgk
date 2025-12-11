@@ -1,0 +1,239 @@
+# Copyright (c) 2025, KGK and contributors
+# For license information, please see license.txt
+
+import frappe
+from frappe import _
+
+
+def execute(filters=None):
+	columns = get_columns()
+	data = get_data(filters)
+	chart = get_chart_data(data, filters)
+	summary = get_report_summary(data, filters)
+	
+	return columns, data, None, chart, summary
+
+
+def get_columns():
+	"""Define report columns"""
+	return [
+		{
+			"label": _("Prediction ID"),
+			"fieldname": "name",
+			"fieldtype": "Link",
+			"options": "Stone Prediction",
+			"width": 150
+		},
+		{
+			"label": _("Prediction Date"),
+			"fieldname": "prediction_date",
+			"fieldtype": "Date",
+			"width": 110
+		},
+		{
+			"label": _("Predicted By"),
+			"fieldname": "predicted_by",
+			"fieldtype": "Link",
+			"options": "User",
+			"width": 150
+		},
+		{
+			"label": _("Lot ID"),
+			"fieldname": "lot_id",
+			"fieldtype": "Data",
+			"width": 120
+		},
+		{
+			"label": _("Serial Number"),
+			"fieldname": "serial_number",
+			"fieldtype": "Data",
+			"width": 120
+		},
+		{
+			"label": _("Original Weight"),
+			"fieldname": "original_weight",
+			"fieldtype": "Float",
+			"width": 110,
+			"precision": 2
+		},
+		{
+			"label": _("Number of Cuts"),
+			"fieldname": "number_of_cuts",
+			"fieldtype": "Int",
+			"width": 110
+		},
+		{
+			"label": _("Total Pol CTS"),
+			"fieldname": "total_pol_cts",
+			"fieldtype": "Float",
+			"width": 110,
+			"precision": 2
+		},
+		{
+			"label": _("Estimated Value"),
+			"fieldname": "estimated_value",
+			"fieldtype": "Currency",
+			"width": 130
+		},
+		{
+			"label": _("Docstatus"),
+			"fieldname": "docstatus",
+			"fieldtype": "Data",
+			"width": 100
+		}
+	]
+
+
+def get_data(filters):
+	"""Fetch Stone Prediction data with aggregations"""
+	
+	conditions = get_conditions(filters)
+	
+	# Main query to get predictions
+	predictions = frappe.db.sql(f"""
+		SELECT 
+			sp.name,
+			sp.prediction_date,
+			sp.predicted_by,
+			sp.predicted_number_of_cuts as lot_id,
+			sp.parcel_name as serial_number,
+			sp.original_weight,
+			sp.number_of_cuts,
+			sp.estimated_value,
+			sp.docstatus,
+			COALESCE(SUM(sc.pol_cts), 0) as total_pol_cts
+		FROM 
+			`tabStone Prediction` sp
+		LEFT JOIN 
+			`tabStone Cuts` sc ON sc.parent = sp.name
+		WHERE
+			{conditions}
+		GROUP BY 
+			sp.name
+		ORDER BY 
+			sp.prediction_date DESC, sp.name
+	""", filters, as_dict=1)
+	
+	# Add status labels
+	for pred in predictions:
+		if pred.docstatus == 0:
+			pred.docstatus = "Draft"
+		elif pred.docstatus == 1:
+			pred.docstatus = "Submitted"
+		elif pred.docstatus == 2:
+			pred.docstatus = "Cancelled"
+	
+	return predictions
+
+
+def get_conditions(filters):
+	"""Build SQL WHERE conditions from filters"""
+	conditions = ["1=1"]
+	
+	if filters.get("serial_number"):
+		conditions.append("sp.parcel_name = %(serial_number)s")
+	
+	if filters.get("lot_id"):
+		conditions.append("sp.predicted_number_of_cuts = %(lot_id)s")
+	
+	if filters.get("from_date"):
+		conditions.append("sp.prediction_date >= %(from_date)s")
+	
+	if filters.get("to_date"):
+		conditions.append("sp.prediction_date <= %(to_date)s")
+	
+	if filters.get("predicted_by"):
+		conditions.append("sp.predicted_by = %(predicted_by)s")
+	
+	if filters.get("docstatus"):
+		conditions.append("sp.docstatus = %(docstatus)s")
+	
+	return " AND ".join(conditions)
+
+
+def get_chart_data(data, filters):
+	"""Generate chart for visual representation"""
+	if not data:
+		return None
+	
+	# Group by prediction date for timeline chart
+	labels = []
+	values = []
+	
+	for row in data:
+		if row.get("prediction_date"):
+			labels.append(str(row.get("prediction_date")))
+			values.append(row.get("estimated_value") or 0)
+	
+	return {
+		"data": {
+			"labels": labels[:10],  # Last 10 predictions
+			"datasets": [
+				{
+					"name": "Estimated Value",
+					"values": values[:10]
+				}
+			]
+		},
+		"type": "bar",
+		"colors": ["#29CD42"],
+		"barOptions": {
+			"stacked": 0
+		}
+	}
+
+
+def get_report_summary(data, filters):
+	"""Calculate summary statistics"""
+	if not data:
+		return []
+	
+	total_predictions = len(data)
+	total_estimated_value = sum(row.get("estimated_value") or 0 for row in data)
+	avg_estimated_value = total_estimated_value / total_predictions if total_predictions else 0
+	total_cuts = sum(row.get("number_of_cuts") or 0 for row in data)
+	avg_cuts_per_prediction = total_cuts / total_predictions if total_predictions else 0
+	total_pol_cts = sum(row.get("total_pol_cts") or 0 for row in data)
+	
+	summary = [
+		{
+			"value": total_predictions,
+			"indicator": "Blue",
+			"label": _("Total Predictions"),
+			"datatype": "Int"
+		},
+		{
+			"value": total_estimated_value,
+			"indicator": "Green",
+			"label": _("Total Estimated Value"),
+			"datatype": "Currency"
+		},
+		{
+			"value": avg_estimated_value,
+			"indicator": "Orange",
+			"label": _("Avg Estimated Value"),
+			"datatype": "Currency"
+		},
+		{
+			"value": total_cuts,
+			"indicator": "Purple",
+			"label": _("Total Cuts"),
+			"datatype": "Int"
+		},
+		{
+			"value": avg_cuts_per_prediction,
+			"indicator": "Red",
+			"label": _("Avg Cuts/Prediction"),
+			"datatype": "Float",
+			"precision": 1
+		},
+		{
+			"value": total_pol_cts,
+			"indicator": "Cyan",
+			"label": _("Total Pol CTS"),
+			"datatype": "Float",
+			"precision": 2
+		}
+	]
+	
+	return summary

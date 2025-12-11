@@ -13,7 +13,9 @@
   "results_found",
   "column_break_ffds",
   "search_duration",
-  "user"
+  "used_cache",
+  "result_details_section",
+  "results_json"
  ],
  "fields": [
   {
@@ -29,12 +31,13 @@
    "fieldname": "search_type",
    "fieldtype": "Select",
    "label": "Search Type",
-   "options": "All\nAdvisor\nPolish Video\nRough Video"
+   "options": "All\nAdvisor\nPolish Video\nRough Video\nScan"
   },
   {
+   "default": "now",
    "fieldname": "timestamp",
    "fieldtype": "Datetime",
-   "label": "Timestamp",
+   "label": "Searched At",
    "read_only": 1
   },
   {
@@ -44,7 +47,7 @@
   {
    "fieldname": "results_found",
    "fieldtype": "Int",
-   "label": "Results Found",
+   "label": "Total Files Found",
    "read_only": 1
   },
   {
@@ -53,22 +56,33 @@
   },
   {
    "fieldname": "search_duration",
-   "fieldtype": "Float",
-   "label": "Search Duration",
+   "fieldtype": "Duration",
+   "label": "Search Duration (sec)",
    "read_only": 1
   },
   {
-   "fieldname": "user",
-   "fieldtype": "Link",
-   "label": "User",
+   "default": "0",
+   "fieldname": "used_cache",
+   "fieldtype": "Check",
+   "label": "Used Cache",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "result_details_section",
+   "fieldtype": "Section Break",
+   "label": "Result Details"
+  },
+  {
+   "fieldname": "results_json",
+   "fieldtype": "Long Text",
+   "label": "Results JSON"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-13 09:41:07.632316",
+ "modified": "2025-12-11 09:42:39.172469",
  "modified_by": "Administrator",
  "module": "File Management",
  "name": "Search Log",

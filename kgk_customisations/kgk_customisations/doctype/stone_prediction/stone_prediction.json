@@ -1,37 +1,40 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{MM}-{parcel_name}",
+ "autoname": "format:PRED-{MM}-{YY}-{###}",
  "creation": "2025-10-09 11:55:59.322830",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "prediction_details_section",
   "predicted_by",
   "column_break_cvdq",
-  "parcel_name",
-  "predicted_number_of_cuts",
-  "estimated_value",
+  "prediction_date",
+  "stone_details_section",
+  "lot_id",
+  "serial_number",
+  "column_break_ixyg",
+  "original_weight",
   "predicted_cuts_section",
   "predicted_cuts",
+  "prediction_summary_section",
+  "number_of_cuts",
+  "column_break_heth",
+  "estimated_value",
+  "section_break_keda",
   "amended_from"
  ],
  "fields": [
   {
-   "fieldname": "predicted_number_of_cuts",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Predicted Number of Cuts",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
+   "default": "0",
    "fieldname": "estimated_value",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Estimated Value",
    "non_negative": 1,
-   "reqd": 1
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "predicted_cuts_section",
@@ -57,14 +60,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "parcel_name",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Parcel Name",
-   "options": "Rough Stone",
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_cvdq",
    "fieldtype": "Column Break"
   },
@@ -77,13 +72,77 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "prediction_details_section",
+   "fieldtype": "Section Break",
+   "label": "Prediction Details"
+  },
+  {
+   "fieldname": "section_break_keda",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "prediction_date",
+   "fieldtype": "Date",
+   "label": "Prediction Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "original_weight",
+   "fieldtype": "Float",
+   "label": "Original Weight",
+   "precision": "2"
+  },
+  {
+   "fieldname": "stone_details_section",
+   "fieldtype": "Section Break",
+   "label": "Stone Details"
+  },
+  {
+   "fieldname": "column_break_ixyg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "prediction_summary_section",
+   "fieldtype": "Section Break",
+   "label": "Prediction Summary"
+  },
+  {
+   "default": "0",
+   "fieldname": "number_of_cuts",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Number of Cuts",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_heth",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lot_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Lot ID",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "serial_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Serial Number",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-07 12:30:42.450300",
+ "modified": "2025-12-11 14:31:48.426734",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Stone Prediction",
@@ -127,7 +186,6 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",

@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-11 09:13:00.267883",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "file_type",
+  "column_break_thyh",
+  "file_name",
+  "column_break_izkl",
+  "file_path",
+  "column_break_azjs",
+  "file_size_mb",
+  "column_break_nzbt",
+  "exists"
+ ],
+ "fields": [
+  {
+   "fieldname": "file_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "File Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_thyh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "file_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "File Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_izkl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "file_path",
+   "fieldtype": "Small Text",
+   "label": "File Path",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_azjs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "file_size_mb",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "File Size (MB)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_nzbt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "exists",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Exists",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-12-11 09:19:28.974970",
+ "modified_by": "Administrator",
+ "module": "File Management",
+ "name": "File Search Result",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
