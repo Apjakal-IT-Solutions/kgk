@@ -11,7 +11,11 @@ def execute(filters=None):
 	chart = get_chart_data(data, filters)
 	summary = get_report_summary(data, filters)
 	
-	return columns, data, None, chart, summary
+	# Prepare report summary for Excel export
+	message = None
+	report_summary = get_summary_data_for_excel(data, filters) if data else None
+	
+	return columns, data, message, chart, summary, report_summary
 
 
 def get_columns():
@@ -95,8 +99,8 @@ def get_data(filters):
 			sp.name,
 			sp.prediction_date,
 			sp.predicted_by,
-			sp.predicted_number_of_cuts as lot_id,
-			sp.parcel_name as serial_number,
+			sp.lot_id,
+			sp.serial_number,
 			sp.original_weight,
 			sp.number_of_cuts,
 			sp.estimated_value,
@@ -131,10 +135,10 @@ def get_conditions(filters):
 	conditions = ["1=1"]
 	
 	if filters.get("serial_number"):
-		conditions.append("sp.parcel_name = %(serial_number)s")
+		conditions.append("sp.serial_number = %(serial_number)s")
 	
 	if filters.get("lot_id"):
-		conditions.append("sp.predicted_number_of_cuts = %(lot_id)s")
+		conditions.append("sp.lot_id = %(lot_id)s")
 	
 	if filters.get("from_date"):
 		conditions.append("sp.prediction_date >= %(from_date)s")
@@ -145,8 +149,12 @@ def get_conditions(filters):
 	if filters.get("predicted_by"):
 		conditions.append("sp.predicted_by = %(predicted_by)s")
 	
-	if filters.get("docstatus"):
-		conditions.append("sp.docstatus = %(docstatus)s")
+	# Only apply docstatus filter if explicitly set
+	if filters.get("docstatus") is not None and filters.get("docstatus") != "":
+		docstatus_map = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
+		if filters.get("docstatus") in docstatus_map:
+			filters["docstatus_value"] = docstatus_map[filters.get("docstatus")]
+			conditions.append("sp.docstatus = %(docstatus_value)s")
 	
 	return " AND ".join(conditions)
 
@@ -237,3 +245,61 @@ def get_report_summary(data, filters):
 	]
 	
 	return summary
+
+
+def get_summary_data_for_excel(data, filters):
+	"""Prepare summary data for separate Excel sheet"""
+	if not data:
+		return None
+	
+	total_predictions = len(data)
+	total_estimated_value = sum(row.get("estimated_value") or 0 for row in data)
+	avg_estimated_value = total_estimated_value / total_predictions if total_predictions else 0
+	total_cuts = sum(row.get("number_of_cuts") or 0 for row in data)
+	avg_cuts_per_prediction = total_cuts / total_predictions if total_predictions else 0
+	total_pol_cts = sum(row.get("total_pol_cts") or 0 for row in data)
+	
+	summary_data = {
+		"data": [
+			{
+				"metric": _("Total Predictions"),
+				"value": total_predictions
+			},
+			{
+				"metric": _("Total Estimated Value"),
+				"value": total_estimated_value
+			},
+			{
+				"metric": _("Average Estimated Value"),
+				"value": round(avg_estimated_value, 2)
+			},
+			{
+				"metric": _("Total Number of Cuts"),
+				"value": total_cuts
+			},
+			{
+				"metric": _("Average Cuts per Prediction"),
+				"value": round(avg_cuts_per_prediction, 1)
+			},
+			{
+				"metric": _("Total Polished Carats"),
+				"value": round(total_pol_cts, 2)
+			}
+		],
+		"columns": [
+			{
+				"label": _("Metric"),
+				"fieldname": "metric",
+				"fieldtype": "Data",
+				"width": 250
+			},
+			{
+				"label": _("Value"),
+				"fieldname": "value",
+				"fieldtype": "Data",
+				"width": 150
+			}
+		]
+	}
+	
+	return summary_data

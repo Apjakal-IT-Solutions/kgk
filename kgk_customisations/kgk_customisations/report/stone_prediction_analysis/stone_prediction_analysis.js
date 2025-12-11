@@ -18,14 +18,12 @@ frappe.query_reports["Stone Prediction Analysis"] = {
 		{
 			"fieldname": "from_date",
 			"label": __("From Date"),
-			"fieldtype": "Date",
-			"default": frappe.datetime.add_months(frappe.datetime.get_today(), -1)
+			"fieldtype": "Date"
 		},
 		{
 			"fieldname": "to_date",
 			"label": __("To Date"),
-			"fieldtype": "Date",
-			"default": frappe.datetime.get_today()
+			"fieldtype": "Date"
 		},
 		{
 			"fieldname": "predicted_by",
@@ -57,21 +55,5 @@ frappe.query_reports["Stone Prediction Analysis"] = {
 		}
 		
 		return value;
-	},
-	
-	"onload": function(report) {
-		// Add custom button to view detailed cuts
-		report.page.add_inner_button(__("View Cuts Details"), function() {
-			let filters = report.get_values();
-			if (!filters.serial_number && !filters.lot_id) {
-				frappe.msgprint(__("Please select Serial Number or Lot ID to view cut details"));
-				return;
-			}
-			
-			frappe.set_route("query-report", "Stone Cuts Detail", {
-				serial_number: filters.serial_number,
-				lot_id: filters.lot_id
-			});
-		});
 	}
 };
