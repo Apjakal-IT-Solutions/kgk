@@ -88,7 +88,7 @@ def get_data(filters):
 			END as achievement
 		FROM `tabFactory Entry` fe
 		JOIN `tabFactory Entry Item` fei ON fei.parent = fe.name
-		LEFT JOIN `tabEmployee Target` et ON et.name = fei.employee
+		LEFT JOIN `tabEmployee Target` et ON et.name = fei.employee AND et.active = 1
 		WHERE fe.docstatus < 2 {conditions}
 		GROUP BY fei.employee, et.employee_name, fe.section
 		ORDER BY achievement DESC

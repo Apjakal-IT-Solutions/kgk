@@ -5,3 +5,5 @@
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
 # kgk_customisations.kgk_customisations.patches.v1_0.ocr_record_count_update
+kgk_customisations.kgk_customisations.patches.fix_employee_target_fields
+kgk_customisations.kgk_customisations.patches.set_employee_target_active

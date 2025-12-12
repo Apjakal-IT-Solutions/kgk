@@ -1,0 +1,32 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2025-12-12 10:00:00",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{}",
+ "letterhead": null,
+ "modified": "2025-12-12 10:38:55.062249",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "OCR Lot Search",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "OCR Data Upload",
+ "report_name": "OCR Lot Search",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Report Manager"
+  }
+ ],
+ "timeout": 0
+}

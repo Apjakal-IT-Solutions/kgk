@@ -110,7 +110,7 @@ def get_data(filters):
 			fei.reason
 		FROM `tabFactory Entry` fe
 		JOIN `tabFactory Entry Item` fei ON fei.parent = fe.name
-		LEFT JOIN `tabEmployee Target` et ON et.name = fei.employee
+		LEFT JOIN `tabEmployee Target` et ON et.name = fei.employee AND et.active = 1
 		WHERE fe.docstatus < 2 {conditions}
 		ORDER BY fe.work_date DESC, deviation ASC
 	""".format(conditions=conditions)

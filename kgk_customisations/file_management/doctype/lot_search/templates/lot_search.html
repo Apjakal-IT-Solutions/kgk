@@ -1,7 +1,400 @@
 {% extends "templates/web.html" %}
 
-{% block page_content %}
-<h1>{{ title }}</h1>
+{% block title %}
+{{ _("Lot Search") }} - {{ doc.lot_number }}
 {% endblock %}
 
-<!-- this is a sample default web page template -->
+{% block header %}
+<h1 class="page-title">
+    {{ _("Lot Files Search") }}: <span class="text-primary">{{ doc.lot_number }}</span>
+</h1>
+{% endblock %}
+
+{% block page_content %}
+<div class="lot-search-container">
+    <!-- Search Summary -->
+    <div class="search-summary card mb-4">
+        <div class="card-body">
+            <h4 class="mb-3">{{ _("Search Summary") }}</h4>
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <div class="stat-box">
+                        <i class="fa fa-video-camera fa-2x text-primary"></i>
+                        <h5 class="mt-2" id="polish-count">-</h5>
+                        <p class="text-muted">{{ _("Polish Videos") }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="stat-box">
+                        <i class="fa fa-film fa-2x text-info"></i>
+                        <h5 class="mt-2" id="rough-count">-</h5>
+                        <p class="text-muted">{{ _("Rough Videos") }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="stat-box">
+                        <i class="fa fa-file-text fa-2x text-success"></i>
+                        <h5 class="mt-2" id="advisor-count">-</h5>
+                        <p class="text-muted">{{ _("Advisor Files") }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="stat-box">
+                        <i class="fa fa-file-image-o fa-2x text-warning"></i>
+                        <h5 class="mt-2" id="scan-count">-</h5>
+                        <p class="text-muted">{{ _("Scan Files") }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Polish Video Section -->
+    <div class="file-section mb-4" id="polish-section" style="display: none;">
+        <h4 class="section-title">
+            <i class="fa fa-video-camera text-primary"></i> {{ _("Polish Video") }}
+        </h4>
+        <div class="card">
+            <div class="card-body" id="polish-content">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Rough Video Section -->
+    <div class="file-section mb-4" id="rough-section" style="display: none;">
+        <h4 class="section-title">
+            <i class="fa fa-film text-info"></i> {{ _("Rough Video") }}
+        </h4>
+        <div class="card">
+            <div class="card-body" id="rough-content">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Advisor Files Section -->
+    <div class="file-section mb-4" id="advisor-section" style="display: none;">
+        <h4 class="section-title">
+            <i class="fa fa-file-text text-success"></i> {{ _("Advisor Files") }}
+        </h4>
+        <div class="card">
+            <div class="card-body">
+                <div id="advisor-content" class="file-list">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan Files Section -->
+    <div class="file-section mb-4" id="scan-section" style="display: none;">
+        <h4 class="section-title">
+            <i class="fa fa-file-image-o text-warning"></i> {{ _("Scan Files") }}
+        </h4>
+        <div class="card">
+            <div class="card-body">
+                <div id="scan-content" class="file-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Results Message -->
+    <div class="alert alert-info" id="no-results" style="display: none;">
+        <h4>{{ _("No Files Found") }}</h4>
+        <p>{{ _("No files were found for lot number") }} <strong>{{ doc.lot_number }}</strong>.</p>
+        <p class="mb-0">{{ _("Please ensure the lot number is correct and files have been indexed.") }}</p>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="text-center" id="loading-indicator">
+        <i class="fa fa-spinner fa-spin fa-3x text-muted"></i>
+        <p class="mt-3 text-muted">{{ _("Searching for files...") }}</p>
+    </div>
+</div>
+
+<style>
+.lot-search-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.search-summary .card-body {
+    padding: 30px;
+}
+
+.stat-box {
+    padding: 20px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.stat-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.section-title {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.file-card {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.file-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #007bff;
+}
+
+.file-icon {
+    font-size: 48px;
+    margin-right: 20px;
+    width: 60px;
+    text-align: center;
+}
+
+.file-details {
+    flex-grow: 1;
+}
+
+.file-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.file-meta {
+    color: #666;
+    font-size: 14px;
+}
+
+.file-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.file-list .file-item {
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.file-list .file-item:hover {
+    background-color: #f8f9fa;
+}
+
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.scan-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.scan-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+}
+
+.scan-thumbnail {
+    width: 100%;
+    height: 150px;
+    background: #f0f0f0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.scan-thumbnail i {
+    font-size: 48px;
+    color: #999;
+}
+
+.btn-action {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const lotNumber = '{{ doc.lot_number }}';
+    
+    // Fetch search results
+    frappe.call({
+        method: 'kgk_customisations.file_management.Utils.file_operations.search_all_files',
+        args: {
+            lot_number: lotNumber
+        },
+        callback: function(r) {
+            document.getElementById('loading-indicator').style.display = 'none';
+            
+            if (r.message) {
+                displayResults(r.message);
+            }
+        }
+    });
+    
+    function displayResults(results) {
+        let hasResults = false;
+        
+        // Polish Video
+        if (results.polish_video && results.polish_video.found) {
+            hasResults = true;
+            document.getElementById('polish-section').style.display = 'block';
+            document.getElementById('polish-count').textContent = '1';
+            document.getElementById('polish-content').innerHTML = createVideoCard(results.polish_video, 'Polish Video');
+        } else {
+            document.getElementById('polish-count').textContent = '0';
+        }
+        
+        // Rough Video
+        if (results.rough_video && results.rough_video.found) {
+            hasResults = true;
+            document.getElementById('rough-section').style.display = 'block';
+            document.getElementById('rough-count').textContent = '1';
+            document.getElementById('rough-content').innerHTML = createVideoCard(results.rough_video, 'Rough Video');
+        } else {
+            document.getElementById('rough-count').textContent = '0';
+        }
+        
+        // Advisor Files
+        if (results.advisor_files && results.advisor_files.length > 0) {
+            hasResults = true;
+            document.getElementById('advisor-section').style.display = 'block';
+            document.getElementById('advisor-count').textContent = results.advisor_files.length;
+            document.getElementById('advisor-content').innerHTML = results.advisor_files.map(f => createFileItem(f)).join('');
+        } else {
+            document.getElementById('advisor-count').textContent = '0';
+        }
+        
+        // Scan Files
+        if (results.scan_files && results.scan_files.length > 0) {
+            hasResults = true;
+            document.getElementById('scan-section').style.display = 'block';
+            document.getElementById('scan-count').textContent = results.scan_files.length;
+            document.getElementById('scan-content').innerHTML = results.scan_files.map(f => createScanCard(f)).join('');
+        } else {
+            document.getElementById('scan-count').textContent = '0';
+        }
+        
+        if (!hasResults) {
+            document.getElementById('no-results').style.display = 'block';
+        }
+    }
+    
+    function createVideoCard(video, type) {
+        const sizeInMB = (video.size / (1024 * 1024)).toFixed(2);
+        return `
+            <div class="file-card">
+                <div class="file-icon text-primary">
+                    <i class="fa fa-video-camera"></i>
+                </div>
+                <div class="file-details">
+                    <div class="file-name">${video.name}</div>
+                    <div class="file-meta">
+                        <span><i class="fa fa-database"></i> ${sizeInMB} MB</span>
+                        <span class="ml-3"><i class="fa fa-folder"></i> ${type}</span>
+                    </div>
+                    <div class="file-path text-muted mt-2">
+                        <small>${video.path}</small>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button class="btn btn-sm btn-primary btn-action" onclick="downloadFile('${video.path}')">
+                        <i class="fa fa-download"></i> Download
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary btn-action" onclick="copyPath('${video.path}')">
+                        <i class="fa fa-copy"></i> Copy Path
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    function createFileItem(file) {
+        const sizeInMB = (file.file_size).toFixed(2);
+        return `
+            <div class="file-item">
+                <div>
+                    <div class="file-name">${file.file_name}</div>
+                    <div class="file-meta">
+                        <span><i class="fa fa-database"></i> ${sizeInMB} MB</span>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button class="btn btn-sm btn-primary btn-action" onclick="downloadFile('${file.file_path}')">
+                        <i class="fa fa-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary btn-action" onclick="copyPath('${file.file_path}')">
+                        <i class="fa fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    function createScanCard(file) {
+        const ext = file.file_name.split('.').pop().toUpperCase();
+        const icon = ext === 'PDF' ? 'fa-file-pdf-o' : 'fa-file-image-o';
+        return `
+            <div class="scan-card">
+                <div class="scan-thumbnail">
+                    <i class="fa ${icon}"></i>
+                </div>
+                <div class="file-name" style="font-size: 14px; margin-bottom: 10px;">
+                    ${file.file_name}
+                </div>
+                <div style="display: flex; gap: 5px; justify-content: center;">
+                    <button class="btn btn-sm btn-primary" onclick="downloadFile('${file.file_path}')" title="Download">
+                        <i class="fa fa-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="copyPath('${file.file_path}')" title="Copy Path">
+                        <i class="fa fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    window.downloadFile = function(filePath) {
+        frappe.msgprint(__('File download functionality requires server-side implementation.'));
+        // In production, implement file serving via Frappe controller
+    };
+    
+    window.copyPath = function(filePath) {
+        navigator.clipboard.writeText(filePath).then(function() {
+            frappe.show_alert({
+                message: __('Path copied to clipboard'),
+                indicator: 'green'
+            });
+        });
+    };
+});
+</script>
+{% endblock %}

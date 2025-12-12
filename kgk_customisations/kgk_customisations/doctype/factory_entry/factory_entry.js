@@ -7,7 +7,8 @@ frappe.ui.form.on("Factory Entry", {
 		if (frm.doc.section) {
 			frappe.db.get_list("Employee Target", {
 				filters: {
-					section: frm.doc.section
+					section: frm.doc.section,
+					active: 1
 				},
 				fields: ["employee"]
 			}).then(records => {
@@ -39,7 +40,8 @@ frappe.ui.form.on("Factory Entry Item", {
 			// Search for Employee Target record by employee
 			frappe.db.get_list("Employee Target", {
 				filters: {
-					employee: row.employee
+					employee: row.employee,
+					active: 1
 				},
 				fields: ["name", "target", "factory_process", "employee_name"]
 			}).then(records => {
@@ -70,7 +72,8 @@ frappe.ui.form.on("Factory Entry Item", {
 			// Search for Employee Target record by employee code
 			frappe.db.get_list("Employee Target", {
 				filters: {
-					factory_code: row.employee_code
+					factory_code: row.employee_code,
+					active: 1
 				},
 				fields: ["name", "target", "factory_process", "employee"]
 			}).then(records => {

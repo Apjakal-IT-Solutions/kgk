@@ -267,7 +267,135 @@ def clear_search_cache(lot_number: str = None):
             "status": "success",
             "message": message
         }
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+@frappe.whitelist()
+def search_multiple_lots(lot_numbers, use_cache=1):
+    """
+    Search for multiple lot numbers in batch.
+    
+    Args:
+        lot_numbers: JSON string or list of lot numbers
+        use_cache: 1 to use cache, 0 to bypass (default: 1)
+    
+    Returns:
+        dict: Aggregated search results for all lots
+    """
+    try:
+        # Handle JSON string input from web request
+        if isinstance(lot_numbers, str):
+            import json
+            lot_numbers = json.loads(lot_numbers)
+        
+        if not isinstance(lot_numbers, list):
+            return {
+                "status": "error",
+                "message": "lot_numbers must be a list"
+            }
+        
+        # Limit batch size to prevent overload
+        if len(lot_numbers) > 100:
+            return {
+                "status": "error",
+                "message": "Maximum 100 lot numbers per batch search"
+            }
+        
+        results = []
+        found_count = 0
+        not_found_count = 0
+        
+        for lot in lot_numbers:
+            lot = str(lot).strip()
+            if not lot:
+                continue
+            
+            # Search each lot
+            lot_result = search_all_files(lot, use_cache)
+            
+            # Check if any files found
+            has_files = (
+                (lot_result.get('polish_video', {}).get('found', False)) or
+                (lot_result.get('rough_video', {}).get('found', False)) or
+                (len(lot_result.get('advisor_files', [])) > 0) or
+                (len(lot_result.get('scan_files', [])) > 0)
+            )
+            
+            if has_files:
+                found_count += 1
+            else:
+                not_found_count += 1
+            
+            # Count total files for this lot
+            file_count = 0
+            if lot_result.get('polish_video', {}).get('found'):
+                file_count += 1
+            if lot_result.get('rough_video', {}).get('found'):
+                file_count += 1
+            file_count += len(lot_result.get('advisor_files', []))
+            file_count += len(lot_result.get('scan_files', []))
+            
+            results.append({
+                "lot_number": lot,
+                "found": has_files,
+                "file_count": file_count,
+                "details": lot_result
+            })
+        
+        return {
+            "status": "success",
+            "total_lots": len(lot_numbers),
+            "found": found_count,
+            "not_found": not_found_count,
+            "results": results,
+            "message": f"Searched {len(lot_numbers)} lots: {found_count} found, {not_found_count} not found"
+        }
+        
     except Exception as e:
+        frappe.log_error(f"Multi-lot search failed: {str(e)}", "Multi-Lot Search Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+@frappe.whitelist()
+def get_lots_by_file_type(file_type, limit=100):
+    """
+    Get all lot numbers that have a specific file type.
+    
+    Args:
+        file_type: polish_video, rough_video, advisor, or scan
+        limit: Maximum number of results (default: 100)
+    
+    Returns:
+        dict: List of lot numbers with file counts
+    """
+    try:
+        lots = frappe.db.sql("""
+            SELECT 
+                lot_number,
+                COUNT(*) as file_count,
+                SUM(file_size) as total_size_mb
+            FROM `tabFile Index`
+            WHERE file_type = %(file_type)s
+            GROUP BY lot_number
+            ORDER BY lot_number DESC
+            LIMIT %(limit)s
+        """, {"file_type": file_type, "limit": limit}, as_dict=True)
+        
+        return {
+            "status": "success",
+            "file_type": file_type,
+            "total_lots": len(lots),
+            "lots": lots
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Get lots by file type failed: {str(e)}", "Get Lots Error")
         return {
             "status": "error",
             "message": str(e)

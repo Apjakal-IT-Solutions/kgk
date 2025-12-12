@@ -82,7 +82,9 @@
   {
    "fieldname": "lot_id_1",
    "fieldtype": "Small Text",
+   "in_filter": 1,
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Lot ID 1"
   },
   {
@@ -200,7 +202,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-10 09:29:05.757567",
+ "modified": "2025-12-12 10:34:01.786558",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "OCR Data Item",

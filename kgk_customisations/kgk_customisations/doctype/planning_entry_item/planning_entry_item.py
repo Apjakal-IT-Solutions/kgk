@@ -16,7 +16,7 @@ class PlanningEntryItem(Document):
 		"""Find Employee Target by factory code and set as employee"""
 		if self.employee_code:
 			targets = frappe.get_all("Employee Target", 
-				filters={"factory_code": self.employee_code}, 
+				filters={"factory_code": self.employee_code, "active": 1}, 
 				fields=["name", "employee_name", "factory_code", "target"]
 			)
 			if targets:
@@ -34,7 +34,7 @@ def get_employee_target_by_code(factory_code):
 		return None
 		
 	targets = frappe.get_all("Employee Target", 
-		filters={"factory_code": factory_code}, 
+		filters={"factory_code": factory_code, "active": 1}, 
 		fields=["name", "employee_name", "employee", "factory_code", "target"]
 	)
 	

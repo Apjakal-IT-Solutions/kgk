@@ -50,6 +50,68 @@ frappe.ui.form.on("File Search Config", {
 			);
 		}, __('Actions'));
 		
+		// Add button to validate indexed files (remove stale entries)
+		frm.add_custom_button(__('Validate Index'), function() {
+			frappe.confirm(
+				__('This will check if indexed files still exist and remove stale entries. Continue?'),
+				function() {
+					frappe.call({
+						method: 'kgk_customisations.file_management.Utils.indexer.validate_indexed_files',
+						callback: function(r) {
+							if (r.message) {
+								let indicator = r.message.status === 'success' ? 'green' : 'red';
+								frappe.show_alert({
+									message: r.message.message,
+									indicator: indicator
+								});
+								
+								if (r.message.removed > 0) {
+									frm.reload_doc();
+								}
+							}
+						}
+					});
+				}
+			);
+		}, __('Actions'));
+		
+		// Add button for incremental indexing (faster)
+		frm.add_custom_button(__('Index New Files Only'), function() {
+			frappe.call({
+				method: 'kgk_customisations.file_management.Utils.indexer.index_new_files_only',
+				callback: function(r) {
+					if (r.message) {
+						let indicator = r.message.status === 'success' ? 'green' : 
+						               r.message.status === 'info' ? 'blue' : 'red';
+						frappe.show_alert({
+							message: r.message.message,
+							indicator: indicator
+						});
+						
+						if (r.message.new_files > 0) {
+							frm.reload_doc();
+						}
+						
+						// Listen for progress updates
+						frappe.realtime.on('indexing_progress', function(data) {
+							if (data.progress === 100) {
+								frappe.show_alert({
+									message: __('Incremental indexing complete!'),
+									indicator: 'green'
+								});
+								frm.reload_doc();
+							} else if (data.progress === -1) {
+								frappe.show_alert({
+									message: __('Indexing failed: ') + data.status,
+									indicator: 'red'
+								});
+							}
+						});
+					}
+				}
+			});
+		}, __('Actions'));
+		
 		// Add button to index only advisor files
 		frm.add_custom_button(__('Index Advisor Files'), function() {
 			frappe.call({

@@ -1,0 +1,19 @@
+{
+ "creation": "2025-12-12 12:00:00.000000",
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2025-12-12 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "File Management",
+ "name": "file-search-stats",
+ "owner": "Administrator",
+ "page_name": "File Search Stats",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "File Search Statistics"
+}
