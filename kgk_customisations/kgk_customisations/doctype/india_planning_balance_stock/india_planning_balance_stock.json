@@ -1,0 +1,116 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:IPL-{MM}-{YY}-{##}",
+ "creation": "2025-12-16 09:52:19.355698",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "workingdate",
+  "column_break_abdh",
+  "section_break_elpd",
+  "pcs",
+  "column_break_gtbe",
+  "cts",
+  "column_break_goiw",
+  "overseas_stock_balance",
+  "section_break_g9km",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_g9km",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "India Planning Balance Stock",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "workingdate",
+   "fieldtype": "Date",
+   "label": "WorkingDate"
+  },
+  {
+   "fieldname": "column_break_abdh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_elpd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "pcs",
+   "fieldtype": "Int",
+   "label": "PCS"
+  },
+  {
+   "fieldname": "column_break_gtbe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "cts",
+   "fieldtype": "Float",
+   "label": "CTS",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_goiw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "overseas_stock_balance",
+   "fieldtype": "Data",
+   "label": "Overseas Stock Balance"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-12-16 10:09:57.430731",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "India Planning Balance Stock",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

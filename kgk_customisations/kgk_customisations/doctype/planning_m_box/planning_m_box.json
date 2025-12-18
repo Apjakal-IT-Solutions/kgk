@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:MBox-{MM}-{YY}-{###}",
+ "creation": "2025-12-16 09:26:26.341878",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "working_date",
+  "column_break_ixcz",
+  "section_break_rltk",
+  "table_qmsd",
+  "section_break_esw0",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_esw0",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Planning M-Box",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "working_date",
+   "fieldtype": "Date",
+   "label": "Working Date"
+  },
+  {
+   "fieldname": "column_break_ixcz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_rltk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "table_qmsd",
+   "fieldtype": "Table",
+   "options": "Planning M-Box Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-12-16 09:38:59.407886",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Planning M-Box",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
