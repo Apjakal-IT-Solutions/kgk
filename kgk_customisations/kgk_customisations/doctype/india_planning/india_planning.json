@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_a3zt",
-  "wroking_date",
+  "working_date",
   "column_break_lcvh",
   "target",
   "section_break_dxhd",
@@ -33,10 +33,10 @@
    "search_index": 1
   },
   {
-   "fieldname": "wroking_date",
+   "fieldname": "working_date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Wroking Date",
+   "label": "Working Date",
    "reqd": 1
   },
   {

@@ -15,9 +15,9 @@
   "column_break_jfoi",
   "gia_rep",
   "section_break_wpva",
-  "table_qese",
+  "piece_values",
   "percentages_section",
-  "table_zlqf",
+  "percent_values",
   "amended_from"
  ],
  "fields": [
@@ -75,7 +75,7 @@
    "label": "Pieces"
   },
   {
-   "fieldname": "table_qese",
+   "fieldname": "piece_values",
    "fieldtype": "Table",
    "options": "Grading Report Pieces Item",
    "reqd": 1
@@ -86,7 +86,7 @@
    "label": "Percentages"
   },
   {
-   "fieldname": "table_zlqf",
+   "fieldname": "percent_values",
    "fieldtype": "Table",
    "options": "Grading Report Percentage Item",
    "reqd": 1
