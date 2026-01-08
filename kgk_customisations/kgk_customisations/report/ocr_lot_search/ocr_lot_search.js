@@ -15,7 +15,7 @@ frappe.query_reports["OCR Lot Search"] = {
 			"label": __("Search In"),
 			"fieldtype": "Select",
 			"options": "All Fields\nLot ID 1\nLot ID 2\nSub Lot ID\nBatch Name",
-			"default": "All Fields",
+			"default": "Lot ID 1",
 			"width": "120"
 		},
 		{

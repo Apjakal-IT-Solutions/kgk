@@ -164,6 +164,7 @@ def get_data(filters):
 	# Query to search across all OCR data items with refined fields
 	query = """
 		SELECT 
+			odu.name as upload_document,
 			odu.upload_date,
 			odi.sequence,
 			odi.created_on,
@@ -232,8 +233,12 @@ def get_data(filters):
 		
 		# Abbreviate "NOT MEASURED" to "N/M" in all fields (after refined field extraction)
 		for field in ["brown", "refined_brown", "blue_uv", "refined_blue_uv", "yellow_uv", "refined_yellow_uv", "type", "refined_type"]:
-			if row.get(field) and str(row.get(field)).upper() == "NOT MEASURED":
-				row[field] = "N/M"
+			if row.get(field):
+				# Normalize whitespace and check for "NOT MEASURED" variations
+				# Handle cases like "NOT MEASURED", "NOT MEASURED -", "NOT  MEASURED", etc.
+				value_normalized = " ".join(str(row.get(field)).upper().split())
+				if value_normalized.startswith("NOT MEASURED"):
+					row[field] = "N/M"
 	
 	return data
 
@@ -243,7 +248,7 @@ def get_conditions(filters):
 	conditions = ["1=1"]
 	
 	lot_id = filters.get("lot_id")
-	search_field = filters.get("search_field", "All Fields")
+	search_field = filters.get("search_field", "Lot ID 1")
 	
 	# Build lot ID search conditions based on selected field
 	if lot_id:
