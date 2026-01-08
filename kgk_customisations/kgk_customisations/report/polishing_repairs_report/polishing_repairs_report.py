@@ -154,7 +154,10 @@ def get_filters(filters, selected_week=1):
 	Build filters for Polishing Repair query
 	"""
 	
-	query_filters = {"week": selected_week}
+	query_filters = {
+		"week": selected_week,
+		"docstatus": 1  # Only submitted documents
+	}
 	
 	if filters.get("section"):
 		query_filters["section"] = filters.get("section")

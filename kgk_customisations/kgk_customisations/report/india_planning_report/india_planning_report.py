@@ -128,7 +128,7 @@ def get_data(filters):
 				ELSE 'On Target'
 			END as status
 		FROM `tabIndia Planning` ip
-		WHERE ip.docstatus < 2
+		WHERE ip.docstatus = 1
 			{conditions}
 		ORDER BY ip.working_date DESC
 	""".format(conditions=conditions)

@@ -137,13 +137,11 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Employee": {
+		"on_update": "kgk_customisations.kgk_customisations.doc_events.employee.update_employee_targets"
+	}
+}
 
 # Scheduled Tasks
 # ---------------

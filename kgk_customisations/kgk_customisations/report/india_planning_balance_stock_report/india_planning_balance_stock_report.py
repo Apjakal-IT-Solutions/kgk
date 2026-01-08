@@ -112,7 +112,7 @@ def get_data(filters):
 				ELSE 'Low'
 			END as stock_level
 		FROM `tabIndia Planning Balance Stock` ipbs
-		WHERE ipbs.docstatus < 2
+		WHERE ipbs.docstatus = 1
 			{conditions}
 		ORDER BY ipbs.workingdate DESC
 	""".format(conditions=conditions)

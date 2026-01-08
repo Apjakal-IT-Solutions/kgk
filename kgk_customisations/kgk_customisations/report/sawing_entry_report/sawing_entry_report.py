@@ -162,8 +162,8 @@ def get_conditions(filters):
 	if filters.get("to_date"):
 		conditions += " AND work_date <= %(to_date)s"
 	
-	# Show all non-cancelled documents
-	conditions += " AND docstatus < 2"
+	# Only submitted documents
+	conditions += " AND docstatus = 1"
 	
 	return conditions
 

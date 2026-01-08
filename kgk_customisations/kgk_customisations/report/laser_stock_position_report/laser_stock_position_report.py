@@ -110,6 +110,9 @@ def get_conditions(filters):
 	if filters.get("type"):
 		conditions += " AND lspi.type = %(type)s"
 	
+	# Only submitted documents
+	conditions += " AND lsp.docstatus = 1"
+	
 	return conditions
 
 
