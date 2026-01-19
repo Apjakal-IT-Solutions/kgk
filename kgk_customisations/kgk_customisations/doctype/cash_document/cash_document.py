@@ -2,9 +2,11 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
 from kgk_customisations.kgk_customisations.audit_trail import AuditTrail
+from kgk_customisations.kgk_customisations.utils.input_validator import InputValidator
 
 class CashDocument(Document):
 	def autoname(self):
@@ -342,7 +344,7 @@ class CashDocument(Document):
 		"""Add a flag to this document"""
 		# Validate inputs
 		validator = InputValidator()
-		validator.validate_choice(flag_type, ["Approved", "Rejected", "Review Required", "Information Request"], "flag_type")
+		validator.validate_choice(flag_type, "flag_type", ["Approved", "Rejected", "Review Required", "Information Request"])
 		
 		# Sanitize comments (max 500 characters)
 		if comments:
@@ -511,7 +513,7 @@ def bulk_flag_documents(document_names, flag_type, comments=""):
 		frappe.throw("Cannot flag more than 100 documents at once")
 	
 	# Validate flag type
-	validator.validate_choice(flag_type, ["Approved", "Rejected", "Review Required", "Information Request"], "flag_type")
+	validator.validate_choice(flag_type, "flag_type", ["Approved", "Rejected", "Review Required", "Information Request"])
 	
 	# Sanitize comments
 	if comments:

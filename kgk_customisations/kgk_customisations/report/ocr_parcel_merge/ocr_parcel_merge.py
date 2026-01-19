@@ -1208,7 +1208,11 @@ def get_statistics(filters):
 		
 		# Validate filters JSON structure
 		validator = InputValidator()
-		validator.validate_json(filters, required_keys=['parcel_file'])
+		filters = validator.validate_json(filters, "filters")
+		
+		# Check required keys
+		if not filters.get('parcel_file'):
+			frappe.throw("parcel_file is required in filters", frappe.ValidationError)
 		
 		# Get OCR and parcel data
 		ocr_data = get_ocr_data(filters)
@@ -1388,7 +1392,15 @@ def export_matched_records(filters):
 		
 		# Validate filters JSON structure
 		validator = InputValidator()
-		validator.validate_json(filters, required_keys=['parcel_file'])
+		filters = validator.validate_json(filters, "filters")
+		
+		# Check required keys
+		if not filters.get('parcel_file'):
+			return {
+				"success": False,
+				"message": "parcel_file is required in filters",
+				"count": 0
+			}
 		
 		# Get the merge analysis data
 		validation = validate_filters(filters)
@@ -1508,7 +1520,7 @@ def export_unmatched_ocr(filters):
 		
 		# Validate filters JSON structure
 		validator = InputValidator()
-		validator.validate_json(filters, required_keys=['parcel_file'])
+		filters = validator.validate_json(filters, "filters")
 		
 		# Simple validation - just check for parcel file
 		if not filters.get("parcel_file"):
