@@ -88,5 +88,14 @@ frappe.query_reports["Balance Variance Report"] = {
 		}
 		
 		return value;
-	}
+	}, 
+
+	"onload": function(report) {
+        // Force an adjustment after a short delay to ensure rendering is complete
+        setTimeout(() => {
+            if (report.datatable) {
+                window.dispatchEvent(new Event('resize'));
+            }
+        }, 500);
+    }
 };
