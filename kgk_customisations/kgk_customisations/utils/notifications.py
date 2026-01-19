@@ -97,18 +97,18 @@ def send_daily_variance_alerts():
             </tr>
             """
         
-        message += "</table><p>Please review and reconcile these balances.</p>"
-        
-        for user in set(recipients):
-            frappe.get_doc({
-                "doctype": "Notification Log",
-                "subject": "Cash Balance Reconciliation Alert",
-                "email_content": message,
-                "for_user": user,
-                "type": "Alert"
-            }).insert(ignore_permissions=True)
-        
-        frappe.db.commit()
+		message += "</table><p>Please review and reconcile these balances.</p>"
+		
+		for user in set(recipients):
+			notif = frappe.get_doc({
+				"doctype": "Notification Log",
+				"subject": "Cash Balance Reconciliation Alert",
+				"email_content": message,
+				"for_user": user,
+				"type": "Alert"
+			})
+			# System notification - allowed to bypass permissions
+			PermissionManager.insert_with_permission_check(notif, ignore_for_system=True)        frappe.db.commit()
         
         return f"Sent alerts for {len(unreconciled_balances)} unreconciled balances to {len(set(recipients))} users"
     
@@ -159,13 +159,15 @@ def send_weekly_cash_summary():
         recipients = frappe.get_users_for_role("Cash Accountant") + frappe.get_users_for_role("Cash Super User")
         
         for user in set(recipients):
-            frappe.get_doc({
+            notif = frappe.get_doc({
                 "doctype": "Notification Log",
                 "subject": "Weekly Cash Flow Summary",
                 "email_content": message,
                 "for_user": user,
                 "type": "Alert"
-            }).insert(ignore_permissions=True)
+            })
+            # System notification - allowed to bypass permissions
+            PermissionManager.insert_with_permission_check(notif, ignore_for_system=True)
         
         frappe.db.commit()
         

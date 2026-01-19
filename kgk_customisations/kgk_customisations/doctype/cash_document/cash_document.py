@@ -294,7 +294,8 @@ class CashDocument(Document):
 			if balance_doc.expected_balance:
 				balance_doc.variance = (balance_doc.closing_balance or 0) - balance_doc.expected_balance
 			
-			balance_doc.save(ignore_permissions=True)
+			# Save with permission check - system operation (automated balance calculation)
+			PermissionManager.save_with_permission_check(balance_doc, ignore_for_system=True)
 			frappe.db.commit()
 			frappe.logger().info(f"Updated Daily Cash Balance {self.balance_entry} from Cash Document {self.name}")
 			
@@ -325,7 +326,8 @@ class CashDocument(Document):
 			if balance_doc.expected_balance:
 				balance_doc.variance = (balance_doc.closing_balance or 0) - balance_doc.expected_balance
 			
-			balance_doc.save(ignore_permissions=True)
+			# Save with permission check - system operation (automated balance reversal)
+			PermissionManager.save_with_permission_check(balance_doc, ignore_for_system=True)
 			frappe.db.commit()
 			frappe.logger().info(f"Reversed Daily Cash Balance {self.balance_entry} from Cash Document {self.name}")
 			

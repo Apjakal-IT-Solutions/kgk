@@ -9,6 +9,7 @@ Logs all critical operations for compliance and tracking
 import frappe
 from frappe.utils import now_datetime, get_datetime
 import json
+from kgk_customisations.kgk_customisations.utils.permission_manager import PermissionManager
 
 
 class AuditTrail:
@@ -43,7 +44,8 @@ class AuditTrail:
 				""",
 				"comment_by": user
 			})
-			log_entry.insert(ignore_permissions=True)
+			# System logging - allowed to bypass permissions
+			PermissionManager.insert_with_permission_check(log_entry, ignore_for_system=True)
 			
 			frappe.logger().info(f"Audit: Balance {operation} - {document_name} → {balance_name} by {user}")
 			
@@ -77,7 +79,8 @@ class AuditTrail:
 				""",
 				"comment_by": user
 			})
-			log_entry.insert(ignore_permissions=True)
+			# System logging - allowed to bypass permissions
+			PermissionManager.insert_with_permission_check(log_entry, ignore_for_system=True)
 			
 			frappe.logger().info(f"Audit: {verification_level} verification - {submission_name} by {user}")
 			
@@ -113,7 +116,8 @@ class AuditTrail:
 				""",
 				"comment_by": user
 			})
-			log_entry.insert(ignore_permissions=True)
+			# System logging - allowed to bypass permissions
+			PermissionManager.insert_with_permission_check(log_entry, ignore_for_system=True)
 			
 			frappe.logger().info(f"Audit: Workflow change - {doctype} {document_name}: {old_status} → {new_status} by {user}")
 			
@@ -147,7 +151,8 @@ class AuditTrail:
 				""",
 				"comment_by": user
 			})
-			log_entry.insert(ignore_permissions=True)
+			# System logging - allowed to bypass permissions
+			PermissionManager.insert_with_permission_check(log_entry, ignore_for_system=True)
 			
 			frappe.logger().info(f"Audit: {reconciliation_type} reconciliation - {balance_name} by {user}")
 			
@@ -182,7 +187,8 @@ class AuditTrail:
 				""",
 				"comment_by": user
 			})
-			log_entry.insert(ignore_permissions=True)
+			# System logging - allowed to bypass permissions
+			PermissionManager.insert_with_permission_check(log_entry, ignore_for_system=True)
 			
 			frappe.logger().info(f"Audit: Invoice generated - {invoice_number} for {document_name} by {user}")
 			
@@ -214,7 +220,8 @@ class AuditTrail:
 				""",
 				"comment_by": "Administrator"
 			})
-			log_entry.insert(ignore_permissions=True)
+			# System logging - allowed to bypass permissions
+			PermissionManager.insert_with_permission_check(log_entry, ignore_for_system=True)
 			
 			frappe.logger().warning(f"Audit: Variance alert - {balance_name}: {variance_amount} ({variance_percentage}%)")
 			
