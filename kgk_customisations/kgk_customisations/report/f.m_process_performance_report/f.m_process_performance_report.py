@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate, formatdate
 import math
+from kgk_customisations.kgk_customisations.utils.query_builder import SafeQueryBuilder
 
 def execute(filters=None):
 	columns = get_columns()
@@ -62,10 +63,8 @@ def get_data(filters):
 	if not filters:
 		return []
 		
-	conditions = get_conditions(filters)
-	
 	# Get data from Factory Main and Factory Main Item
-	data = frappe.db.sql(f"""
+	query = """
 		SELECT 
 			fmi.type as factory_process,
 			SUM(CAST(fmi.target AS DECIMAL(10,2))) as target,
@@ -78,12 +77,25 @@ def get_data(filters):
 			fm.docstatus < 2
 			AND fmi.type IS NOT NULL 
 			AND fmi.type != ''
-			{conditions}
+	"""
+	
+	params = {}
+	if filters.get("from_date"):
+		query += " AND fm.work_date >= %(from_date)s"
+		params["from_date"] = filters.get("from_date")
+	
+	if filters.get("to_date"):
+		query += " AND fm.work_date <= %(to_date)s"
+		params["to_date"] = filters.get("to_date")
+	
+	query += """
 		GROUP BY 
 			fmi.type
 		ORDER BY 
 			fmi.type
-	""", filters, as_dict=1)
+	"""
+	
+	data = frappe.db.sql(query, params, as_dict=1)
 	
 	# Calculate differences and percentages
 	for row in data:

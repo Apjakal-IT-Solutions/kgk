@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate, formatdate
 import math
+from kgk_customisations.kgk_customisations.utils.query_builder import SafeQueryBuilder
 
 def execute(filters=None):
 	columns = get_columns()
@@ -84,7 +85,7 @@ def get_data(filters):
 
 def get_monthly_data(filters, conditions):
 	"""Get data grouped by date and process"""
-	data = frappe.db.sql(f"""
+	query = """
 		SELECT 
 			fe.work_date as date,
 			fei.factory_process,
@@ -105,18 +106,31 @@ def get_monthly_data(filters, conditions):
 			fe.docstatus < 2
 			AND fei.factory_process IS NOT NULL 
 			AND fei.factory_process != ''
-			{conditions}
+	"""
+	
+	params = {}
+	if filters.get("from_date"):
+		query += " AND fe.work_date >= %(from_date)s"
+		params["from_date"] = filters.get("from_date")
+	
+	if filters.get("to_date"):
+		query += " AND fe.work_date <= %(to_date)s"
+		params["to_date"] = filters.get("to_date")
+	
+	query += """
 		GROUP BY 
 			fe.work_date, fei.factory_process
 		ORDER BY 
 			fe.work_date, fei.factory_process
-	""", filters, as_dict=1)
+	"""
+	
+	data = frappe.db.sql(query, params, as_dict=1)
 	
 	return build_monthly_tree_structure(data)
 
 def get_reason_wise_data(filters, conditions):
 	"""Get data grouped by reason, date, and process"""
-	data = frappe.db.sql(f"""
+	query = """
 		SELECT 
 			fe.work_date as date,
 			fei.factory_process,
@@ -131,12 +145,25 @@ def get_reason_wise_data(filters, conditions):
 			fe.docstatus < 2
 			AND fei.factory_process IS NOT NULL 
 			AND fei.factory_process != ''
-			{conditions}
+	"""
+	
+	params = {}
+	if filters.get("from_date"):
+		query += " AND fe.work_date >= %(from_date)s"
+		params["from_date"] = filters.get("from_date")
+	
+	if filters.get("to_date"):
+		query += " AND fe.work_date <= %(to_date)s"
+		params["to_date"] = filters.get("to_date")
+	
+	query += """
 		GROUP BY 
 			fe.work_date, fei.factory_process, COALESCE(fei.reason, 'NO REASON')
 		ORDER BY 
 			COALESCE(fei.reason, 'NO REASON'), fe.work_date, fei.factory_process
-	""", filters, as_dict=1)
+	"""
+	
+	data = frappe.db.sql(query, params, as_dict=1)
 	
 	return build_reason_tree_structure(data)
 

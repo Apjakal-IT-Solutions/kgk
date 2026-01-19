@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.utils import flt, getdate, get_datetime, now_datetime
+from kgk_customisations.kgk_customisations.utils.query_builder import SafeQueryBuilder
 
 
 def execute(filters=None):
@@ -90,9 +91,7 @@ def get_columns():
 
 def get_data(filters):
 	"""Fetch audit trail data from Cash Document Audit Trail"""
-	conditions = get_conditions(filters)
-	
-	query = f"""
+	query = """
 		SELECT
 			cat.timestamp,
 			cat.activity_type,
@@ -105,12 +104,42 @@ def get_data(filters):
 			cat.details,
 			cat.ip_address
 		FROM `tabCash Document Audit Trail` cat
-		WHERE 1=1
-		{conditions}
-		ORDER BY cat.timestamp DESC
 	"""
 	
-	data = frappe.db.sql(query, filters, as_dict=1)
+	# Build WHERE conditions safely
+	conditions = []
+	params = {}
+	
+	if filters.get("from_date"):
+		conditions.append("DATE(cat.timestamp) >= %(from_date)s")
+		params["from_date"] = filters.get("from_date")
+	
+	if filters.get("to_date"):
+		conditions.append("DATE(cat.timestamp) <= %(to_date)s")
+		params["to_date"] = filters.get("to_date")
+	
+	if filters.get("activity_type") and filters.get("activity_type") != "All":
+		conditions.append("cat.activity_type = %(activity_type)s")
+		params["activity_type"] = filters.get("activity_type")
+	
+	if filters.get("user"):
+		conditions.append("cat.user = %(user)s")
+		params["user"] = filters.get("user")
+	
+	if filters.get("document_type") and filters.get("document_type") != "All":
+		conditions.append("cat.document_type = %(document_type)s")
+		params["document_type"] = filters.get("document_type")
+	
+	if filters.get("company"):
+		conditions.append("cat.company = %(company)s")
+		params["company"] = filters.get("company")
+	
+	if conditions:
+		query += " WHERE " + " AND ".join(conditions)
+	
+	query += " ORDER BY cat.timestamp DESC"
+	
+	data = frappe.db.sql(query, params, as_dict=1)
 	
 	# Apply text search filter if provided
 	search_text = filters.get("search_text")
@@ -184,17 +213,7 @@ def export_audit_report(filters):
 @frappe.whitelist()
 def get_user_activity_stats(user, from_date=None, to_date=None):
 	"""Get detailed activity statistics for a specific user"""
-	conditions = ["cat.user = %(user)s"]
-	
-	if from_date:
-		conditions.append("DATE(cat.timestamp) >= %(from_date)s")
-	
-	if to_date:
-		conditions.append("DATE(cat.timestamp) <= %(to_date)s")
-	
-	conditions_str = " AND ".join(conditions)
-	
-	query = f"""
+	query = """
 		SELECT
 			cat.activity_type,
 			COUNT(*) as count,
@@ -202,16 +221,25 @@ def get_user_activity_stats(user, from_date=None, to_date=None):
 			MAX(cat.timestamp) as last_activity,
 			COUNT(DISTINCT cat.document_name) as unique_documents
 		FROM `tabCash Document Audit Trail` cat
-		WHERE {conditions_str}
+		WHERE cat.user = %(user)s
+	"""
+	
+	params = {"user": user}
+	
+	if from_date:
+		query += " AND DATE(cat.timestamp) >= %(from_date)s"
+		params["from_date"] = from_date
+	
+	if to_date:
+		query += " AND DATE(cat.timestamp) <= %(to_date)s"
+		params["to_date"] = to_date
+	
+	query += """
 		GROUP BY cat.activity_type
 		ORDER BY count DESC
 	"""
 	
-	stats = frappe.db.sql(query, {
-		"user": user,
-		"from_date": from_date,
-		"to_date": to_date
-	}, as_dict=1)
+	stats = frappe.db.sql(query, params, as_dict=1)
 	
 	return stats
 

@@ -197,12 +197,13 @@ class DataValidator:
 		if frappe.db.exists(party_type, party_name):
 			return True, "Valid", party_name
 		
-		# Try to find similar party
-		similar = frappe.db.sql(f"""
-			SELECT name FROM `tab{party_type}`
-			WHERE name LIKE %s
-			LIMIT 1
-		""", (f"%{party_name}%",))
+		# Try to find similar party - using safe parameterized query
+		# Party type is validated against whitelist above, safe to use in table name
+		similar = frappe.db.sql(
+			f"""SELECT name FROM `tab{party_type}` WHERE name LIKE %(pattern)s LIMIT 1""",
+			{"pattern": f"%{party_name}%"},
+			as_dict=False
+		)
 		
 		if similar:
 			return False, f"{party_type} not found. Did you mean '{similar[0][0]}'?", similar[0][0]

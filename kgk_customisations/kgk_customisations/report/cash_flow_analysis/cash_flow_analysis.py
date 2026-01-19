@@ -6,6 +6,7 @@ from frappe import _
 from frappe.utils import flt, getdate, today, add_days, add_months, add_to_date, get_first_day, get_last_day
 from datetime import datetime, timedelta
 import calendar
+from kgk_customisations.kgk_customisations.utils.query_builder import SafeQueryBuilder
 
 
 def execute(filters=None):
@@ -186,14 +187,7 @@ def get_periods(from_date, to_date, periodicity):
 
 def get_period_data(period_start, period_end, filters):
 	"""Get aggregated data for a specific period"""
-	conditions = []
-	
-	if filters.get("company"):
-		conditions.append("cd.company = %(company)s")
-	
-	conditions_str = " AND " + " AND ".join(conditions) if conditions else ""
-	
-	query = f"""
+	query = """
 		SELECT
 			SUM(CASE WHEN cd.main_document_type = 'Receipt' THEN cd.amount ELSE 0 END) as total_receipts,
 			SUM(CASE WHEN cd.main_document_type = 'Payment' THEN cd.amount ELSE 0 END) as total_payments,
@@ -202,14 +196,18 @@ def get_period_data(period_start, period_end, filters):
 		WHERE cd.docstatus = 1
 		AND cd.transaction_date >= %(period_start)s
 		AND cd.transaction_date <= %(period_end)s
-		{conditions_str}
 	"""
 	
-	result = frappe.db.sql(query, {
+	params = {
 		"period_start": period_start,
-		"period_end": period_end,
-		"company": filters.get("company")
-	}, as_dict=1)
+		"period_end": period_end
+	}
+	
+	if filters.get("company"):
+		query += " AND cd.company = %(company)s"
+		params["company"] = filters.get("company")
+	
+	result = frappe.db.sql(query, params, as_dict=1)
 	
 	if result:
 		return result[0]

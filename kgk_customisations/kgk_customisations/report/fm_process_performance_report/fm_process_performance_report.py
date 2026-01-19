@@ -7,6 +7,7 @@ from frappe.utils import flt, getdate, formatdate
 from datetime import datetime
 import calendar
 import math
+from kgk_customisations.kgk_customisations.utils.query_builder import SafeQueryBuilder
 
 def execute(filters=None):
 	columns = get_columns(filters)
@@ -81,7 +82,7 @@ def get_data(filters):
 
 def get_monthly_data(filters, conditions):
 	"""Get data grouped by date and section"""
-	data = frappe.db.sql(f"""
+	query = """
 		SELECT 
 			fm.work_date as date,
 			fmi.section,
@@ -101,18 +102,31 @@ def get_monthly_data(filters, conditions):
 			fm.docstatus < 2
 			AND fmi.section IS NOT NULL 
 			AND fmi.section != ''
-			{conditions}
+	"""
+	
+	params = {}
+	if filters.get("from_date"):
+		query += " AND fm.work_date >= %(from_date)s"
+		params["from_date"] = filters.get("from_date")
+	
+	if filters.get("to_date"):
+		query += " AND fm.work_date <= %(to_date)s"
+		params["to_date"] = filters.get("to_date")
+	
+	query += """
 		GROUP BY 
 			fm.work_date, fmi.section
 		ORDER BY 
 			fm.work_date, fmi.section
-	""", filters, as_dict=1)
+	"""
+	
+	data = frappe.db.sql(query, params, as_dict=1)
 	
 	return build_monthly_tree_structure(data)
 
 def get_reason_wise_data(filters, conditions):
 	"""Get data grouped by date, section, and reason"""
-	data = frappe.db.sql(f"""
+	query = """
 		SELECT 
 			fm.work_date as date,
 			fmi.section,
@@ -126,12 +140,25 @@ def get_reason_wise_data(filters, conditions):
 			fm.docstatus < 2
 			AND fmi.section IS NOT NULL 
 			AND fmi.section != ''
-			{conditions}
+	"""
+	
+	params = {}
+	if filters.get("from_date"):
+		query += " AND fm.work_date >= %(from_date)s"
+		params["from_date"] = filters.get("from_date")
+	
+	if filters.get("to_date"):
+		query += " AND fm.work_date <= %(to_date)s"
+		params["to_date"] = filters.get("to_date")
+	
+	query += """
 		GROUP BY 
 			fm.work_date, fmi.section, COALESCE(fmi.reason, 'NO REASON')
 		ORDER BY 
 			COALESCE(fmi.reason, 'NO REASON'), fm.work_date, fmi.section
-	""", filters, as_dict=1)
+	"""
+	
+	data = frappe.db.sql(query, params, as_dict=1)
 	
 	return build_reason_tree_structure(data)
 

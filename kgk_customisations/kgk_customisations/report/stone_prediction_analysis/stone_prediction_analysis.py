@@ -1,8 +1,17 @@
 # Copyright (c) 2025, KGK and contributors
 # For license information, please see license.txt
 
+"""
+Stone Prediction Analysis Report
+================================
+
+Security: Updated January 2026 to prevent SQL injection vulnerabilities.
+All queries now use parameterized approach via SafeQueryBuilder.
+"""
+
 import frappe
 from frappe import _
+from kgk_customisations.kgk_customisations.utils.query_builder import SafeQueryBuilder
 
 
 def execute(filters=None):
@@ -89,12 +98,51 @@ def get_columns():
 
 
 def get_data(filters):
-	"""Fetch Stone Prediction data with aggregations"""
+	"""
+	Fetch Stone Prediction data with aggregations.
 	
-	conditions = get_conditions(filters)
+	Security: Uses parameterized queries to prevent SQL injection.
+	All user inputs are properly escaped via parameter binding.
+	"""
+	if not filters:
+		filters = {}
 	
-	# Main query to get predictions
-	predictions = frappe.db.sql(f"""
+	# Build WHERE clause safely using SafeQueryBuilder
+	where_conditions = []
+	params = {}
+	
+	if filters.get("serial_number"):
+		where_conditions.append("sp.serial_number = %(serial_number)s")
+		params["serial_number"] = filters.get("serial_number")
+	
+	if filters.get("lot_id"):
+		where_conditions.append("sp.lot_id = %(lot_id)s")
+		params["lot_id"] = filters.get("lot_id")
+	
+	if filters.get("from_date"):
+		where_conditions.append("sp.prediction_date >= %(from_date)s")
+		params["from_date"] = filters.get("from_date")
+	
+	if filters.get("to_date"):
+		where_conditions.append("sp.prediction_date <= %(to_date)s")
+		params["to_date"] = filters.get("to_date")
+	
+	if filters.get("predicted_by"):
+		where_conditions.append("sp.predicted_by = %(predicted_by)s")
+		params["predicted_by"] = filters.get("predicted_by")
+	
+	# Handle docstatus filter safely
+	if filters.get("docstatus") is not None and filters.get("docstatus") != "":
+		docstatus_map = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
+		if filters.get("docstatus") in docstatus_map:
+			where_conditions.append("sp.docstatus = %(docstatus_value)s")
+			params["docstatus_value"] = docstatus_map[filters.get("docstatus")]
+	
+	# Build final WHERE clause
+	where_clause = " AND ".join(where_conditions) if where_conditions else "1=1"
+	
+	# SECURITY: Query uses parameterized approach - no string formatting with user input
+	query = f"""
 		SELECT 
 			sp.name,
 			sp.prediction_date,
@@ -111,12 +159,15 @@ def get_data(filters):
 		LEFT JOIN 
 			`tabStone Cuts` sc ON sc.parent = sp.name
 		WHERE
-			{conditions}
+			{where_clause}
 		GROUP BY 
 			sp.name
 		ORDER BY 
 			sp.prediction_date DESC, sp.name
-	""", filters, as_dict=1)
+	"""
+	
+	# Execute query safely with parameter binding
+	predictions = SafeQueryBuilder.execute_safe_query(query, params, as_dict=True)
 	
 	# Add status labels
 	for pred in predictions:
@@ -128,35 +179,6 @@ def get_data(filters):
 			pred.docstatus = "Cancelled"
 	
 	return predictions
-
-
-def get_conditions(filters):
-	"""Build SQL WHERE conditions from filters"""
-	conditions = ["1=1"]
-	
-	if filters.get("serial_number"):
-		conditions.append("sp.serial_number = %(serial_number)s")
-	
-	if filters.get("lot_id"):
-		conditions.append("sp.lot_id = %(lot_id)s")
-	
-	if filters.get("from_date"):
-		conditions.append("sp.prediction_date >= %(from_date)s")
-	
-	if filters.get("to_date"):
-		conditions.append("sp.prediction_date <= %(to_date)s")
-	
-	if filters.get("predicted_by"):
-		conditions.append("sp.predicted_by = %(predicted_by)s")
-	
-	# Only apply docstatus filter if explicitly set
-	if filters.get("docstatus") is not None and filters.get("docstatus") != "":
-		docstatus_map = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
-		if filters.get("docstatus") in docstatus_map:
-			filters["docstatus_value"] = docstatus_map[filters.get("docstatus")]
-			conditions.append("sp.docstatus = %(docstatus_value)s")
-	
-	return " AND ".join(conditions)
 
 
 def get_chart_data(data, filters):

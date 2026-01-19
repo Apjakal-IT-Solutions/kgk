@@ -7,7 +7,7 @@ from frappe.utils import flt, getdate, formatdate, add_months, get_first_day, ge
 from datetime import datetime
 import calendar
 import math
-import math
+from kgk_customisations.kgk_customisations.utils.query_builder import SafeQueryBuilder
 
 def execute(filters=None):
 	columns = get_columns()
@@ -113,7 +113,7 @@ def get_data(filters):
 
 def get_monthly_data(filters, conditions):
 	# Get data from Planning Main with all fields
-	data = frappe.db.sql(f"""
+	query = """
 		SELECT 
 			pm.date,
 			SUM(pm.round_target) as round_target,
@@ -134,18 +134,31 @@ def get_monthly_data(filters, conditions):
 			`tabPlanning Main` pm
 		WHERE 
 			pm.docstatus < 2
-			{conditions}
+	"""
+	
+	params = {}
+	if filters.get("from_date"):
+		query += " AND pm.date >= %(from_date)s"
+		params["from_date"] = filters.get("from_date")
+	
+	if filters.get("to_date"):
+		query += " AND pm.date <= %(to_date)s"
+		params["to_date"] = filters.get("to_date")
+	
+	query += """
 		GROUP BY 
 			pm.date
 		ORDER BY 
 			pm.date
-	""", filters, as_dict=1)
+	"""
+	
+	data = frappe.db.sql(query, params, as_dict=1)
 	
 	return build_tree_structure(data)
 
 def get_reason_wise_data(filters, conditions):
 	# Get data from Planning Main with all fields, grouped by reason but still showing individual dates
-	data = frappe.db.sql(f"""
+	query = """
 		SELECT 
 			pm.date,
 			COALESCE(pm.fancy_reason, 'NO REASON') as reason,
@@ -159,12 +172,25 @@ def get_reason_wise_data(filters, conditions):
 			`tabPlanning Main` pm
 		WHERE 
 			pm.docstatus < 2
-			{conditions}
+	"""
+	
+	params = {}
+	if filters.get("from_date"):
+		query += " AND pm.date >= %(from_date)s"
+		params["from_date"] = filters.get("from_date")
+	
+	if filters.get("to_date"):
+		query += " AND pm.date <= %(to_date)s"
+		params["to_date"] = filters.get("to_date")
+	
+	query += """
 		GROUP BY 
 			pm.date, COALESCE(pm.fancy_reason, 'NO REASON')
 		ORDER BY 
 			COALESCE(pm.fancy_reason, 'NO REASON'), pm.date
-	""", filters, as_dict=1)
+	"""
+	
+	data = frappe.db.sql(query, params, as_dict=1)
 	
 	return build_reason_tree_structure(data)
 
