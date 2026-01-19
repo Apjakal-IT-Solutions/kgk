@@ -8,6 +8,7 @@ import os
 import re
 from kgk_customisations.utils.ocr_utils import extract_ocr_fields_from_text, get_consolidated_ocr_data
 from kgk_customisations.utils.excel_utils import create_styled_excel_workbook, create_download_response
+from kgk_customisations.kgk_customisations.utils.permission_manager import PermissionManager
 
 
 # Extraction logic moved to utils/ocr_utils.py for reusability
@@ -30,7 +31,8 @@ class OCRDataUpload(Document):
 				file_doc = frappe.get_doc("File", {"file_url": self.file_upload})
 				if not file_doc.is_private:
 					file_doc.is_private = 1
-					file_doc.save(ignore_permissions=True)
+					# Save with permission check - system operation (security enhancement)
+					PermissionManager.save_with_permission_check(file_doc, ignore_for_system=True)
 					frappe.db.commit()
 			except Exception as e:
 				error_msg = f"Error accessing file: {str(e)}"

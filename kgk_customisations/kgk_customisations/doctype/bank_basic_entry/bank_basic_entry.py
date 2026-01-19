@@ -136,7 +136,8 @@ class BankBasicEntry(Document):
 			# Update existing entry
 			doc = frappe.get_doc("Bank Basic Entry", existing[0].name)
 			doc.balance = balance
-			doc.save(ignore_permissions=True)
+			# Save with permission check - system operation
+			PermissionManager.save_with_permission_check(doc, ignore_for_system=True)
 			return doc.name
 		else:
 			# Create new entry
@@ -147,7 +148,8 @@ class BankBasicEntry(Document):
 				"username": username,
 				"balance": balance
 			})
-			doc.insert(ignore_permissions=True)
+			# Insert with permission check - system operation
+			PermissionManager.insert_with_permission_check(doc, ignore_for_system=True)
 			return doc.name
 	
 	@staticmethod
@@ -193,7 +195,8 @@ class BankBasicEntry(Document):
 			if hasattr(balance_doc, "bank_balance"):
 				balance_doc.bank_balance = total
 			
-			balance_doc.save(ignore_permissions=True)
+			# Save with permission check - system operation (bank integration)
+			PermissionManager.save_with_permission_check(balance_doc, ignore_for_system=True)
 			results["updated_balances"].append({
 				"company": company,
 				"balance": balance_name or balance_doc.name,

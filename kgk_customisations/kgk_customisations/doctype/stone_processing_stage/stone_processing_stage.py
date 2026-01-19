@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from kgk_customisations.kgk_customisations.utils.permission_manager import PermissionManager
 
 
 class StoneProcessingStage(Document):
@@ -47,7 +48,8 @@ class StoneProcessingStage(Document):
 			if self.clarity:
 				parent_stone.clarity = self.clarity
 			
-			parent_stone.save(ignore_permissions=True)
+			# Save with permission check - system operation (stage update)
+			PermissionManager.save_with_permission_check(parent_stone, ignore_for_system=True)
 			
 		except Exception as e:
 			frappe.log_error(f"Failed to update parent stone status: {str(e)}", "Stone Processing Stage Error")

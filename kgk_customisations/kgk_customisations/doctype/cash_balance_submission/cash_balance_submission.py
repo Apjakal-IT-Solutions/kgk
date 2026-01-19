@@ -5,6 +5,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import now_datetime, flt
 from kgk_customisations.kgk_customisations.audit_trail import AuditTrail
+from kgk_customisations.kgk_customisations.utils.permission_manager import PermissionManager
 
 
 class CashBalanceSubmission(Document):
@@ -215,7 +216,7 @@ class CashBalanceSubmission(Document):
 		"""
 		
 		for user in managers:
-			frappe.get_doc({
+			notif = frappe.get_doc({
 				"doctype": "Notification Log",
 				"subject": f"High Variance Alert - {self.name}",
 				"email_content": message,
@@ -223,7 +224,9 @@ class CashBalanceSubmission(Document):
 				"type": "Alert",
 				"document_type": self.doctype,
 				"document_name": self.name
-			}).insert(ignore_permissions=True)
+			})
+			# System notification - allowed to bypass permissions
+			PermissionManager.insert_with_permission_check(notif, ignore_for_system=True)
 	
 	def _update_daily_cash_balance(self):
 		"""Update Daily Cash Balance with final accountant-verified balance"""
@@ -256,5 +259,6 @@ class CashBalanceSubmission(Document):
 		balance_doc.verified_by = self.accountant_submitted_by
 		balance_doc.verified_at = self.accountant_submitted_at
 		
-		balance_doc.save(ignore_permissions=True)
+		# Save with permission check - system operation (verification workflow)
+		PermissionManager.save_with_permission_check(balance_doc, ignore_for_system=True)
 		frappe.db.commit()

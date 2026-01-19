@@ -3,6 +3,8 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import now_datetime, getdate
+from kgk_customisations.kgk_customisations.utils.permission_manager import PermissionManager
 
 class CashDocumentFlag(Document):
 	def before_insert(self):
@@ -84,7 +86,8 @@ class CashDocumentFlag(Document):
 				"document_type": "Cash Document",
 				"document_name": cash_doc.name
 			})
-			notification.insert(ignore_permissions=True)
+			# System notification - allowed to bypass permissions
+			PermissionManager.insert_with_permission_check(notification, ignore_for_system=True)
 	
 	@frappe.whitelist()
 	def get_flag_summary(self):

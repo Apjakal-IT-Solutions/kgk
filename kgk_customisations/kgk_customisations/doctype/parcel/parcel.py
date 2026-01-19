@@ -8,6 +8,7 @@ from frappe.utils import cstr, flt
 import os
 from frappe.utils.file_manager import get_file_path
 import time
+from kgk_customisations.kgk_customisations.utils.permission_manager import PermissionManager
 
 class Parcel(Document):
     pass
@@ -438,7 +439,11 @@ def _create_stones_hierarchically(df, stone_name_col, parcel_name, hierarchy_map
             
             # Create stone
             stone_doc = frappe.get_doc(stone_data)
-            stone_doc.insert(ignore_permissions=True, ignore_mandatory=True)
+            # Stone import - check if user has permission to create stones
+            if PermissionManager.can_create_document("Stone"):
+                stone_doc.insert(ignore_mandatory=True)
+            else:
+                frappe.throw("You do not have permission to create Stone documents")
             processed += 1
             
             # Track barcode extraction failures for recovery
@@ -898,8 +903,12 @@ def _populate_child_stones_table(parcel_name: str):
                 "main_barcode": child.main_barcode or ""
             })
         
-        # Save the document
-        stone_doc.save(ignore_permissions=True)
+        # Save with permission check - user must have permission to modify stones
+        if PermissionManager.can_update_balance(stone_doc):
+            stone_doc.save()
+        else:
+            # For system operations (bulk updates), allow bypass
+            PermissionManager.save_with_permission_check(stone_doc, ignore_for_system=True)
         populated_count += 1
         
         # Periodic commit for performance
@@ -1003,7 +1012,8 @@ def rebuild_all_child_tables(parcel_name: str = None):
                         "main_barcode": child.main_barcode or ""
                     })
                 
-                parent_doc.save(ignore_permissions=True)
+                # Save with permission check - system operation (bulk update)
+                PermissionManager.save_with_permission_check(parent_doc, ignore_for_system=True)
                 updated_count += 1
                 
                 if updated_count % 50 == 0:
