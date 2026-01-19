@@ -340,6 +340,14 @@ class CashDocument(Document):
 	@frappe.whitelist()
 	def add_flag(self, flag_type, comments=""):
 		"""Add a flag to this document"""
+		# Validate inputs
+		validator = InputValidator()
+		validator.validate_choice(flag_type, ["Approved", "Rejected", "Review Required", "Information Request"], "flag_type")
+		
+		# Sanitize comments (max 500 characters)
+		if comments:
+			comments = validator.sanitize_string(comments, max_length=500)
+		
 		flag_doc = frappe.get_doc({
 			"doctype": "Cash Document Flag",
 			"parent": self.name,
@@ -395,14 +403,26 @@ class CashDocument(Document):
 @frappe.whitelist()
 def bulk_finalize_documents(document_names):
 	"""Bulk finalize multiple documents"""
-	if isinstance(document_names, str):
-		document_names = frappe.parse_json(document_names)
+	# Validate and parse input
+	document_names = InputValidator.validate_json(document_names, "document_names")
+	
+	if not isinstance(document_names, list):
+		frappe.throw(_("document_names must be a list"), frappe.ValidationError)
+	
+	if len(document_names) == 0:
+		frappe.throw(_("No documents provided"), frappe.ValidationError)
+	
+	if len(document_names) > 100:
+		frappe.throw(_("Cannot process more than 100 documents at once"), frappe.ValidationError)
 	
 	success_count = 0
 	errors = []
 	
 	for name in document_names:
 		try:
+			# Validate document name
+			name = InputValidator.validate_document_name('Cash Document', name)
+			
 			doc = frappe.get_doc('Cash Document', name)
 			if doc.status not in ['Processed', 'Finalized']:
 				doc.status = 'Processed'
@@ -423,14 +443,26 @@ def bulk_finalize_documents(document_names):
 @frappe.whitelist()
 def bulk_approve_documents(document_names, comments=""):
 	"""Bulk approve multiple documents"""
-	if isinstance(document_names, str):
-		document_names = frappe.parse_json(document_names)
+	# Validate and parse input
+	document_names = InputValidator.validate_json(document_names, "document_names")
+	
+	if not isinstance(document_names, list):
+		frappe.throw(_("document_names must be a list"), frappe.ValidationError)
+	
+	if len(document_names) > 100:
+		frappe.throw(_("Cannot process more than 100 documents at once"), frappe.ValidationError)
+	
+	# Sanitize comments
+	comments = InputValidator.sanitize_string(comments, max_length=500)
 	
 	success_count = 0
 	errors = []
 	
 	for name in document_names:
 		try:
+			# Validate document name
+			name = InputValidator.validate_document_name('Cash Document', name)
+			
 			doc = frappe.get_doc('Cash Document', name)
 			if doc.status != 'Approved':
 				# Add approval flag
@@ -465,8 +497,25 @@ def bulk_approve_documents(document_names, comments=""):
 @frappe.whitelist()
 def bulk_flag_documents(document_names, flag_type, comments=""):
 	"""Bulk flag multiple documents"""
+	# Validate inputs
+	validator = InputValidator()
+	
 	if isinstance(document_names, str):
 		document_names = frappe.parse_json(document_names)
+	
+	# Validate document list
+	if not isinstance(document_names, list):
+		frappe.throw("document_names must be a list")
+	
+	if len(document_names) > 100:
+		frappe.throw("Cannot flag more than 100 documents at once")
+	
+	# Validate flag type
+	validator.validate_choice(flag_type, ["Approved", "Rejected", "Review Required", "Information Request"], "flag_type")
+	
+	# Sanitize comments
+	if comments:
+		comments = validator.sanitize_string(comments, max_length=500)
 	
 	success_count = 0
 	errors = []

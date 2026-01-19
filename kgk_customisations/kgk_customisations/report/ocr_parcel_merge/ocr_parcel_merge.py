@@ -48,6 +48,7 @@ from difflib import SequenceMatcher
 from kgk_customisations.utils.ocr_utils import get_consolidated_ocr_data
 from kgk_customisations.utils.file_utils import read_excel_file_safely, get_file_path_from_url
 from kgk_customisations.utils.excel_utils import create_styled_excel_workbook, create_download_response
+from kgk_customisations.kgk_customisations.utils.input_validator import InputValidator
 
 
 def get_ocr_barcode_value(ocr_record):
@@ -1205,6 +1206,10 @@ def get_statistics(filters):
 			import json
 			filters = json.loads(filters)
 		
+		# Validate filters JSON structure
+		validator = InputValidator()
+		validator.validate_json(filters, required_keys=['parcel_file'])
+		
 		# Get OCR and parcel data
 		ocr_data = get_ocr_data(filters)
 		parcel_result = get_parcel_data(filters)
@@ -1381,6 +1386,10 @@ def export_matched_records(filters):
 			import json
 			filters = json.loads(filters)
 		
+		# Validate filters JSON structure
+		validator = InputValidator()
+		validator.validate_json(filters, required_keys=['parcel_file'])
+		
 		# Get the merge analysis data
 		validation = validate_filters(filters)
 		if not validation["valid"]:
@@ -1488,7 +1497,6 @@ def export_matched_records(filters):
 			"count": 0
 		}
 
-
 @frappe.whitelist()
 def export_unmatched_ocr(filters):
 	"""Export unmatched OCR records to Excel."""
@@ -1497,6 +1505,10 @@ def export_unmatched_ocr(filters):
 		if isinstance(filters, str):
 			import json
 			filters = json.loads(filters)
+		
+		# Validate filters JSON structure
+		validator = InputValidator()
+		validator.validate_json(filters, required_keys=['parcel_file'])
 		
 		# Simple validation - just check for parcel file
 		if not filters.get("parcel_file"):

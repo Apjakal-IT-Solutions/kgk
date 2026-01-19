@@ -272,6 +272,15 @@ def validate_import_file(file_url):
 		dict: Validation results
 	"""
 	try:
+		# Validate file URL
+		if not file_url:
+			frappe.throw(_("File URL is required"), frappe.ValidationError)
+		
+		file_url = InputValidator.sanitize_string(file_url, max_length=500)
+		
+		# Validate file path for security
+		InputValidator.validate_file_path(file_url, allowed_extensions=['.csv', '.xlsx', '.xls'])
+		
 		# Get file from frappe
 		file_doc = frappe.get_doc("File", {"file_url": file_url})
 		filepath = file_doc.get_full_path()

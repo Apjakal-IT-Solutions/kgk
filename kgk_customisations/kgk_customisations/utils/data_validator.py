@@ -334,9 +334,10 @@ def validate_import_data(data):
 	Returns:
 		dict: Validation summary
 	"""
-	if isinstance(data, str):
-		import json
-		data = json.loads(data)
+	from kgk_customisations.kgk_customisations.utils.input_validator import InputValidator
+	
+	# Validate and parse JSON input
+	data = InputValidator.validate_json(data, "data")
 	
 	if not isinstance(data, list):
 		data = [data]

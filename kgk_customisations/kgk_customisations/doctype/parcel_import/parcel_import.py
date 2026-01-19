@@ -5,6 +5,7 @@ import frappe
 from frappe.model.document import Document
 import pandas as pd
 from frappe.utils.file_manager import get_file_path
+from kgk_customisations.kgk_customisations.utils.input_validator import InputValidator
 
 
 class ParcelImport(Document):
@@ -12,13 +13,19 @@ class ParcelImport(Document):
 
 @frappe.whitelist()
 def process_parcel_import(docname):
+	# Validate inputs
+	validator = InputValidator()
+	validator.validate_document_name(docname, "Parcel Import")
+	
 	doc = frappe.get_doc("Parcel Import", docname)
 
 	if not doc.upload_file:
 		frappe.throw("Please attach an Excel file first.")
 
 	try:
+		# Validate file path for security
 		file_url = get_file_path(doc.upload_file)
+		validator.validate_file_path(file_url, allowed_extensions=['.xlsx', '.xls'])
 		df = pd.read_excel(file_url, sheet_name="Report Data", skiprows=5)
 		df = df.dropna(axis=1, how="all").dropna(how="all").reset_index(drop=True)
 
