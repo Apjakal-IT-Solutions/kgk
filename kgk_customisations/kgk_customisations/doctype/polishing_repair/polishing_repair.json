@@ -58,6 +58,7 @@
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "in_filter": 1,
+   "in_global_search": 1,
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
@@ -124,7 +125,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-29 15:17:20.709658",
+ "modified": "2026-01-22 12:41:45.215694",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Polishing Repair",
@@ -151,6 +152,7 @@
    "report": 1,
    "role": "Fulfillment User",
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {

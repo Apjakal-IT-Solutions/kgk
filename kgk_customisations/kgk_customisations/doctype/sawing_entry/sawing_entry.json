@@ -133,7 +133,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-07 12:31:03.439945",
+ "modified": "2026-01-22 12:42:12.536770",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Sawing Entry",
@@ -162,6 +162,7 @@
    "role": "Fulfillment User",
    "select": 1,
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
