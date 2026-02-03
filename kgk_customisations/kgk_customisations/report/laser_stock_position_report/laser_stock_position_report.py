@@ -171,7 +171,12 @@ def get_daily_total_trend_chart(data):
 			]
 		},
 		"type": "axis-mixed",
-		"colors": ["#4CAF50", "#FF9800"]
+		"colors": ["#4CAF50", "#FF9800"],
+		"height": 400,
+		"truncateLegends": 0,
+		"axisOptions": {
+			"xIsSeries": 1
+		}
 	}
 
 
@@ -205,7 +210,9 @@ def get_type_distribution_chart(data):
 			]
 		},
 		"type": "pie",
-		"colors": ["#2196F3", "#4CAF50", "#FF9800", "#F44336", "#9C27B0", "#00BCD4"]
+		"colors": ["#2196F3", "#4CAF50", "#FF9800", "#F44336", "#9C27B0", "#00BCD4"],
+		"height": 400,
+		"truncateLegends": 0
 	}
 
 
@@ -239,7 +246,9 @@ def get_type_comparison_chart(data):
 			]
 		},
 		"type": "bar",
-		"colors": ["#4CAF50"]
+		"colors": ["#4CAF50"],
+		"height": 400,
+		"truncateLegends": 0
 	}
 
 
@@ -289,7 +298,9 @@ def get_daily_type_breakdown_chart(data):
 		"barOptions": {
 			"stacked": 1
 		},
-		"colors": colors[:len(sorted_types)]
+		"colors": colors[:len(sorted_types)],
+		"height": 400,
+		"truncateLegends": 0
 	}
 
 
@@ -334,7 +345,9 @@ def get_average_cts_chart(data):
 			]
 		},
 		"type": "bar",
-		"colors": ["#FF9800"]
+		"colors": ["#FF9800"],
+		"height": 400,
+		"truncateLegends": 0
 	}
 
 
@@ -379,5 +392,10 @@ def get_time_pattern_chart(data):
 			]
 		},
 		"type": "axis-mixed",
-		"colors": ["#9C27B0", "#4CAF50"]
+		"colors": ["#9C27B0", "#4CAF50"],
+		"height": 400,
+		"truncateLegends": 0,
+		"axisOptions": {
+			"xIsSeries": 1
+		}
 	}
