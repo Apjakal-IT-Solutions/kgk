@@ -1,0 +1,204 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-04 12:11:43.091101",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "client_id",
+  "invoice_date",
+  "item_description",
+  "job_number",
+  "fee",
+  "column_break_lejp",
+  "client_name",
+  "invoice_number",
+  "service_description",
+  "control_number",
+  "vat",
+  "section_break_donl",
+  "size",
+  "shape",
+  "dollar",
+  "lot_id",
+  "ticker",
+  "column_break_hseh",
+  "size_group",
+  "pula",
+  "con_dollar",
+  "type",
+  "type_2",
+  "section_break_pdep",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_pdep",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Invoice Processing",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "label": "Client ID"
+  },
+  {
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Invoice Date"
+  },
+  {
+   "fieldname": "item_description",
+   "fieldtype": "Data",
+   "label": "Item Description"
+  },
+  {
+   "fieldname": "job_number",
+   "fieldtype": "Data",
+   "label": "Job Number"
+  },
+  {
+   "fieldname": "fee",
+   "fieldtype": "Float",
+   "label": "Fee"
+  },
+  {
+   "fieldname": "column_break_lejp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "client_name",
+   "fieldtype": "Data",
+   "label": "Client Name"
+  },
+  {
+   "fieldname": "invoice_number",
+   "fieldtype": "Data",
+   "label": "Invoice Number"
+  },
+  {
+   "fieldname": "service_description",
+   "fieldtype": "Data",
+   "label": "Service Description"
+  },
+  {
+   "fieldname": "control_number",
+   "fieldtype": "Data",
+   "label": "Control Number"
+  },
+  {
+   "fieldname": "vat",
+   "fieldtype": "Float",
+   "label": "VAT"
+  },
+  {
+   "fieldname": "section_break_donl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "size",
+   "fieldtype": "Float",
+   "label": "Size",
+   "read_only": 1
+  },
+  {
+   "fieldname": "shape",
+   "fieldtype": "Data",
+   "label": "Shape",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dollar",
+   "fieldtype": "Float",
+   "label": "Dollar",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lot_id",
+   "fieldtype": "Data",
+   "label": "Lot ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ticker",
+   "fieldtype": "Int",
+   "label": "Ticker",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_hseh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "size_group",
+   "fieldtype": "Select",
+   "label": "Size Group",
+   "options": "1 TO 2 CTS",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pula",
+   "fieldtype": "Float",
+   "label": "Pula",
+   "read_only": 1
+  },
+  {
+   "fieldname": "con_dollar",
+   "fieldtype": "Float",
+   "label": "Con Dollar",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Check\nExam\nFinal\nNormal",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type_2",
+   "fieldtype": "Select",
+   "label": "Type 2",
+   "options": "Org\nRe Chk",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-02-04 12:37:25.694097",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Invoice Processing",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

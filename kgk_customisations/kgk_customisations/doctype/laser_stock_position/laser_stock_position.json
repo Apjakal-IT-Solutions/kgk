@@ -91,11 +91,12 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-07 10:30:00.000000",
+ "modified": "2026-01-28 09:39:33.755567",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Laser Stock Position",
  "naming_rule": "Expression",
+ "owner": "Administrator",
  "permissions": [
   {
    "amend": 1,
@@ -125,10 +126,25 @@
    "share": 1,
    "submit": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

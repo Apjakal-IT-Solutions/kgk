@@ -540,6 +540,8 @@ def index_new_files_only():
             "message": message
         }
         
+    except Exception as e:
+        frappe.log_error(f"Incremental indexing failed: {str(e)}", "Incremental Indexing Error")
         return {
             "status": "error",
             "message": str(e)

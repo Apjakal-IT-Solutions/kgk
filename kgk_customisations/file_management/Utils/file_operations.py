@@ -267,6 +267,9 @@ def clear_search_cache(lot_number: str = None):
             "status": "success",
             "message": message
         }
+        
+    except Exception as e:
+        frappe.log_error(f"Cache clear failed: {str(e)}", "Cache Clear Error")
         return {
             "status": "error",
             "message": str(e)

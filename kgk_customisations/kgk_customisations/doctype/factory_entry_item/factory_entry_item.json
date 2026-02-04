@@ -39,8 +39,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Factory Process",
-   "options": "Factory Process",
-   "read_only": 1
+   "options": "Factory Process"
   },
   {
    "fieldname": "section_break_ukan",
@@ -116,7 +115,8 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-01-09 12:25:46.562424",
+
+ "modified": "2026-01-27 15:55:08.568421",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry Item",

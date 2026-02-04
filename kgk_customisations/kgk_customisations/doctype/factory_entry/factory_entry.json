@@ -75,6 +75,7 @@
   {
    "fieldname": "additional_process_item_table",
    "fieldtype": "Table",
+   "no_copy": 1,
    "options": "Factory Entry Additional Process"
   }
  ],
@@ -82,7 +83,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-22 12:39:46.326548",
+ "modified": "2025-12-01 10:06:53.099545",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry",
