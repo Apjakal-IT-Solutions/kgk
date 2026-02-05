@@ -31,6 +31,7 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Work Date",
+   "no_copy": 1,
    "reqd": 1
   },
   {
@@ -52,6 +53,7 @@
    "reqd": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "factory_entry_item_table",
    "fieldtype": "Table",
    "options": "Factory Entry Item",
@@ -73,6 +75,7 @@
    "label": "Additional Processes"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "additional_process_item_table",
    "fieldtype": "Table",
    "no_copy": 1,
@@ -83,7 +86,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-01 10:06:53.099545",
+ "modified": "2026-02-04 14:13:24.842467",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry",

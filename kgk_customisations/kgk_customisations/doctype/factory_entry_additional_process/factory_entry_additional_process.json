@@ -12,7 +12,8 @@
   "column_break_knyd",
   "process_reason",
   "column_break_bwec",
-  "parent_row_idx"
+  "parent_row_idx",
+  "column_break_sonz"
  ],
  "fields": [
   {
@@ -20,7 +21,6 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Factory Process",
-   "no_copy": 1,
    "options": "Factory Process"
   },
   {
@@ -40,29 +40,31 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Process Reason",
-   "no_copy": 1,
    "options": "Reason"
   },
   {
    "fieldname": "parent_row_idx",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Parent Row Idx",
-   "no_copy": 1
+   "label": "Parent Row Idx"
   },
   {
    "fieldname": "actual",
-   "fieldtype": "Int",
+   "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Actual",
-   "no_copy": 1
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_sonz",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-01-08 14:59:13.819449",
+ "modified": "2026-02-04 12:59:29.939955",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Factory Entry Additional Process",

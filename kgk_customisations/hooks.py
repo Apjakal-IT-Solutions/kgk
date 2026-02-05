@@ -247,6 +247,13 @@ fixtures = [
 		"filters": [
 			["name", "in", ["Cash Basic User", "Cash Checker", "Cash Accountant", "Cash Super User"]]
 		]
+	},
+	{
+		"doctype": "DocPerm",
+		"filters": [
+			["parent", "in", ["Page", "Data Import Log"]],
+			["role", "in", ["Fulfillment User", "Report Manager"]]
+		]
 	}
 ]
 

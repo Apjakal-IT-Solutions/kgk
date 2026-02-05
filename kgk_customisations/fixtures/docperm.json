@@ -1,0 +1,42 @@
+[
+ {
+  "doctype": "DocPerm",
+  "name": "fulfillment-user-page-read",
+  "parent": "Page",
+  "parentfield": "permissions",
+  "parenttype": "DocType",
+  "read": 1,
+  "role": "Fulfillment User",
+  "select": 1
+ },
+ {
+  "doctype": "DocPerm",
+  "name": "report-manager-page-read",
+  "parent": "Page",
+  "parentfield": "permissions",
+  "parenttype": "DocType",
+  "read": 1,
+  "role": "Report Manager",
+  "select": 1
+ },
+ {
+  "doctype": "DocPerm",
+  "name": "fulfillment-user-data-import-log-read",
+  "parent": "Data Import Log",
+  "parentfield": "permissions",
+  "parenttype": "DocType",
+  "read": 1,
+  "role": "Fulfillment User",
+  "select": 1
+ },
+ {
+  "doctype": "DocPerm",
+  "name": "report-manager-data-import-log-read",
+  "parent": "Data Import Log",
+  "parentfield": "permissions",
+  "parenttype": "DocType",
+  "read": 1,
+  "role": "Report Manager",
+  "select": 1
+ }
+]
