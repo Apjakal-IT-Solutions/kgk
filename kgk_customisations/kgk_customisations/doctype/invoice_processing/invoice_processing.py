@@ -41,8 +41,8 @@ class InvoiceProcessing(Document):
         self.trigger_derived_fields()
     
     def validate_composite_key(self):
-        """Ensure unique combination of invoice_number, job_number, control_number, item_description"""
-        if not all([self.invoice_number, self.job_number, self.control_number, self.item_description]):
+        """Ensure unique combination of invoice_number, job_number, control_number, item_description, service_description"""
+        if not all([self.invoice_number, self.job_number, self.control_number, self.item_description, self.service_description]):
             return  # Skip validation if any field is empty
         
         # Check for existing record with same composite key
@@ -50,7 +50,8 @@ class InvoiceProcessing(Document):
             "invoice_number": self.invoice_number,
             "job_number": self.job_number,
             "control_number": self.control_number,
-            "item_description": self.item_description
+            "item_description": self.item_description,
+            "service_description": self.service_description
         }
         
         # Exclude current document if updating
@@ -63,7 +64,7 @@ class InvoiceProcessing(Document):
             frappe.throw(
                 f"Duplicate entry: A record with Invoice Number <b>{self.invoice_number}</b>, "
                 f"Job Number <b>{self.job_number}</b>, Control Number <b>{self.control_number}</b>, "
-                f"and Item Description <b>{self.item_description}</b> already exists.",
+                f"Item Description <b>{self.item_description}</b>, and Service Description <b>{self.service_description}</b> already exists.",
                 title="Duplicate Record"
             )
     
