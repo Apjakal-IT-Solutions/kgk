@@ -9,3 +9,5 @@ kgk_customisations.kgk_customisations.patches.fix_employee_target_fields
 kgk_customisations.kgk_customisations.patches.set_employee_target_active
 kgk_customisations.kgk_customisations.patches.migrate_india_planning_working_date
 kgk_customisations.kgk_customisations.patches.make_laser_stock_position_submittable
+# kgk_customisations.kgk_customisations.patches.v1_0.fix_invoice_date_swap  # Already executed manually
+# kgk_customisations.kgk_customisations.patches.v1_0.add_invoice_processing_composite_key  # Handled by Python validation
