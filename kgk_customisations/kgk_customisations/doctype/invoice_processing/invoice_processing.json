@@ -9,6 +9,7 @@
  "field_order": [
   "client_id",
   "invoice_date",
+  "reformat_date",
   "item_description",
   "job_number",
   "fee",
@@ -51,26 +52,38 @@
   {
    "fieldname": "client_id",
    "fieldtype": "Data",
-   "label": "Client Id"
+   "label": "Client Id",
+   "reqd": 1
   },
   {
    "fieldname": "invoice_date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Invoice Date"
+   "label": "Invoice Date",
+   "reqd": 1,
+   "description": "Date in format YYYY-MM-DD. If Excel shows time values, ensure the column format is set to Date, not Time."
+  },
+  {
+   "fieldname": "reformat_date",
+   "fieldtype": "Check",
+   "label": "Reformat Date",
+   "description": "Check this if the imported date is in MM/DD/YYYY format and needs to be converted to DD/MM/YYYY",
+   "default": "0"
   },
   {
    "fieldname": "item_description",
    "fieldtype": "Data",
-   "label": "item_descr"
+   "label": "item_descr",
+   "reqd": 1
   },
   {
    "fieldname": "fee",
    "fieldtype": "Float",
    "label": "Fee",
    "non_negative": 1,
-   "precision": "2"
+   "precision": "2",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_lejp",
@@ -79,30 +92,35 @@
   {
    "fieldname": "client_name",
    "fieldtype": "Data",
-   "label": "Client Name"
+   "label": "Client Name",
+   "reqd": 1
   },
   {
    "fieldname": "invoice_number",
    "fieldtype": "Data",
    "in_standard_filter": 1,
-   "label": "Invoice No"
+   "label": "Invoice No",
+   "reqd": 1
   },
   {
    "fieldname": "service_description",
    "fieldtype": "Data",
-   "label": "Service Descr"
+   "label": "Service Descr",
+   "reqd": 1
   },
   {
    "fieldname": "control_number",
    "fieldtype": "Data",
-   "label": "Control No"
+   "label": "Control No",
+   "reqd": 1
   },
   {
    "fieldname": "vat",
    "fieldtype": "Float",
    "label": "VAT",
    "non_negative": 1,
-   "precision": "2"
+   "precision": "2",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_donl",
@@ -187,14 +205,15 @@
    "fieldname": "job_number",
    "fieldtype": "Data",
    "in_standard_filter": 1,
-   "label": "Job No"
+   "label": "Job No",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-06 11:03:53.545729",
+ "modified": "2026-02-09 11:50:30.839194",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Invoice Processing",

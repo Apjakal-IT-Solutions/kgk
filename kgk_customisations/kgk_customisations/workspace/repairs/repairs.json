@@ -8,7 +8,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "getting-started",
- "idx": 0,
+ "idx": 1,
  "indicator_color": "",
  "is_hidden": 1,
  "label": "Repairs",
@@ -52,7 +52,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-10-28 11:40:59.638936",
+ "modified": "2026-02-09 14:21:04.881867",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Repairs",
@@ -62,7 +62,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 3.0,
+ "sequence_id": 5.0,
  "shortcuts": [
   {
    "color": "Grey",

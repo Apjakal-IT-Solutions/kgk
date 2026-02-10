@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{serial_number}-{##}",
  "creation": "2026-02-02 12:27:40.398626",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -17,10 +18,11 @@
   "column_break_nvwi",
   "org_plan_value",
   "revised_value",
-  "sage_sawing_amount",
+  "safe_sawing_amount",
+  "safe_sawing_percent",
   "plan_change_type",
   "document_users_section",
-  "table_tpcb",
+  "document_users",
   "micron_safe",
   "document_approval_section",
   "approval_date",
@@ -72,8 +74,11 @@
    "read_only": 1
   },
   {
+   "default": "Today",
    "fieldname": "laser_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Laser Date"
   },
   {
@@ -94,43 +99,37 @@
   {
    "fieldname": "tension_type",
    "fieldtype": "Select",
-   "label": "Tension Type"
+   "label": "Tension Type",
+   "options": "T1\nT2\nT3\nT4\nT5"
   },
   {
    "fieldname": "column_break_nvwi",
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "org_plan_value",
    "fieldtype": "Float",
    "label": "ORG Plan Value",
    "precision": "2"
   },
   {
+   "default": "0",
    "fieldname": "revised_value",
    "fieldtype": "Float",
    "label": "Revised Value",
    "precision": "2"
   },
   {
-   "fieldname": "sage_sawing_amount",
-   "fieldtype": "Float",
-   "label": "Sage Sawing Amount"
-  },
-  {
    "fieldname": "plan_change_type",
    "fieldtype": "Select",
-   "label": "Plan Change Type"
+   "label": "Plan Change Type",
+   "options": "Safe LS\nPlan Change\nTilt"
   },
   {
    "fieldname": "document_users_section",
    "fieldtype": "Section Break",
    "label": "Document Users"
-  },
-  {
-   "fieldname": "table_tpcb",
-   "fieldtype": "Table",
-   "options": "Laser Approval User"
   },
   {
    "fieldname": "micron_safe",
@@ -183,16 +182,36 @@
    "fieldname": "result",
    "fieldtype": "Data",
    "label": "Result"
+  },
+  {
+   "fieldname": "document_users",
+   "fieldtype": "Table",
+   "options": "Laser Approval User"
+  },
+  {
+   "default": "0",
+   "fieldname": "safe_sawing_amount",
+   "fieldtype": "Float",
+   "label": "Safe Sawing Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "safe_sawing_percent",
+   "fieldtype": "Percent",
+   "label": "Safe Sawing %",
+   "precision": "2",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-03 09:06:52.205754",
+ "modified": "2026-02-10 16:27:01.872022",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Laser Approval",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

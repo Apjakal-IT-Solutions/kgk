@@ -93,7 +93,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-12-03 10:56:20.953270",
+ "modified": "2026-02-09 14:21:04.912443",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Cash Management",
@@ -119,7 +119,7 @@
    "role": "Cash Accountant"
   }
  ],
- "sequence_id": 4.0,
+ "sequence_id": 6.0,
  "shortcuts": [],
  "title": "Cash Management"
 }

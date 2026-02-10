@@ -85,6 +85,10 @@ app_license = "mit"
 # before_install = "kgk_customisations.install.before_install"
 # after_install = "kgk_customisations.install.after_install"
 
+# App Initialization
+# ------------------
+app_ready = "kgk_customisations.kgk_customisations.patches.v1_0.patch_data_importer"
+
 # Uninstallation
 # ------------
 
@@ -142,7 +146,8 @@ doc_events = {
 		"on_update": "kgk_customisations.kgk_customisations.doc_events.employee.update_employee_targets"
 	},
 	"Invoice Processing": {
-		"after_insert": "kgk_customisations.kgk_customisations.doctype.invoice_processing.invoice_processing.fix_date_after_insert"
+		"after_insert": "kgk_customisations.kgk_customisations.doctype.invoice_processing.invoice_processing.fix_date_after_insert",
+		"before_validate": "kgk_customisations.kgk_customisations.doctype.invoice_processing.invoice_processing.fix_time_in_date_field"
 	}
 }
 

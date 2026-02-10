@@ -1,10 +1,80 @@
 from frappe.model.document import Document
-from datetime import datetime
+from datetime import datetime, time, date
 import frappe
 import re
 
+def handle_time_in_date_field(data_import):
+    """
+    Hook for Data Import to handle cases where time values are in date fields.
+    This runs before parsing and converts datetime.time objects to dates.
+    """
+    if data_import.reference_doctype != "Invoice Processing":
+        return
+    
+    try:
+        # Get the file and process payloads
+        import_file = data_import.import_file
+        if not import_file:
+            return
+        
+        from frappe.core.doctype.data_import.importer import Importer
+        importer = Importer(
+            doctype=data_import.reference_doctype,
+            file_doc_name=import_file,
+            data_import_doc=data_import,
+            submit_after_import=data_import.submit_after_import,
+            mute_emails=data_import.mute_emails,
+        )
+        
+        # Get raw data and fix any time values in date columns
+        if hasattr(importer, 'data'):
+            for row_data in importer.data:
+                if isinstance(row_data, dict) and 'invoice_date' in row_data:
+                    val = row_data['invoice_date']
+                    # If it's a time object, use current date
+                    if isinstance(val, time):
+                        row_data['invoice_date'] = date.today().isoformat()
+                    # If it's a datetime object with no actual date component
+                    elif isinstance(val, datetime) and val.hour > 0:
+                        row_data['invoice_date'] = val.date().isoformat()
+                        
+    except Exception as e:
+        frappe.log_error(f"Error in handle_time_in_date_field: {str(e)}", frappe.get_traceback())
+
+def fix_time_in_date_field(doc, method):
+    """
+    Handler called before validation to fix time values in invoice_date field.
+    If invoice_date is a time object (from Excel import), convert it to a date string.
+    """
+    if not doc.invoice_date:
+        return
+    
+    try:
+        invoice_date = doc.invoice_date
+        
+        # Check if it's a time object (from time-formatted Excel cells)
+        if isinstance(invoice_date, time):
+            # Convert time to a date (use today's date as fallback)
+            doc.invoice_date = date.today().isoformat()
+            frappe.log_error(f"Converted time value to date for {doc.name}: {invoice_date} -> {doc.invoice_date}")
+            
+        # Check if it's a datetime with hour component (likely a time-only value)
+        elif isinstance(invoice_date, datetime) and (invoice_date.hour > 0 or invoice_date.minute > 0 or invoice_date.second > 0):
+            # Use just the date component
+            doc.invoice_date = invoice_date.date().isoformat()
+            frappe.log_error(f"Converted datetime to date for {doc.name}: {invoice_date} -> {doc.invoice_date}")
+            
+    except Exception as e:
+        frappe.log_error(f"Error fixing time in date field for {doc.name}: {str(e)}", frappe.get_traceback())
+
 def fix_date_after_insert(doc, method):
-    """Fix invoice_date immediately after insert during import"""
+    """Fix invoice_date immediately after insert during import - only if flag is set"""
+    # Check if the reformat flag is enabled
+    should_reformat = doc.get('reformat_date', 0)
+    
+    if not should_reformat:
+        return
+    
     if doc.invoice_date:
         try:
             date_value = doc.invoice_date
@@ -14,6 +84,11 @@ def fix_date_after_insert(doc, method):
                 original_month = date_value.month
                 original_day = date_value.day
                 original_year = date_value.year
+                
+                # Validate that swap is possible (day must be valid month)
+                if original_day > 12:
+                    frappe.log_error(f"Cannot swap date for {doc.name}: day={original_day} > 12, already in correct format")
+                    return
                 
                 # Swap month and day
                 corrected = datetime(original_year, original_day, original_month)
@@ -36,9 +111,41 @@ def fix_date_after_insert(doc, method):
 class InvoiceProcessing(Document):
     def validate(self):
         """Runs before save"""
-        self.validate_composite_key()
+        # Skip ALL expensive validations during data import
+        # Flag is set by Frappe during data imports
+        if frappe.flags.in_import:
+            return
+        
+        # Skip expensive validations during bulk inserts
+        if not frappe.flags.in_bulk_insert:
+            self.validate_composite_key()
+        
         self.process_item_description()
         self.trigger_derived_fields()
+    
+    def after_insert(self):
+        """Runs after insert to process derived fields if skipped during import"""
+        # If we skipped validation during import, now process the fields
+        if frappe.flags.in_import:
+            self.process_item_description()
+            self.trigger_derived_fields()
+            # Save the calculated values
+            frappe.db.set_value(
+                "Invoice Processing",
+                self.name,
+                {
+                    "ticker": self.ticker,
+                    "pula": self.pula,
+                    "dollar": self.dollar,
+                    "con_dollar": self.con_dollar,
+                    "type_2": self.type_2,
+                    "size_group": self.size_group,
+                    "size": self.size,
+                    "shape": self.shape,
+                    "lot_id": self.lot_id
+                },
+                update_modified=False
+            )
     
     def validate_composite_key(self):
         """Ensure unique combination of invoice_number, job_number, control_number, item_description, service_description"""
