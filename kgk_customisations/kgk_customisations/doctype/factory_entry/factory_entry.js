@@ -147,15 +147,15 @@ function apply_additional_process_highlighting(frm) {
 				if (rows_with_additional.has(grid_row.doc.idx)) {
 					// Add highlight - light blue background with left border
 					grid_row.wrapper.css({
-						'background-color': '#e7f3ff',
-						'border-left': '3px solid #2490ef'
+						'border': '3px solid #2490ef',
+						'color': '#000'
 					});
 					grid_row.wrapper.addClass('has-additional-process');
 				} else {
 					// Remove highlight
 					grid_row.wrapper.css({
 						'background-color': '',
-						'border-left': ''
+						'border': ''
 					});
 					grid_row.wrapper.removeClass('has-additional-process');
 				}

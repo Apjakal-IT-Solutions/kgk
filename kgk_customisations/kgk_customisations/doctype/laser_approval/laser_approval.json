@@ -1,39 +1,61 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{serial_number}-{##}",
+ "autoname": "field:org_lot_id",
  "creation": "2026-02-02 12:27:40.398626",
+ "default_view": "List",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "document_identification_section",
   "serial_number",
   "column_break_mmtf",
-  "created_on",
   "laser_date",
   "document_detail_section",
   "org_lot_id",
   "polish_lot_id",
   "tension_type",
+  "remarks",
+  "plan_change_type",
   "column_break_nvwi",
   "org_plan_value",
   "revised_value",
   "safe_sawing_amount",
   "safe_sawing_percent",
-  "plan_change_type",
+  "column_break_aoeu",
+  "revised_value_no_ls",
+  "nols_amount",
+  "nols_percent",
   "document_users_section",
   "document_users",
   "micron_safe",
+  "section_break_xtgo",
+  "amended_from",
+  "resources_tab",
+  "videos_section",
+  "polish_video",
+  "open_polish_video",
+  "column_break_upwj",
+  "rough_video",
+  "open_rough_video",
+  "column_break_izqw",
+  "tension_video",
+  "open_tension_video",
+  "packet_scans_section",
+  "packet_scans",
+  "approval_tab",
   "document_approval_section",
   "approval_date",
-  "ho_approval",
+  "safe_sawing",
+  "no_ls",
+  "normal_sawing",
   "column_break_aeqn",
-  "remark",
+  "approval_remark",
   "flag",
   "results_section",
   "result",
-  "section_break_xtgo",
-  "amended_from"
+  "column_break_lqws",
+  "checked_"
  ],
  "fields": [
   {
@@ -58,20 +80,11 @@
   {
    "fieldname": "serial_number",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Serial Number"
   },
   {
    "fieldname": "column_break_mmtf",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "Today",
-   "fieldname": "created_on",
-   "fieldtype": "Date",
-   "label": "Created On",
-   "read_only": 1
   },
   {
    "default": "Today",
@@ -87,9 +100,14 @@
    "label": "Document Detail"
   },
   {
+   "bold": 1,
    "fieldname": "org_lot_id",
    "fieldtype": "Data",
-   "label": "ORG Lot ID"
+   "in_standard_filter": 1,
+   "label": "ORG Lot ID",
+   "no_copy": 1,
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "polish_lot_id",
@@ -97,10 +115,12 @@
    "label": "Polish Lot ID"
   },
   {
+   "default": "T1",
    "fieldname": "tension_type",
    "fieldtype": "Select",
    "label": "Tension Type",
-   "options": "T1\nT2\nT3\nT4\nT5"
+   "options": "T1\nT2\nT3\nT4\nT5",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_nvwi",
@@ -111,13 +131,14 @@
    "fieldname": "org_plan_value",
    "fieldtype": "Float",
    "label": "ORG Plan Value",
-   "precision": "2"
+   "precision": "2",
+   "reqd": 1
   },
   {
    "default": "0",
    "fieldname": "revised_value",
    "fieldtype": "Float",
-   "label": "Revised Value",
+   "label": "Revised Value (Safe Sawing)",
    "precision": "2"
   },
   {
@@ -142,7 +163,6 @@
    "label": "Document Approval"
   },
   {
-   "default": "Today",
    "fieldname": "approval_date",
    "fieldtype": "Date",
    "label": "Approval Date",
@@ -150,21 +170,8 @@
    "read_only": 1
   },
   {
-   "fieldname": "ho_approval",
-   "fieldtype": "Select",
-   "label": "HO Approval",
-   "options": "Yes\nNo",
-   "permlevel": 1
-  },
-  {
    "fieldname": "column_break_aeqn",
    "fieldtype": "Column Break",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "remark",
-   "fieldtype": "Small Text",
-   "label": "Remark",
    "permlevel": 1
   },
   {
@@ -181,7 +188,8 @@
   {
    "fieldname": "result",
    "fieldtype": "Data",
-   "label": "Result"
+   "label": "Result",
+   "permlevel": 1
   },
   {
    "fieldname": "document_users",
@@ -189,29 +197,172 @@
    "options": "Laser Approval User"
   },
   {
+   "bold": 1,
    "default": "0",
    "fieldname": "safe_sawing_amount",
    "fieldtype": "Float",
-   "label": "Safe Sawing Amount",
+   "label": "Safe Saw. Amnt.",
    "precision": "2"
   },
   {
+   "bold": 1,
    "fieldname": "safe_sawing_percent",
    "fieldtype": "Percent",
    "label": "Safe Sawing %",
    "precision": "2",
    "read_only": 1
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Table",
+   "label": "Remarks",
+   "options": "Laser Approval Remark"
+  },
+  {
+   "fieldname": "revised_value_no_ls",
+   "fieldtype": "Float",
+   "label": "Revised Value (No LS)"
+  },
+  {
+   "bold": 1,
+   "fieldname": "nols_amount",
+   "fieldtype": "Float",
+   "label": "No LS Amount",
+   "precision": "2"
+  },
+  {
+   "bold": 1,
+   "fieldname": "nols_percent",
+   "fieldtype": "Float",
+   "label": "No LS %",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "safe_sawing",
+   "fieldtype": "Check",
+   "label": "Safe Sawing",
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "no_ls",
+   "fieldtype": "Check",
+   "label": "No LS",
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "normal_sawing",
+   "fieldtype": "Check",
+   "label": "Normal Sawing",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_aoeu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approval_remark",
+   "fieldtype": "Small Text",
+   "label": "Remark",
+   "permlevel": 1
+  },
+  {
+   "default": "False",
+   "fieldname": "checked_",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Checked",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_lqws",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "resources_tab",
+   "fieldtype": "Tab Break",
+   "label": "Resources"
+  },
+  {
+   "fieldname": "videos_section",
+   "fieldtype": "Section Break",
+   "label": "Videos"
+  },
+  {
+   "default": "N/A",
+   "fieldname": "polish_video",
+   "fieldtype": "Data",
+   "label": "Polish Video",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_upwj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "N/A",
+   "fieldname": "rough_video",
+   "fieldtype": "Data",
+   "label": "Rough Video",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_izqw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "N/A",
+   "fieldname": "tension_video",
+   "fieldtype": "Data",
+   "label": "Tension Video",
+   "read_only": 1
+  },
+  {
+   "fieldname": "packet_scans_section",
+   "fieldtype": "Section Break",
+   "label": "Packet Scans"
+  },
+  {
+   "fieldname": "packet_scans",
+   "fieldtype": "Table",
+   "label": "Packet Scans",
+   "options": "Packet Scan Item"
+  },
+  {
+   "fieldname": "open_polish_video",
+   "fieldtype": "Button",
+   "label": "Open"
+  },
+  {
+   "fieldname": "open_rough_video",
+   "fieldtype": "Button",
+   "label": "Open"
+  },
+  {
+   "fieldname": "open_tension_video",
+   "fieldtype": "Button",
+   "label": "Open"
+  },
+  {
+   "fieldname": "approval_tab",
+   "fieldtype": "Tab Break",
+   "label": "Approval"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-10 16:27:01.872022",
+ "modified": "2026-02-13 09:42:41.130505",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Laser Approval",
- "naming_rule": "Expression",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -228,6 +379,8 @@
    "write": 1
   },
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "email": 1,
    "export": 1,
@@ -259,7 +412,8 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
- "sort_field": "modified",
+ "sort_field": "laser_date",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

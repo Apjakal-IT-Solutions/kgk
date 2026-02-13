@@ -1,0 +1,47 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-11 15:08:49.255940",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "auto_remark",
+  "column_break_scmw",
+  "manual_remark"
+ ],
+ "fields": [
+  {
+   "fieldname": "column_break_scmw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "auto_remark",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Remark 1",
+   "options": "\nBrown Pactta\nPressure in Cutting Area"
+  },
+  {
+   "fieldname": "manual_remark",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Remark 2"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-02-12 09:34:04.601674",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Laser Approval Remark",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
