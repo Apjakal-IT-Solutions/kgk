@@ -1,12 +1,45 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:org_lot_id",
  "creation": "2026-02-13 09:32:23.954121",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "document_identification_section",
+  "serial_number",
+  "reported_by",
+  "column_break_rptg",
+  "date",
+  "document_detail_section",
+  "org_lot_id",
+  "polish_lot_id",
+  "html_omzi",
+  "tension_type_data_field",
+  "column_break_dfih",
+  "org_plan_value",
+  "revised_value",
+  "breaking_amount",
+  "breaking_percent",
+  "remarks_section",
+  "department",
+  "article_workers",
+  "supervisor_comment",
   "section_break_t72v",
-  "amended_from"
+  "amended_from",
+  "approval_tab",
+  "document_summary_section",
+  "breaking_report",
+  "document_approval_section",
+  "approval_date",
+  "stone_fault",
+  "worker_fault",
+  "column_break_poqq",
+  "remark",
+  "results_section",
+  "result",
+  "column_break_eeic",
+  "checked"
  ],
  "fields": [
   {
@@ -22,16 +55,209 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "document_identification_section",
+   "fieldtype": "Section Break",
+   "label": "Document Identification"
+  },
+  {
+   "fieldname": "serial_number",
+   "fieldtype": "Data",
+   "label": "Serial Number",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_rptg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "document_detail_section",
+   "fieldtype": "Section Break",
+   "label": "Article Detail"
+  },
+  {
+   "fieldname": "org_lot_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "ORG Lot ID",
+   "unique": 1
+  },
+  {
+   "fieldname": "polish_lot_id",
+   "fieldtype": "Data",
+   "label": "Polish Lot ID"
+  },
+  {
+   "fieldname": "column_break_dfih",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "org_plan_value",
+   "fieldtype": "Float",
+   "label": "ORG Plan Value",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "revised_value",
+   "fieldtype": "Float",
+   "label": "Revised Value",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approval_tab",
+   "fieldtype": "Tab Break",
+   "label": "Approval"
+  },
+  {
+   "fieldname": "document_approval_section",
+   "fieldtype": "Section Break",
+   "label": "Document Approval"
+  },
+  {
+   "fieldname": "approval_date",
+   "fieldtype": "Date",
+   "label": "Approval Date",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_poqq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Small Text",
+   "label": "Remark",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "Data",
+   "label": "Result",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_eeic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "checked",
+   "fieldtype": "Check",
+   "label": "Checked ",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "remarks_section",
+   "fieldtype": "Section Break",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "reported_by",
+   "fieldtype": "Data",
+   "label": "Reported by",
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "supervisor_comment",
+   "fieldtype": "Small Text",
+   "label": "Supervisor Comment"
+  },
+  {
+   "fieldname": "breaking_amount",
+   "fieldtype": "Float",
+   "label": "Breakin Amnt.",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "breaking_percent",
+   "fieldtype": "Float",
+   "label": "Breaking %",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "article_workers",
+   "fieldtype": "Table",
+   "label": "Worker Information",
+   "options": "Stone Breaking Worker",
+   "reqd": 1
+  },
+  {
+   "fieldname": "html_omzi",
+   "fieldtype": "HTML",
+   "label": "Tension Type",
+   "options": "<div class=\"frappe-control\" style=\"display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px 5px; box-sizing: border-box; background: rgba(118, 0, 0, 0.1); font-weight: bold; color: #000;\">\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t1\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 20px; height: 20px;\"> T1\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t2\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T2\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t3\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T3\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t4\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T4\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t5\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T5\n    </label>\n</div>"
+  },
+  {
+   "default": "t1",
+   "fieldname": "tension_type_data_field",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Tension Type Data Field"
+  },
+  {
+   "fieldname": "document_summary_section",
+   "fieldtype": "Section Break",
+   "label": "Document Summary"
+  },
+  {
+   "fieldname": "breaking_report",
+   "fieldtype": "HTML",
+   "label": "Breaking Report",
+   "options": "<table style=\"width: 100%; border-collapse: collapse; margin: 10px 0; font-family: sans-serif;\">\n    <thead>\n        <tr style=\"background-color: #f8f9fa; border-bottom: 2px solid #d1d8dd;\">\n            <th style=\"padding: 12px; text-align: left; color: #800000;\">Dept.</th>\n            <th style=\"padding: 12px; text-align: left; color: #800000;\">Breaking amnt.</th>\n            <th style=\"padding: 12px; text-align: left; color: #800000;\">Org amnt.</th>\n            <th style=\"padding: 12px; text-align: left; color: #800000;\">Breaking %</th>\n        </tr>\n    </thead>\n    <tbody>\n        <!-- Month Summary -->\n        <tr style=\"border-bottom: 1px solid #ebeff2;\">\n            <td style=\"padding: 10px; color: #444; vertical-align: top;\">\n                <div style=\"font-weight: bold; margin-bottom: 5px;\">Month</div>\n                <div>Stone</div>\n                <div>Worker</div>\n                <div>Total</div>\n            </td>\n            <td style=\"padding: 10px; color: #444; vertical-align: top;\">\n                <div style=\"height: 22px;\"></div>\n                <div id=\"stone_amnt\">0.00</div>\n                <div id=\"worker_amnt\">0.00</div>\n                <div id=\"total_amnt\">0.00</div>\n            </td>\n            <td style=\"padding: 10px; color: #444; vertical-align: top;\">\n                <div style=\"height: 22px;\"></div>\n                <div id=\"stone_org\">0.00</div>\n                <div id=\"worker_org\">0.00</div>\n                <div id=\"total_org\">0.00</div>\n            </td>\n            <td style=\"padding: 10px; color: #444; vertical-align: top;\">\n                <div style=\"height: 22px;\"></div>\n                <div id=\"stone_percent\">0.00%</div>\n                <div id=\"worker_percent\">0.00%</div>\n                <div id=\"total_percent\">0.00%</div>\n            </td>\n        </tr>\n        \n        <!-- Year to Date Summary -->\n        <tr style=\"border-bottom: 1px solid #ebeff2;\">\n            <td style=\"padding: 10px; color: #444; vertical-align: top;\">\n                <div style=\"font-weight: bold; margin-bottom: 5px;\">Year To Date</div>\n                <div>Stone</div>\n                <div>Worker</div>\n                <div>Total</div>\n            </td>\n            <td style=\"padding: 10px; color: #444; vertical-align: top;\">\n                <div style=\"height: 22px;\"></div>\n                <div id=\"ytd_stone_amnt\">0.00</div>\n                <div id=\"ytd_worker_amnt\">0.00</div>\n                <div id=\"ytd_total_amnt\">0.00</div>\n            </td>\n            <td style=\"padding: 10px; color: #444; vertical-align: top;\">\n                <div style=\"height: 22px;\"></div>\n                <div id=\"ytd_stone_org\">0.00</div>\n                <div id=\"ytd_worker_org\">0.00</div>\n                <div id=\"ytd_total_org\">0.00</div>\n            </td>\n            <td style=\"padding: 10px; color: #444; vertical-align: top;\">\n                <div style=\"height: 22px;\"></div>\n                <div id=\"ytd_stone_percent\">0.00%</div>\n                <div id=\"ytd_worker_percent\">0.00%</div>\n                <div id=\"ytd_total_percent\">0.00%</div>\n            </td>\n        </tr>\n        \n        <!-- Worker Details Header -->\n        <tr style=\"background-color: #f8f9fa;\">\n            <th colspan=\"4\" style=\"padding: 12px; text-align: left; color: #800000;\">Worker Details</th>\n        </tr>\n        \n        <!-- Worker Rows (dynamically populated) -->\n        <tr id=\"worker_table_placeholder\">\n            <td colspan=\"4\" style=\"padding: 10px; text-align: center; color: #999;\">No worker data available</td>\n        </tr>\n    </tbody>\n</table>",
+   "permlevel": 1,
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fieldname": "stone_fault",
+   "fieldtype": "Check",
+   "label": "Stone",
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "worker_fault",
+   "fieldtype": "Check",
+   "label": "Worker",
+   "permlevel": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-13 09:32:23.954121",
+ "modified": "2026-02-18 16:35:43.469661",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Stone Breaking Report",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -45,6 +271,59 @@
    "role": "System Manager",
    "share": 1,
    "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Report Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Report Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
+   "select": 1,
+   "share": 1,
    "write": 1
   }
  ],

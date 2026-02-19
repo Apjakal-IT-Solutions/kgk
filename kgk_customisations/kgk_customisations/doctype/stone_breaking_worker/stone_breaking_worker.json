@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-13 11:09:25.151996",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "worker_name",
+  "column_break_tmam",
+  "employee_code",
+  "column_break_rdps",
+  "breaking_amount",
+  "column_break_kqvr",
+  "worker_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "worker_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Worker Name",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_tmam",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "worker_name.employee_number",
+   "fieldname": "employee_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_rdps",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "breaking_amount",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Breaking amnt.",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_kqvr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "worker_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Worker Type",
+   "options": "\nIndian\nLocal",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-02-17 14:15:06.479449",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Stone Breaking Worker",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

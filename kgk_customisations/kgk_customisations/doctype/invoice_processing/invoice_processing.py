@@ -111,44 +111,33 @@ def fix_date_after_insert(doc, method):
 class InvoiceProcessing(Document):
     def validate(self):
         """Runs before save"""
-        # Skip ALL expensive validations during data import
-        # Flag is set by Frappe during data imports
+        # During data import, only do minimal processing
         if frappe.flags.in_import:
+            # Only process fields, skip validation
+            self.process_item_description()
+            self.trigger_derived_fields()
             return
         
-        # Skip expensive validations during bulk inserts
-        if not frappe.flags.in_bulk_insert:
-            self.validate_composite_key()
-        
+        # Normal validation
+        self.validate_composite_key()
         self.process_item_description()
         self.trigger_derived_fields()
     
     def after_insert(self):
-        """Runs after insert to process derived fields if skipped during import"""
-        # If we skipped validation during import, now process the fields
+        """Runs after insert - skip expensive operations during import"""
+        # Skip after_insert processing during import to speed up bulk operations
         if frappe.flags.in_import:
-            self.process_item_description()
-            self.trigger_derived_fields()
-            # Save the calculated values
-            frappe.db.set_value(
-                "Invoice Processing",
-                self.name,
-                {
-                    "ticker": self.ticker,
-                    "pula": self.pula,
-                    "dollar": self.dollar,
-                    "con_dollar": self.con_dollar,
-                    "type_2": self.type_2,
-                    "size_group": self.size_group,
-                    "size": self.size,
-                    "shape": self.shape,
-                    "lot_id": self.lot_id
-                },
-                update_modified=False
-            )
+            return
+        
+        # Normal after_insert operations for manual entry
+        pass
     
     def validate_composite_key(self):
-        """Ensure unique combination of invoice_number, job_number, control_number, item_description, service_description"""
+        """Ensure unique combination - DISABLED during import for performance"""
+        # Skip entirely during import to avoid database queries for each row
+        if frappe.flags.in_import:
+            return
+        
         if not all([self.invoice_number, self.job_number, self.control_number, self.item_description, self.service_description]):
             return  # Skip validation if any field is empty
         

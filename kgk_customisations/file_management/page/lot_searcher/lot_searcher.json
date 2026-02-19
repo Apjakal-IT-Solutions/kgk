@@ -1,0 +1,32 @@
+{
+ "content": null,
+ "creation": "2026-02-16 10:00:00",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-02-16 16:04:29.821499",
+ "modified_by": "Administrator",
+ "module": "File Management",
+ "name": "lot_searcher",
+ "owner": "Administrator",
+ "page_name": "lot_searcher",
+ "roles": [
+  {
+   "role": "Report Manager"
+  },
+  {
+   "role": "Fulfillment User"
+  },
+  {
+   "role": "All"
+  },
+  {
+   "role": "ICT Admin"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Lot Searcher"
+}

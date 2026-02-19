@@ -1,0 +1,129 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"OgvxnYs-T6\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Data Entries</span>\",\"col\":12}},{\"id\":\"ncwsLA4IEi\",\"type\":\"card\",\"data\":{\"card_name\":\"Lot Management\",\"col\":4}},{\"id\":\"M4kz5k7MaR\",\"type\":\"card\",\"data\":{\"card_name\":\"Stone Management\",\"col\":4}},{\"id\":\"4vQnjDd9v1\",\"type\":\"card\",\"data\":{\"card_name\":\"Rough Stone Predictions\",\"col\":4}},{\"id\":\"tsmxk9ypBY\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports</b></span>\",\"col\":12}},{\"id\":\"jjZpM0I67Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Stone Prediction Reports\",\"col\":4}}]",
+ "creation": "2025-10-06 16:32:06.996865",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "clipboard",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Stone Tracking",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stone Management",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stone List",
+   "link_count": 0,
+   "link_to": "Stone",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Parcel List",
+   "link_count": 0,
+   "link_to": "Parcel",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Rough Stone Predictions",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stone Prediction",
+   "link_count": 0,
+   "link_to": "Stone Prediction",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stone Prediction Reports",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Stone Prediction Analysis",
+   "link_count": 0,
+   "link_to": "Stone Prediction Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Lot Management",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Lot Searcher",
+   "link_count": 0,
+   "link_to": "lot_searcher",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-02-17 10:51:35.849352",
+ "modified_by": "Administrator",
+ "module": "Kgk Customisations",
+ "name": "Stone Tracking",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Fulfillment User"
+  },
+  {
+   "role": "Report Manager"
+  },
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "ICT Admin"
+  }
+ ],
+ "sequence_id": 8.0,
+ "shortcuts": [],
+ "title": "Stone Tracking"
+}

@@ -56,20 +56,20 @@
    "reqd": 1
   },
   {
+   "description": "Date in format YYYY-MM-DD. If Excel shows time values, ensure the column format is set to Date, not Time.",
    "fieldname": "invoice_date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Invoice Date",
-   "reqd": 1,
-   "description": "Date in format YYYY-MM-DD. If Excel shows time values, ensure the column format is set to Date, not Time."
+   "reqd": 1
   },
   {
+   "default": "0",
+   "description": "Check this if the imported date is in MM/DD/YYYY format and needs to be converted to DD/MM/YYYY",
    "fieldname": "reformat_date",
    "fieldtype": "Check",
-   "label": "Reformat Date",
-   "description": "Check this if the imported date is in MM/DD/YYYY format and needs to be converted to DD/MM/YYYY",
-   "default": "0"
+   "label": "Reformat Date"
   },
   {
    "fieldname": "item_description",
@@ -213,7 +213,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-09 11:50:30.839194",
+ "modified": "2026-02-16 16:34:17.537388",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Invoice Processing",
@@ -257,6 +257,19 @@
    "read": 1,
    "report": 1,
    "role": "Fulfillment User",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "ICT Admin",
    "select": 1,
    "share": 1,
    "submit": 1,
