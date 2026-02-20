@@ -1,0 +1,177 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:SAW-{MM}-{YY}-{###}",
+ "creation": "2025-10-28 10:20:21.266565",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_nyeb",
+  "work_date",
+  "column_break_rppn",
+  "sheet_a_section",
+  "ls_from_sawing_a",
+  "factory_stones_a",
+  "column_break_jyhk",
+  "results_not_ok_a",
+  "results_ok_a",
+  "sheet_b_section",
+  "ls_from_factoy_b",
+  "column_break_xpem",
+  "results_ok_b",
+  "results_not_ok_b",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_nyeb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "work_date",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Work Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_rppn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sheet_a_section",
+   "fieldtype": "Section Break",
+   "label": "Sheet A"
+  },
+  {
+   "default": "0",
+   "fieldname": "ls_from_sawing_a",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "LS From Sawing",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "factory_stones_a",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "LS Stones From Factory",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_jyhk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "results_not_ok_a",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Output Results Not Ok",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "results_ok_a",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Output Results Ok",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "sheet_b_section",
+   "fieldtype": "Section Break",
+   "label": "Sheet B"
+  },
+  {
+   "default": "0",
+   "fieldname": "ls_from_factoy_b",
+   "fieldtype": "Int",
+   "label": "Normal LS From Factory",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_xpem",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "results_ok_b",
+   "fieldtype": "Int",
+   "label": "Output Results Ok",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "results_not_ok_b",
+   "fieldtype": "Int",
+   "label": "Output Results Not Ok",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Sawing Entry",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-02-20 11:32:49.536162",
+ "modified_by": "Administrator",
+ "module": "Production",
+ "name": "Sawing Entry",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

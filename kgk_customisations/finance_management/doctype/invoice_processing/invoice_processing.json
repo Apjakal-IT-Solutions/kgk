@@ -1,0 +1,284 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{invoice_number}-{###}",
+ "creation": "2026-02-04 12:11:43.091101",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "client_id",
+  "invoice_date",
+  "reformat_date",
+  "item_description",
+  "job_number",
+  "fee",
+  "column_break_lejp",
+  "client_name",
+  "invoice_number",
+  "service_description",
+  "control_number",
+  "vat",
+  "section_break_donl",
+  "size",
+  "shape",
+  "dollar",
+  "lot_id",
+  "ticker",
+  "column_break_hseh",
+  "size_group",
+  "pula",
+  "con_dollar",
+  "type",
+  "type_2",
+  "section_break_pdep",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "label": "Client Id",
+   "reqd": 1
+  },
+  {
+   "description": "Date in format YYYY-MM-DD. If Excel shows time values, ensure the column format is set to Date, not Time.",
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Invoice Date",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Check this if the imported date is in MM/DD/YYYY format and needs to be converted to DD/MM/YYYY",
+   "fieldname": "reformat_date",
+   "fieldtype": "Check",
+   "label": "Reformat Date"
+  },
+  {
+   "fieldname": "item_description",
+   "fieldtype": "Data",
+   "label": "item_descr",
+   "reqd": 1
+  },
+  {
+   "fieldname": "job_number",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Job No",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fee",
+   "fieldtype": "Float",
+   "label": "Fee",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_lejp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "client_name",
+   "fieldtype": "Data",
+   "label": "Client Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "invoice_number",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Invoice No",
+   "reqd": 1
+  },
+  {
+   "fieldname": "service_description",
+   "fieldtype": "Data",
+   "label": "Service Descr",
+   "reqd": 1
+  },
+  {
+   "fieldname": "control_number",
+   "fieldtype": "Data",
+   "label": "Control No",
+   "reqd": 1
+  },
+  {
+   "fieldname": "vat",
+   "fieldtype": "Float",
+   "label": "VAT",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_donl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "size",
+   "fieldtype": "Float",
+   "label": "Size",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "shape",
+   "fieldtype": "Data",
+   "label": "Shape",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dollar",
+   "fieldtype": "Float",
+   "label": "Dollar",
+   "non_negative": 1,
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lot_id",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Lot ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ticker",
+   "fieldtype": "Int",
+   "label": "Ticker",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_hseh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "size_group",
+   "fieldtype": "Select",
+   "label": "Size Group",
+   "options": "1 TO 2 CTS",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pula",
+   "fieldtype": "Float",
+   "label": "Pula",
+   "non_negative": 1,
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "con_dollar",
+   "fieldtype": "Float",
+   "label": "Con Dollar",
+   "non_negative": 1,
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Check\nExam\nFinal\nNormal",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type_2",
+   "fieldtype": "Select",
+   "label": "Type 2",
+   "options": "Org\nRe Chk",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_pdep",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Invoice Processing",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-02-20 11:34:53.991468",
+ "modified_by": "Administrator",
+ "module": "Finance Management",
+ "name": "Invoice Processing",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Report Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fulfillment User",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "ICT Admin",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,3 +1,6 @@
 Kgk Customisations
 File Management
 Production
+Stone Management
+Laser
+Finance Management

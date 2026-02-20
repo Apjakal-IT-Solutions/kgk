@@ -1,0 +1,128 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-02 13:54:48.467444",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_ukan",
+  "column_break_ifob",
+  "employee",
+  "column_break_xjky",
+  "employee_code",
+  "column_break_ixqv",
+  "target",
+  "column_break_irtr",
+  "factory_process",
+  "column_break_cbab",
+  "actual",
+  "column_break_rutb",
+  "reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_ukan",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_ifob",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fetch_if_empty": 1,
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee Target",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_xjky",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "fetch_from": "employee.factory_code",
+   "fieldname": "employee_code",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Employee Code"
+  },
+  {
+   "fieldname": "column_break_ixqv",
+   "fieldtype": "Column Break",
+   "width": "10"
+  },
+  {
+   "columns": 1,
+   "fetch_from": "employee.target",
+   "fetch_if_empty": 1,
+   "fieldname": "target",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Target",
+   "read_only": 1,
+   "width": "10"
+  },
+  {
+   "fieldname": "column_break_irtr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.factory_process",
+   "fetch_if_empty": 1,
+   "fieldname": "factory_process",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Factory Process",
+   "options": "Factory Process"
+  },
+  {
+   "fieldname": "column_break_cbab",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "fieldname": "actual",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Actual",
+   "no_copy": 1,
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_rutb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "reason",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reason",
+   "no_copy": 1,
+   "options": "Reason"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-02-20 11:20:02.145669",
+ "modified_by": "Administrator",
+ "module": "Production",
+ "name": "Factory Entry Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
