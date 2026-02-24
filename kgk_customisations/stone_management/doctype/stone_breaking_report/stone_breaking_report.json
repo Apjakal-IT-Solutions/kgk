@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:org_lot_id",
+ "autoname": "format:{org_lot_id}",
  "creation": "2026-02-13 09:32:23.954121",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,9 +12,9 @@
   "column_break_rptg",
   "date",
   "document_detail_section",
-  "org_lot_id",
   "polish_lot_id",
-  "html_omzi",
+  "org_lot_id",
+  "tension_type",
   "tension_type_data_field",
   "column_break_dfih",
   "org_plan_value",
@@ -88,12 +88,6 @@
    "fieldname": "polish_lot_id",
    "fieldtype": "Data",
    "label": "Polish Lot ID"
-  },
-  {
-   "fieldname": "html_omzi",
-   "fieldtype": "HTML",
-   "label": "Tension Type",
-   "options": "<div class=\"frappe-control\" style=\"display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px 5px; box-sizing: border-box; background: rgba(118, 0, 0, 0.1); font-weight: bold; color: #000;\">\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t1\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 20px; height: 20px;\"> T1\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t2\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T2\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t3\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T3\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t4\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T4\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t5\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T5\n    </label>\n</div>"
   },
   {
    "default": "t1",
@@ -247,17 +241,23 @@
    "label": "Checked ",
    "permlevel": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "tension_type",
+   "fieldtype": "HTML",
+   "label": "Tension Type",
+   "options": "<div class=\"frappe-control\" style=\"display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px 5px; box-sizing: border-box; background: rgba(128, 0, 0, 0.1);\">\n     <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t0\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T0\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t1\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T1\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t2\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T2\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t3\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T3\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t4\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T4\n    </label>\n    <label style=\"display: flex; align-items: center; cursor: pointer; font-weight: 400; margin: 0; white-space: nowrap;\">\n        <input type=\"radio\" name=\"custom_choice\" value=\"t5\" style=\"margin: 0 10px 0 0; cursor: pointer; width: 18px; height: 18px;\"> T5\n    </label>\n</div>"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-20 11:30:55.848115",
+ "modified": "2026-02-24 10:49:25.025092",
  "modified_by": "Administrator",
  "module": "Stone Management",
  "name": "Stone Breaking Report",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

@@ -1,7 +1,8 @@
-# Copyright (c) 2026, Apjakal IT Solutions and contributors
+# Copyright (c) 2025, Apjakal IT Solutions and contributors
 # For license information, please see license.txt
 
-# import frappe
+import json
+import frappe
 from frappe.model.document import Document
 
 
