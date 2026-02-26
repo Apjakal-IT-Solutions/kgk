@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:org_lot_id",
+ "autoname": "format:{org_lot_id}",
  "creation": "2026-02-02 12:27:40.398626",
  "default_view": "List",
  "doctype": "DocType",
@@ -125,7 +125,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
+   "default": "0.00",
    "fieldname": "org_plan_value",
    "fieldtype": "Float",
    "label": "ORG Plan Value",
@@ -133,7 +133,7 @@
    "reqd": 1
   },
   {
-   "default": "0",
+   "default": "0.00",
    "fieldname": "revised_value",
    "fieldtype": "Float",
    "label": "Revised Value (Safe Sawing)",
@@ -141,7 +141,7 @@
   },
   {
    "bold": 1,
-   "default": "0",
+   "default": "0.00",
    "fieldname": "safe_sawing_amount",
    "fieldtype": "Float",
    "label": "Safe Saw. Amnt.",
@@ -149,6 +149,7 @@
   },
   {
    "bold": 1,
+   "default": "0.00",
    "fieldname": "safe_sawing_percent",
    "fieldtype": "Percent",
    "label": "Safe Sawing %",
@@ -160,12 +161,14 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "0.00",
    "fieldname": "revised_value_no_ls",
    "fieldtype": "Float",
    "label": "Revised Value (No LS)"
   },
   {
    "bold": 1,
+   "default": "0.00",
    "fieldname": "nols_amount",
    "fieldtype": "Float",
    "label": "No LS Amount",
@@ -173,6 +176,7 @@
   },
   {
    "bold": 1,
+   "default": "0.00",
    "fieldname": "nols_percent",
    "fieldtype": "Float",
    "label": "No LS %",
@@ -358,11 +362,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-20 11:23:10.952699",
+ "modified": "2026-02-25 08:42:46.296017",
  "modified_by": "Administrator",
  "module": "Laser",
  "name": "Laser Approval",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

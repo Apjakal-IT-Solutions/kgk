@@ -107,10 +107,41 @@ frappe.ui.form.on("Laser Approval", {
 		}, 500);
 	},
 
+	revised_value: function(frm) {
+		if(frm.doc.org_plan_value){			
+			frm.set_value('safe_sawing_amount', frm.doc.org_plan_value - frm.doc.revised_value);
+		}
+		else if(frm.doc.safe_sawing_amount){
+			frm.set_value('org_plan_value', frm.doc.revised_value + frm.doc.safe_sawing_amount);
+			frm.set_value("safe_sawing_percent", (frm.doc.safe_sawing_amount / frm.doc.org_plan_value) * 100);
+		}
+	},
+	revised_value_no_ls: function(frm){
+		if(frm.doc.org_plan_value && frm.doc.nols_amount > 0){
+			frm.set_value('nols_amount', frm.doc.org_plan_value - frm.doc.revised_value_no_ls);
+			frm.set_value("nols_percent", (frm.doc.nols_amount / frm.doc.org_plan_value) * 100);
+			frm.fields_dict['nols_percent'].$wrapper.find('.control-input').css({
+				'background-color': '#f3e5f5',
+				'border': '2px solid #9c27b0',
+				'border-radius': '4px'
+			});
+		}
+	},
+
     org_plan_value: function(frm) {
-        if(frm.doc.org_plan_value && frm.doc.revised_value){
+        if(frm.doc.revised_value && frm.doc.org_plan_value > 0){
             frm.set_value("safe_sawing_amount", (frm.doc.org_plan_value - frm.doc.revised_value));
+			frm.set_value("safe_sawing_percent", (frm.doc.safe_sawing_amount / frm.doc.org_plan_value) * 100);
         }
+		if(frm.doc.nols_amount){
+			frm.set_value("revised_value_no_ls", (frm.doc.org_plan_value - frm.doc.nols_amount));
+			frm.set_value("nols_percent", (frm.doc.nols_amount / frm.doc.org_plan_value) * 100);
+			frm.fields_dict['nols_percent'].$wrapper.find('.control-input').css({
+				'background-color': '#f3e5f5',
+				'border': '2px solid #9c27b0',
+				'border-radius': '4px'
+			});
+		}		
     },
     
     micron_safe: function(frm) {
@@ -121,14 +152,17 @@ frappe.ui.form.on("Laser Approval", {
     }, 
 
     safe_sawing_amount: function(frm) {
-        if(frm.doc.safe_sawing_amount && frm.doc.org_plan_value && frm.doc.org_plan_value > 0){
+        if(frm.doc.org_plan_value && frm.doc.revised_value){
             frm.set_value("safe_sawing_percent", (frm.doc.safe_sawing_amount / frm.doc.org_plan_value) * 100);
             frm.set_value("revised_value", (frm.doc.org_plan_value - frm.doc.safe_sawing_amount))
         }
-        else{
-            frm.set_value("safe_sawing_percent", 0);
-            frm.set_value("revised_value", 0);
-        }
+		else if (frm.doc.org_plan_value && !frm.doc.revised_value){
+			frm.set_value("revised_value", (frm.doc.org_plan_value - frm.doc.safe_sawing_amount))
+		}
+		else if(frm.doc.revised_value && frm.doc.safe_sawing_amount){
+			frm.set_value("org_plan_value", (frm.doc.revised_value + frm.doc.safe_sawing_amount));
+			frm.set_value("safe_sawing_percent", (frm.doc.safe_sawing_amount / frm.doc.org_plan_value) * 100);
+		}
     }, 
     tension_type: function(frm) {
         if(frm.doc.tension_type != "T4" && frm.doc.tension_type != "T5"){
@@ -140,7 +174,7 @@ frappe.ui.form.on("Laser Approval", {
     }, 
 
     nols_amount: function(frm) {
-        if(frm.doc.org_plan_value && frm.doc.org_plan_value && frm.doc.org_plan_value > 0){
+        if(frm.doc.org_plan_value && frm.doc.org_plan_value && frm.doc.org_plan_value){
             frm.set_value("nols_percent", (frm.doc.nols_amount / frm.doc.org_plan_value) * 100);
             frm.set_value("revised_value_no_ls", (frm.doc.org_plan_value - frm.doc.nols_amount));
 
@@ -242,7 +276,7 @@ function prepopulate_users(frm, clear_existing = false) {
 
 function open_video_file(docname, video_type, file_type) {
 	// Build URL to server-side method that will serve the file
-	let url = `/api/method/kgk_customisations.kgk_customisations.doctype.laser_approval.laser_approval.serve_video_file?docname=${encodeURIComponent(docname)}&video_type=${video_type}`;
+	let url = `/api/method/kgk_customisations.laser.doctype.laser_approval.laser_approval.serve_video_file?docname=${encodeURIComponent(docname)}&video_type=${video_type}`;
 	
 	// Open in new tab - video will play in browser
 	window.open(url, '_blank');
@@ -255,7 +289,7 @@ function open_video_file(docname, video_type, file_type) {
 
 function open_packet_scan_file(docname, row_id) {
 	// Build URL to server-side method that will serve the packet scan file
-	let url = `/api/method/kgk_customisations.kgk_customisations.doctype.laser_approval.laser_approval.serve_packet_scan_file?docname=${encodeURIComponent(docname)}&row_id=${encodeURIComponent(row_id)}`;
+	let url = `/api/method/kgk_customisations.laser.doctype.laser_approval.laser_approval.serve_packet_scan_file?docname=${encodeURIComponent(docname)}&row_id=${encodeURIComponent(row_id)}`;
 	
 	// Open in new tab - file will display in browser (PDF, image, etc.)
 	window.open(url, '_blank');

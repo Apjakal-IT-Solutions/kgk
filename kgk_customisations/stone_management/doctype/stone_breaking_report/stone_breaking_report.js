@@ -517,6 +517,7 @@ frappe.ui.form.on("Stone Breaking Report", {
         frm.set_value('serial_number', uniqueSerialNumber);
         
         calculate_breaking_summary(frm);
+        updateDepartmentHeading(frm);
     },
     
     refresh(frm) {
@@ -558,13 +559,14 @@ frappe.ui.form.on("Stone Breaking Report", {
         }
     },
 
-    approval_date(frm) {
-        frm.set_value('checked', !!frm.doc.approval_date);
+    remark(frm) {
+        frm.set_value('checked', !! frm.doc.remark);
     },
 
     department(frm) {
         // Recalculate whenever department changes
         calculate_breaking_summary(frm);
+        updateDepartmentHeading(frm);
     },
     
     stone_fault(frm) {
@@ -623,4 +625,9 @@ function applySectionStyling(frm) {
             frm.fields_dict[fieldName].$wrapper.find('.control-input, .control-value').css(fieldStyle);
         }
     });
+}
+
+function updateDepartmentHeading(frm) {
+    const department = frm.doc.department || "Department";
+    frm.fields_dict.breaking_report.$wrapper.find('#department_heading').text(department);
 }

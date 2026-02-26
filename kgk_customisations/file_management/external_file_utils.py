@@ -27,32 +27,46 @@ def convert_unc_to_mount(unc_path):
 		unc_path (str): UNC path from Windows (e.g., \\nas-gradding\POLISH-VIDEO\file.mp4)
 	
 	Returns:
-		str: Converted Linux mount path (e.g., /mnt/nas-gradding.local/POLISH-VIDEO/file.mp4)
+		str: Converted Linux mount path (e.g., /mnt/share/polish-video/file.mp4)
 		None: If path cannot be converted or file doesn't exist
 	"""
 	if not unc_path:
 		return None
-		
+	
 	# Normalize path separators
 	path = unc_path.replace('\\', '/')
 	
-	# Convert UNC paths to mount points
-	# nas-gradding shares
-	if path.startswith('//nas-gradding/POLISH-VIDEO'):
-		path = path.replace('//nas-gradding', '/mnt/nas-gradding.local')
-	elif path.startswith('//nas-gradding/ROUGH-VIDEO'):
-		path = path.replace('//nas-gradding', '/mnt/nas-gradding.local')
-	elif path.startswith('//nas-gradding/PARCEL-SCANS'):
-		path = path.replace('//nas-gradding', '/mnt/nas-gradding.local')
-	# nas-planning shares
-	elif path.startswith('//nas-planning/ROUGH VIDEO'):
-		path = path.replace('//nas-planning', '/mnt/nas-planning.local')
-	elif path.startswith('//nas-planning/TENSION-STONE-VIDEO'):
-		path = path.replace('//nas-planning', '/mnt/nas-planning.local')
-	elif path.startswith('//nas-planning/stones'):
-		path = path.replace('//nas-planning', '/mnt/nas-planning.local')
-	elif path.startswith('//nas-planning'):
-		path = path.replace('//nas-planning', '/mnt/nas-planning.local')
+	# Define mount mappings - order matters for specificity
+	MOUNT_MAP = {
+		# nas-gradding shares
+		'//nas-gradding.local/polish-video': '/mnt/share/polish-video',
+		'//nas-gradding/POLISH-VIDEO': '/mnt/share/polish-video',
+		'//nas-gradding.local/PARCEL-SCANS': '/mnt/share/parcel-scans',
+		'//nas-gradding/PARCEL-SCANS': '/mnt/share/parcel-scans',
+		
+		# nas-planning shares
+		'//nas-planning.local/rough video': '/mnt/share/rough-video',
+		'//nas-planning/ROUGH VIDEO': '/mnt/share/rough-video',
+		'//nas-planning.local/tension-stone-video': '/mnt/share/tension-stone-video',
+		'//nas-planning/TENSION-STONE-VIDEO': '/mnt/share/tension-stone-video',
+		'//nas-planning.local/stones': '/mnt/share/stones',
+		'//nas-planning/stones': '/mnt/share/stones',
+	}
+	
+	# Try to match and convert path
+	converted = False
+	for unc_prefix, mount_point in MOUNT_MAP.items():
+		if path.startswith(unc_prefix):
+			path = path.replace(unc_prefix, mount_point, 1)
+			converted = True
+			break
+	
+	if not converted:
+		frappe.log_error(
+			f"No mount mapping found for: {unc_path}",
+			"UNC Path Conversion Failed"
+		)
+		return None
 	
 	# Verify file exists
 	if os.path.exists(path):
@@ -146,6 +160,7 @@ def get_packet_scan_paths_from_db(lot_id, db_path=None):
 		      Returns empty list if no results found or error occurs
 	"""
 	scan_paths = []
+	frappe.log(f"Querying packet scan paths for lot_id: {lot_id} using database: {db_path}")
 	
 	try:
 		if not db_path:
@@ -170,7 +185,10 @@ def get_packet_scan_paths_from_db(lot_id, db_path=None):
 		"""
 		
 		cursor.execute(query, (lot_id,))
+		frappe.log(f"Executed query for lot_id: {lot_id}")
 		results = cursor.fetchall()
+		# log to the console the number of results found
+		frappe.log(f"Number of scan paths found: {len(results)}")
 		
 		if results:
 			for row in results:
@@ -179,9 +197,11 @@ def get_packet_scan_paths_from_db(lot_id, db_path=None):
 				if scan_path:
 					# Convert UNC path to mounted Linux path
 					converted_path = convert_unc_to_mount(scan_path)
+					frappe.log(f"Original scan path: {scan_path} | Converted scan path: {converted_path}")
 					
 					if converted_path:
 						scan_paths.append(converted_path)
+						frappe.log(f"Added scan path for lot {lot_id}: {converted_path}")
 		
 		conn.close()
 		
