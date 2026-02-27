@@ -60,31 +60,54 @@ function recalculate_breaking_amount(frm) {
 // SUMMARY DISPLAY FUNCTIONS
 // ============================================================================
 
-function updateWorkerTable(wrapper, workers) {
-    const hasWorkers = workers && Object.keys(workers).length > 0;
-    
-    const html = hasWorkers
-        ? Object.values(workers).map(worker => `
-            <tr class="worker-data-row" style="border-bottom: 1px solid #ebeff2;">
-                <td style="padding: 10px; color: #444;">${worker.employee_code || 'N/A'}</td>
-                <td style="padding: 10px; color: #444;">${formatNumber(worker.breaking_amount)}</td>
-                <td style="padding: 10px; color: #444;">${formatNumber(worker.org_plan_value)}</td>
-                <td style="padding: 10px; color: #444;">${formatNumber(worker.breaking_percentage)}%</td>
-            </tr>
-        `).join('')
-        : `<tr class="worker-data-row">
-            <td colspan="4" style="padding: 10px; text-align: center; color: #999;">No worker data available</td>
+
+function updateWorkerTables(wrapper, monthWorkers, ytdWorkers) {
+    // Month Table Rows
+    const hasMonthWorkers = monthWorkers && Object.keys(monthWorkers).length > 0;
+    const monthHtml = hasMonthWorkers
+        ? Object.values(monthWorkers).map(worker => {
+            let label = worker.worker_name
+                ? `${worker.worker_name} (${worker.employee_code || ''})`
+                : (worker.employee_code || 'N/A');
+            return `
+                <tr class="worker-data-row-month" style="border-bottom: 1px solid #ebeff2;">
+                    <td style="padding: 10px; color: #444;">${label}</td>
+                    <td style="padding: 10px; color: #444;">${formatNumber(worker.breaking_amount)}</td>
+                    <td style="padding: 10px; color: #444;">${formatNumber(worker.org_plan_value)}</td>
+                    <td style="padding: 10px; color: #444;">${formatPercent(worker.breaking_percentage)}</td>
+                </tr>
+            `;
+        }).join('')
+        : `<tr class="worker-data-row-month">
+            <td colspan="4" style="padding: 10px; text-align: center; color: #999;">No worker data available for Month</td>
         </tr>`;
-    
-    // Replace placeholder or existing worker rows
-    const placeholder = wrapper.find('#worker_table_placeholder');
-    const existingRows = wrapper.find('.worker-data-row');
-    
-    if (placeholder.length) {
-        placeholder.replaceWith(html);
-    } else if (existingRows.length) {
-        existingRows.remove();
-        wrapper.find('tbody').append(html);
+    const monthPlaceholder = wrapper.find('#worker_table_placeholder_month');
+    if (monthPlaceholder.length) {
+        monthPlaceholder.replaceWith(monthHtml);
+    }
+
+    // YTD Table Rows
+    const hasYtdWorkers = ytdWorkers && Object.keys(ytdWorkers).length > 0;
+    const ytdHtml = hasYtdWorkers
+        ? Object.values(ytdWorkers).map(worker => {
+            let label = worker.worker_name
+                ? `${worker.worker_name} (${worker.employee_code || ''})`
+                : (worker.employee_code || 'N/A');
+            return `
+                <tr class="worker-data-row-ytd" style="border-bottom: 1px solid #ebeff2;">
+                    <td style="padding: 10px; color: #444;">${label}</td>
+                    <td style="padding: 10px; color: #444;">${formatNumber(worker.breaking_amount)}</td>
+                    <td style="padding: 10px; color: #444;">${formatNumber(worker.org_plan_value)}</td>
+                    <td style="padding: 10px; color: #444;">${formatPercent(worker.breaking_percentage)}</td>
+                </tr>
+            `;
+        }).join('')
+        : `<tr class="worker-data-row-ytd">
+            <td colspan="4" style="padding: 10px; text-align: center; color: #999;">No worker data available for YTD</td>
+        </tr>`;
+    const ytdPlaceholder = wrapper.find('#worker_table_placeholder_ytd');
+    if (ytdPlaceholder.length) {
+        ytdPlaceholder.replaceWith(ytdHtml);
     }
 }
 
@@ -116,8 +139,30 @@ function display_breaking_summary(frm) {
         return;
     }
     
-    // Update worker table
-    updateWorkerTable(wrapper, summary.workers);
+    // Prepare per-worker month and YTD data with debug output
+    const monthWorkers = {};
+    const ytdWorkers = {};
+    if (summary && summary.workers) {
+        Object.values(summary.workers).forEach(worker => {
+            if (worker && worker.employee_code) {
+                if (worker.month && typeof worker.month === 'object') {
+                    monthWorkers[worker.employee_code] = {
+                        ...worker.month,
+                        employee_code: worker.employee_code,
+                        worker_name: worker.worker_name || ''
+                    };
+                }
+                if (worker.ytd && typeof worker.ytd === 'object') {
+                    ytdWorkers[worker.employee_code] = {
+                        ...worker.ytd,
+                        employee_code: worker.employee_code,
+                        worker_name: worker.worker_name || ''
+                    };
+                }
+            }
+        });
+    }
+    updateWorkerTables(wrapper, monthWorkers, ytdWorkers);
     
     // Update month summary
     updateSummarySection(wrapper, summary.currentMonth, '');
@@ -296,16 +341,7 @@ function calculate_breaking_summary(frm) {
             
             console.log('=== DEBUG: Current Workers ===', currentWorkers);
             
-            // Initialize worker stats
-            currentWorkers.forEach(workerName => {
-                workerStats[workerName] = {
-                    employee_code: workerName,
-                    breaking_amount: 0,
-                    org_plan_value: 0,
-                    breaking_percentage: 0,
-                    count: 0
-                };
-            });
+            // Initialize workerStats as empty; will add workers as encountered in records
             
             // Counter for async operations
             let processedRecords = 0;
@@ -392,30 +428,32 @@ function calculate_breaking_summary(frm) {
                     callback: function(r) {
                         if (r.message && r.message.article_workers) {
                             const recordOrgPlanValue = flt(r.message.org_plan_value) || 0;
-                            
-                            console.log(`Workers in ${record.name}:`, r.message.article_workers.map(w => w.employee_code));
-                            
                             r.message.article_workers.forEach(worker => {
-                                if (currentWorkers.includes(worker.employee_code)) {
-                                    workerStats[worker.employee_code].breaking_amount += flt(worker.breaking_amount) || 0;
-                                    workerStats[worker.employee_code].org_plan_value += recordOrgPlanValue;
-                                    workerStats[worker.employee_code].count++;
-                                    console.log(`Updated worker ${worker.employee_code}:`, workerStats[worker.employee_code]);
+                                const code = worker.employee_code;
+                                if (!workerStats[code]) {
+                                    workerStats[code] = {
+                                        employee_code: code,
+                                        month: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0, count: 0 },
+                                        ytd: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0, count: 0 }
+                                    };
+                                }
+                                // Month
+                                if (isSameDepartment && isCurrentMonth) {
+                                    workerStats[code].month.breaking_amount += flt(worker.breaking_amount) || 0;
+                                    workerStats[code].month.org_plan_value += recordOrgPlanValue;
+                                    workerStats[code].month.count++;
+                                }
+                                // YTD
+                                if (isSameDepartment && isCurrentFY) {
+                                    workerStats[code].ytd.breaking_amount += flt(worker.breaking_amount) || 0;
+                                    workerStats[code].ytd.org_plan_value += recordOrgPlanValue;
+                                    workerStats[code].ytd.count++;
                                 }
                             });
                         }
-                        
                         processedRecords++;
-                        
                         // Once all records processed, calculate percentages and display
                         if (processedRecords === totalRecordsToProcess) {
-                            console.log('=== DEBUG: Final Summaries (before current doc) ===');
-                            console.log('Month Stone Fault:', currentMonthStoneFault);
-                            console.log('Month Worker Fault:', currentMonthWorkerFault);
-                            console.log('Year Stone Fault:', currentYearStoneFault);
-                            console.log('Year Worker Fault:', currentYearWorkerFault);
-                            console.log('Worker Stats:', workerStats);
-                            
                             finalizeSummaryCalculations(
                                 frm,
                                 currentMonthStoneFault,
@@ -455,6 +493,40 @@ function finalizeSummaryCalculations(
         monthStartDate,
         fyStartDate
     );
+
+    // Also update per-worker month/YTD stats for workers in the current document
+    if (frm.doc.article_workers && frm.doc.article_workers.length > 0) {
+        const today = frappe.datetime.get_today();
+        const currentMonth = frappe.datetime.str_to_obj(today).getMonth() + 1;
+        const currentYear = frappe.datetime.str_to_obj(today).getFullYear();
+        const fyStartMonth = 4; // April
+        const fyStartYear = currentMonth >= fyStartMonth ? currentYear : currentYear - 1;
+        const fyStartDate = `${fyStartYear}-${String(fyStartMonth).padStart(2, '0')}-01`;
+        const monthStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+        const isCurrentMonth = frm.doc.creation >= monthStartDate || !frm.doc.creation;
+        const isCurrentFY = frm.doc.creation >= fyStartDate || !frm.doc.creation;
+        frm.doc.article_workers.forEach(worker => {
+            const code = worker.employee_code;
+            if (!workerStats[code]) {
+                workerStats[code] = {
+                    employee_code: code,
+                    month: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0, count: 0 },
+                    ytd: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0, count: 0 }
+                };
+            }
+            // Always include in month and YTD if on current doc
+            if (isCurrentMonth) {
+                workerStats[code].month.breaking_amount += flt(worker.breaking_amount) || 0;
+                workerStats[code].month.org_plan_value += flt(frm.doc.org_plan_value) || 0;
+                workerStats[code].month.count++;
+            }
+            if (isCurrentFY) {
+                workerStats[code].ytd.breaking_amount += flt(worker.breaking_amount) || 0;
+                workerStats[code].ytd.org_plan_value += flt(frm.doc.org_plan_value) || 0;
+                workerStats[code].ytd.count++;
+            }
+        });
+    }
     
     // Calculate percentages for summaries
     const calculatePercentage = (summary) => {
@@ -468,10 +540,13 @@ function finalizeSummaryCalculations(
     calculatePercentage(currentYearStoneFault);
     calculatePercentage(currentYearWorkerFault);
     
-    // Calculate percentages for workers
+    // Calculate percentages for workers (month and ytd)
     Object.values(workerStats).forEach(worker => {
-        if (worker.org_plan_value > 0) {
-            worker.breaking_percentage = (worker.breaking_amount / worker.org_plan_value) * 100;
+        if (worker.month.org_plan_value > 0) {
+            worker.month.breaking_percentage = (worker.month.breaking_amount / worker.month.org_plan_value) * 100;
+        }
+        if (worker.ytd.org_plan_value > 0) {
+            worker.ytd.breaking_percentage = (worker.ytd.breaking_amount / worker.ytd.org_plan_value) * 100;
         }
     });
     

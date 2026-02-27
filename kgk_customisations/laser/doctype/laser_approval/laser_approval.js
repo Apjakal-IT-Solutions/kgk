@@ -12,6 +12,9 @@ frappe.ui.form.on("Laser Approval", {
             frm.set_value('serial_number', uniqueSerialNumber);
 			frm.set_df_property('remarks', 'reqd', true);		
 		}
+		else{
+			
+		}
 	},
 	
 	refresh(frm) {

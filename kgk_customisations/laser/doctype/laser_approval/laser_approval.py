@@ -7,11 +7,18 @@ from frappe.utils import today
 from kgk_customisations.file_management.external_file_utils import (
 	get_video_paths_from_db,
 	get_packet_scan_paths_from_db,
-	serve_file_from_path
+	serve_file_from_path,
+	convert_unc_to_mount
 )
 
 
 class LaserApproval(Document):
+	# On document load, if org_lot_id is set, attempt to fetch video paths and packet scans
+	def onload(self):
+		if self.org_lot_id:
+			self.get_video_indexes()
+			self.get_packet_scans()	
+			
 	def validate(self):
 		"""Runs on every save - populate video paths from external database"""
 		if self.org_lot_id:
@@ -62,8 +69,8 @@ class LaserApproval(Document):
 				frappe.msgprint(
 					f'Added {len(users)} users to the document',
 					title='Users Prepopulated',
-				indicator='green'
-			)
+					indicator='green'
+				)
 	
 	def get_video_indexes(self):
 		"""Query external SQLite database and populate video path fields based on org_lot_id"""
@@ -139,6 +146,7 @@ class LaserApproval(Document):
 				indicator='orange'
 			)
 
+
 @frappe.whitelist()
 def refresh_user_list(docname):
 	"""Refresh the user list for an existing document"""
@@ -166,6 +174,7 @@ def refresh_user_list(docname):
 	
 	return {'message': 'No users found'}
 
+
 @frappe.whitelist()
 def serve_video_file(docname, video_type):
 	"""
@@ -186,6 +195,12 @@ def serve_video_file(docname, video_type):
 	
 	if not file_path:
 		frappe.throw(f"No {video_type} video path found for this document")
+	
+	# SAFETY: Convert path in case document has old mount location stored
+	file_path = convert_unc_to_mount(file_path)
+	
+	if not file_path:
+		frappe.throw(f"Could not convert path to current mount location")
 	
 	# Use the global file serving function
 	return serve_file_from_path(file_path, inline=True)
@@ -209,6 +224,12 @@ def serve_packet_scan_file(docname, row_id):
 	
 	if not file_path:
 		frappe.throw(f"No packet scan found with ID: {row_id}")
+	
+	# SAFETY: Convert path in case document has old mount location stored
+	file_path = convert_unc_to_mount(file_path)
+	
+	if not file_path:
+		frappe.throw(f"Could not convert path to current mount location")
 	
 	# Use the global file serving function
 	return serve_file_from_path(file_path, inline=True)

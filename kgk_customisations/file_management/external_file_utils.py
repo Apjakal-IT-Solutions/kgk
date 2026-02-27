@@ -36,8 +36,30 @@ def convert_unc_to_mount(unc_path):
 	# Normalize path separators
 	path = unc_path.replace('\\', '/')
 	
+	# Check if path is already in the new mount format
+	if path.startswith('/mnt/share/'):
+		# Path is already converted - just verify it exists
+		if os.path.exists(path):
+			return path
+		else:
+			frappe.log_error(
+				f"Mount: {path}\nOriginal: {unc_path}",
+				"File Not Found"
+			)
+			return None
+	
 	# Define mount mappings - order matters for specificity
 	MOUNT_MAP = {
+		# OLD mount paths (from database) - these need to be converted too
+		'/mnt/nas-gradding.local/POLISH-VIDEO': '/mnt/share/polish-video',
+		'/mnt/nas-gradding.local/PARCEL-SCANS': '/mnt/share/parcel-scans',
+		'/mnt/nas-planning.local/ROUGH VIDEO': '/mnt/share/rough-video',
+		'/mnt/nas-planning.local/rough video': '/mnt/share/rough-video',
+		'/mnt/nas-planning.local/TENSION-STONE-VIDEO': '/mnt/share/tension-stone-video',
+		'/mnt/nas-planning.local/tension-stone-video': '/mnt/share/tension-stone-video',
+		'/mnt/nas-planning.local/stones': '/mnt/share/stones',
+		
+		# UNC paths (Windows format)
 		# nas-gradding shares
 		'//nas-gradding.local/polish-video': '/mnt/share/polish-video',
 		'//nas-gradding/POLISH-VIDEO': '/mnt/share/polish-video',
@@ -301,32 +323,39 @@ def get_mime_type(file_path):
 def serve_file_from_path(file_path, inline=True):
 	"""
 	Serve a file from the network share with proper HTTP headers.
-	
-	Args:
-		file_path (str): Full path to the file on the mounted network share
-		inline (bool): If True, display inline (browser); if False, force download
-	
-	Returns:
-		Response: Werkzeug Response object
-	
-	Raises:
-		frappe.ValidationError: If file doesn't exist or mount is not accessible
 	"""
 	if not file_path:
 		frappe.throw("No file path provided")
+
+	# DEBUG: Log everything
+	import socket
+	frappe.log_error(
+		f"Hostname: {socket.gethostname()}\n"
+		f"File path: {file_path}\n"
+		f"File exists check: {os.path.exists(file_path)}\n"
+		f"Mount check: {os.path.ismount('/mnt/share')}\n"
+		f"User: {frappe.session.user}\n"
+		f"Process ID: {os.getpid()}",
+		"File Serve Attempt"
+	)
 	
 	# Check if file exists
 	if not os.path.exists(file_path):
-		# Check if it's a mount point issue
-		mount_point = file_path.split('/')[1:4]  # Extract /mnt/nas-xxx.local
-		mount_path = '/' + '/'.join(mount_point) if len(mount_point) >= 3 else None
-		
 		error_msg = f"File not found: {os.path.basename(file_path)}<br><br>"
 		error_msg += f"<b>Path:</b> {file_path}<br><br>"
 		
-		if mount_path and not os.path.ismount(mount_path):
-			error_msg += f"<b>Issue:</b> Network share is not mounted<br>"
-			error_msg += f"Please contact system administrator to mount: {mount_path}"
+		# Check if any of the mount points in the path are accessible
+		# For /mnt/share/tension-stone-video/file.mp4, check /mnt/share/tension-stone-video
+		path_parts = file_path.split('/')
+		possible_mount = None
+		
+		# Look for mount points under /mnt/share/
+		if len(path_parts) >= 4 and path_parts[1] == 'mnt' and path_parts[2] == 'share':
+			possible_mount = '/' + '/'.join(path_parts[1:4])  # /mnt/share/tension-stone-video
+		
+		if possible_mount and not os.path.exists(possible_mount):
+			error_msg += f"<b>Issue:</b> Network share directory not accessible<br>"
+			error_msg += f"Share location: {possible_mount}"
 		else:
 			error_msg += f"<b>Issue:</b> File may have been moved or deleted from the network share"
 		
