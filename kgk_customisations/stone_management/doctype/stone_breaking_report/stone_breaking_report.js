@@ -62,52 +62,74 @@ function recalculate_breaking_amount(frm) {
 
 
 function updateWorkerTables(wrapper, monthWorkers, ytdWorkers) {
-    // Month Table Rows
+    // Build a single grouped table: Month sub-header + month worker rows, then YTD sub-header + YTD worker rows
+    let html = '';
+
+    // --- Month section ---
     const hasMonthWorkers = monthWorkers && Object.keys(monthWorkers).length > 0;
-    const monthHtml = hasMonthWorkers
-        ? Object.values(monthWorkers).map(worker => {
+    html += `<tr class="worker-section-row worker-subheader" style="border-bottom: 1px solid #ebeff2;">
+        <td colspan="4" style="padding: 10px; color: #444; font-weight: bold;">Month</td>
+    </tr>`;
+    if (hasMonthWorkers) {
+        Object.values(monthWorkers).forEach(worker => {
             let label = worker.worker_name
                 ? `${worker.worker_name} (${worker.employee_code || ''})`
                 : (worker.employee_code || 'N/A');
-            return `
-                <tr class="worker-data-row-month" style="border-bottom: 1px solid #ebeff2;">
-                    <td style="padding: 10px; color: #444;">${label}</td>
+            html += `
+                <tr class="worker-section-row" style="border-bottom: 1px solid #ebeff2;">
+                    <td style="padding: 10px 10px 10px 20px; color: #444;">${label}</td>
                     <td style="padding: 10px; color: #444;">${formatNumber(worker.breaking_amount)}</td>
                     <td style="padding: 10px; color: #444;">${formatNumber(worker.org_plan_value)}</td>
                     <td style="padding: 10px; color: #444;">${formatPercent(worker.breaking_percentage)}</td>
-                </tr>
-            `;
-        }).join('')
-        : `<tr class="worker-data-row-month">
-            <td colspan="4" style="padding: 10px; text-align: center; color: #999;">No worker data available for Month</td>
+                </tr>`;
+        });
+    } else {
+        html += `<tr class="worker-section-row">
+            <td colspan="4" style="padding: 10px 10px 10px 20px; text-align: center; color: #999;">No worker data available for Month</td>
         </tr>`;
-    const monthPlaceholder = wrapper.find('#worker_table_placeholder_month');
-    if (monthPlaceholder.length) {
-        monthPlaceholder.replaceWith(monthHtml);
     }
 
-    // YTD Table Rows
+    // --- Year To Date section ---
     const hasYtdWorkers = ytdWorkers && Object.keys(ytdWorkers).length > 0;
-    const ytdHtml = hasYtdWorkers
-        ? Object.values(ytdWorkers).map(worker => {
+    html += `<tr class="worker-section-row worker-subheader" style="border-bottom: 1px solid #ebeff2;">
+        <td colspan="4" style="padding: 10px; color: #444; font-weight: bold;">Year To Date</td>
+    </tr>`;
+    if (hasYtdWorkers) {
+        Object.values(ytdWorkers).forEach(worker => {
             let label = worker.worker_name
                 ? `${worker.worker_name} (${worker.employee_code || ''})`
                 : (worker.employee_code || 'N/A');
-            return `
-                <tr class="worker-data-row-ytd" style="border-bottom: 1px solid #ebeff2;">
-                    <td style="padding: 10px; color: #444;">${label}</td>
+            html += `
+                <tr class="worker-section-row" style="border-bottom: 1px solid #ebeff2;">
+                    <td style="padding: 10px 10px 10px 20px; color: #444;">${label}</td>
                     <td style="padding: 10px; color: #444;">${formatNumber(worker.breaking_amount)}</td>
                     <td style="padding: 10px; color: #444;">${formatNumber(worker.org_plan_value)}</td>
                     <td style="padding: 10px; color: #444;">${formatPercent(worker.breaking_percentage)}</td>
-                </tr>
-            `;
-        }).join('')
-        : `<tr class="worker-data-row-ytd">
-            <td colspan="4" style="padding: 10px; text-align: center; color: #999;">No worker data available for YTD</td>
+                </tr>`;
+        });
+    } else {
+        html += `<tr class="worker-section-row">
+            <td colspan="4" style="padding: 10px 10px 10px 20px; text-align: center; color: #999;">No worker data available for YTD</td>
         </tr>`;
-    const ytdPlaceholder = wrapper.find('#worker_table_placeholder_ytd');
-    if (ytdPlaceholder.length) {
-        ytdPlaceholder.replaceWith(ytdHtml);
+    }
+
+    // Clean up: remove all previously inserted worker section rows
+    wrapper.find('.worker-section-row').remove();
+    // Remove old-style placeholders/headers if still present from legacy template
+    wrapper.find('#worker_table_placeholder_month, #worker_table_placeholder_ytd').remove();
+    wrapper.find('.worker-data-row-month, .worker-data-row-ytd, .worker-data-row').remove();
+
+    const placeholder = wrapper.find('#worker_table_placeholder');
+    if (placeholder.length) {
+        placeholder.replaceWith(html);
+    } else {
+        // Append after the Employee header row
+        const headerRow = wrapper.find('th').filter(function() {
+            return $(this).text().trim() === 'Employee';
+        }).closest('tr').last();
+        if (headerRow.length) {
+            headerRow.after(html);
+        }
     }
 }
 
@@ -139,12 +161,13 @@ function display_breaking_summary(frm) {
         return;
     }
     
-    // Prepare per-worker month and YTD data with debug output
+    // Prepare per-worker month and YTD data — only for workers in the current document
     const monthWorkers = {};
     const ytdWorkers = {};
+    const currentWorkerCodes = (frm.doc.article_workers || []).map(w => w.employee_code).filter(Boolean);
     if (summary && summary.workers) {
         Object.values(summary.workers).forEach(worker => {
-            if (worker && worker.employee_code) {
+            if (worker && worker.employee_code && currentWorkerCodes.includes(worker.employee_code)) {
                 if (worker.month && typeof worker.month === 'object') {
                     monthWorkers[worker.employee_code] = {
                         ...worker.month,
@@ -175,74 +198,78 @@ function display_breaking_summary(frm) {
 // CURRENT DOCUMENT INCLUSION
 // ============================================================================
 
-function includeCurrentDocument(frm, currentMonthStoneFault, currentMonthWorkerFault, currentYearStoneFault, currentYearWorkerFault, workerStats, monthStartDate, fyStartDate) {
+function includeCurrentDocument(frm, summary) {
     // Only include if document has required data
     if (!frm.doc.breaking_amount || !frm.doc.org_plan_value) {
-        console.log('Current document has no breaking data to include');
         return;
     }
-    
+
     const breakingAmount = flt(frm.doc.breaking_amount) || 0;
     const orgPlanValue = flt(frm.doc.org_plan_value) || 0;
+    const docDate = frm.doc.date || frappe.datetime.get_today();
     const today = frappe.datetime.get_today();
-    
-    // Current document is always "current month" and check if it's in current FY
-    const isCurrentFY = today >= fyStartDate;
-    
-    console.log('=== Including Current Document ===');
-    console.log('Breaking Amount:', breakingAmount);
-    console.log('Org Plan Value:', orgPlanValue);
-    console.log('Stone Fault:', frm.doc.stone_fault);
-    console.log('Worker Fault:', frm.doc.worker_fault);
-    
-    // Add to month summaries
-    if (frm.doc.stone_fault) {
-        currentMonthStoneFault.breaking_amount += breakingAmount;
-        currentMonthStoneFault.org_plan_value += orgPlanValue;
-        currentMonthStoneFault.count++;
-        console.log('Added current doc to Month Stone Fault');
-    } else if (frm.doc.worker_fault) {
-        currentMonthWorkerFault.breaking_amount += breakingAmount;
-        currentMonthWorkerFault.org_plan_value += orgPlanValue;
-        currentMonthWorkerFault.count++;
-        console.log('Added current doc to Month Worker Fault');
-    } else {
-        // Default to worker fault if neither is checked
-        currentMonthWorkerFault.breaking_amount += breakingAmount;
-        currentMonthWorkerFault.org_plan_value += orgPlanValue;
-        currentMonthWorkerFault.count++;
-        console.log('Added current doc to Month Worker Fault (default)');
+    const todayObj = frappe.datetime.str_to_obj(today);
+    const currentMonth = todayObj.getMonth() + 1;
+    const currentYear = todayObj.getFullYear();
+    const fyStartYear = currentMonth >= 4 ? currentYear : currentYear - 1;
+    const fyStartDate = `${fyStartYear}-04-01`;
+    const monthStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+
+    const isCurrentMonth = docDate >= monthStartDate;
+    const isCurrentFY = docDate >= fyStartDate;
+
+    const bucket = frm.doc.stone_fault ? 'stoneFault' : 'workerFault';
+
+    // Add to month summary
+    if (isCurrentMonth) {
+        summary.currentMonth[bucket].breaking_amount += breakingAmount;
+        summary.currentMonth[bucket].org_plan_value += orgPlanValue;
     }
-    
-    // Add to year summaries
+
+    // Add to year summary
     if (isCurrentFY) {
-        if (frm.doc.stone_fault) {
-            currentYearStoneFault.breaking_amount += breakingAmount;
-            currentYearStoneFault.org_plan_value += orgPlanValue;
-            currentYearStoneFault.count++;
-        } else if (frm.doc.worker_fault) {
-            currentYearWorkerFault.breaking_amount += breakingAmount;
-            currentYearWorkerFault.org_plan_value += orgPlanValue;
-            currentYearWorkerFault.count++;
-        } else {
-            currentYearWorkerFault.breaking_amount += breakingAmount;
-            currentYearWorkerFault.org_plan_value += orgPlanValue;
-            currentYearWorkerFault.count++;
-        }
+        summary.currentYear[bucket].breaking_amount += breakingAmount;
+        summary.currentYear[bucket].org_plan_value += orgPlanValue;
     }
-    
+
     // Add current document's workers to worker stats
     if (frm.doc.article_workers && frm.doc.article_workers.length > 0) {
         frm.doc.article_workers.forEach(worker => {
-            const workerCode = worker.employee_code;
-            if (workerStats[workerCode]) {
-                workerStats[workerCode].breaking_amount += flt(worker.breaking_amount) || 0;
-                workerStats[workerCode].org_plan_value += orgPlanValue;
-                workerStats[workerCode].count++;
-                console.log(`Added current doc to worker ${workerCode}:`, workerStats[workerCode]);
+            const code = worker.employee_code;
+            if (!code) return;
+            if (!summary.workers[code]) {
+                summary.workers[code] = {
+                    employee_code: code,
+                    worker_name: worker.worker_name || '',
+                    month: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0 },
+                    ytd: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0 }
+                };
+            }
+            if (isCurrentMonth) {
+                summary.workers[code].month.breaking_amount += flt(worker.breaking_amount) || 0;
+                summary.workers[code].month.org_plan_value += orgPlanValue;
+            }
+            if (isCurrentFY) {
+                summary.workers[code].ytd.breaking_amount += flt(worker.breaking_amount) || 0;
+                summary.workers[code].ytd.org_plan_value += orgPlanValue;
             }
         });
     }
+
+    // Recalculate percentages
+    const recalc = (bucket) => {
+        bucket.breaking_percentage = bucket.org_plan_value > 0
+            ? (bucket.breaking_amount / bucket.org_plan_value) * 100
+            : 0;
+    };
+    recalc(summary.currentMonth.stoneFault);
+    recalc(summary.currentMonth.workerFault);
+    recalc(summary.currentYear.stoneFault);
+    recalc(summary.currentYear.workerFault);
+    Object.values(summary.workers).forEach(w => {
+        recalc(w.month);
+        recalc(w.ytd);
+    });
 }
 
 // ============================================================================
@@ -255,327 +282,28 @@ function calculate_breaking_summary(frm) {
         return;
     }
 
-    // Get current date info
-    const today = frappe.datetime.get_today();
-    const currentMonth = frappe.datetime.str_to_obj(today).getMonth() + 1;
-    const currentYear = frappe.datetime.str_to_obj(today).getFullYear();
-    
-    // Calculate financial year (assuming April start)
-    const fyStartMonth = 4; // April
-    const fyStartYear = currentMonth >= fyStartMonth ? currentYear : currentYear - 1;
-    const fyStartDate = `${fyStartYear}-${String(fyStartMonth).padStart(2, '0')}-01`;
-    
-    // Get current month start date
-    const monthStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
-    
-    console.log('=== DEBUG: Date Ranges ===');
-    console.log('Month Start:', monthStartDate);
-    console.log('FY Start:', fyStartDate);
-    console.log('Current Department:', frm.doc.department);
-    
-    // Fetch all Stone Breaking Report records
     frappe.call({
-        method: "frappe.client.get_list",
+        method: "kgk_customisations.stone_management.doctype.stone_breaking_report.stone_breaking_report.get_breaking_summary",
         args: {
-            doctype: "Stone Breaking Report",
-            fields: [
-                "name", 
-                "breaking_amount", 
-                "org_plan_value", 
-                "breaking_percent",
-                "stone_fault",
-                "worker_fault",
-                "department",
-                "creation"
-            ],
-            filters: [],
-            limit_page_length: 0
+            department: frm.doc.department,
+            current_doc_name: frm.doc.name || null
         },
         callback: function(response) {
             if (!response.message) {
-                console.log('No records found');
+                console.log('No summary data returned');
                 return;
             }
-            
-            let records = response.message;
-            
-            // Filter out the current document if it exists in the fetched records
-            // This prevents double-counting if the document is already saved
-            if (frm.doc.name) {
-                records = records.filter(rec => rec.name !== frm.doc.name);
-                console.log('Filtered out current document from records');
-            }
-            
-            console.log('=== DEBUG: Total Records Found (excluding current) ===', records.length);
-            
-            // Log first few records for debugging
-            records.slice(0, 3).forEach((rec, idx) => {
-                console.log(`Record ${idx + 1}:`, {
-                    name: rec.name,
-                    department: rec.department,
-                    creation: rec.creation,
-                    stone_fault: rec.stone_fault,
-                    worker_fault: rec.worker_fault,
-                    breaking_amount: rec.breaking_amount
-                });
-            });
-            
-            // Initialize summary objects
-            const summaryStructure = {
-                breaking_amount: 0,
-                org_plan_value: 0,
-                breaking_percentage: 0,
-                count: 0
-            };
-            
-            const currentMonthStoneFault = {...summaryStructure};
-            const currentMonthWorkerFault = {...summaryStructure};
-            const currentYearStoneFault = {...summaryStructure};
-            const currentYearWorkerFault = {...summaryStructure};
-            const workerStats = {};
-            
-            // Get worker names from current document
-            const currentWorkers = frm.doc.article_workers 
-                ? frm.doc.article_workers.map(w => w.employee_code)
-                : [];
-            
-            console.log('=== DEBUG: Current Workers ===', currentWorkers);
-            
-            // Initialize workerStats as empty; will add workers as encountered in records
-            
-            // Counter for async operations
-            let processedRecords = 0;
-            const totalRecordsToProcess = records.length;
-            
-            // If no records, still display with current document data
-            if (totalRecordsToProcess === 0) {
-                finalizeSummaryCalculations(
-                    frm,
-                    currentMonthStoneFault,
-                    currentMonthWorkerFault,
-                    currentYearStoneFault,
-                    currentYearWorkerFault,
-                    workerStats,
-                    monthStartDate,
-                    fyStartDate
-                );
-                return;
-            }
-            
-            // Process each record
-            records.forEach(record => {
-                const isCurrentMonth = record.creation >= monthStartDate;
-                const isCurrentFY = record.creation >= fyStartDate;
-                const isSameDepartment = record.department === frm.doc.department;
-                
-                const breakingAmount = flt(record.breaking_amount) || 0;
-                const orgPlanValue = flt(record.org_plan_value) || 0;
-                
-                console.log(`Processing ${record.name}:`, {
-                    isCurrentMonth,
-                    isCurrentFY,
-                    isSameDepartment,
-                    stone_fault: record.stone_fault,
-                    worker_fault: record.worker_fault
-                });
-                
-                // Accumulate month and year summaries
-                if (isSameDepartment) {
-                    if (isCurrentMonth) {
-                        if (record.stone_fault) {
-                            currentMonthStoneFault.breaking_amount += breakingAmount;
-                            currentMonthStoneFault.org_plan_value += orgPlanValue;
-                            currentMonthStoneFault.count++;
-                            console.log('Added to currentMonthStoneFault:', breakingAmount);
-                        } else if (record.worker_fault) {
-                            currentMonthWorkerFault.breaking_amount += breakingAmount;
-                            currentMonthWorkerFault.org_plan_value += orgPlanValue;
-                            currentMonthWorkerFault.count++;
-                            console.log('Added to currentMonthWorkerFault:', breakingAmount);
-                        } else {
-                            // Default to worker fault if neither is checked
-                            currentMonthWorkerFault.breaking_amount += breakingAmount;
-                            currentMonthWorkerFault.org_plan_value += orgPlanValue;
-                            currentMonthWorkerFault.count++;
-                            console.log('Added to currentMonthWorkerFault (default):', breakingAmount);
-                        }
-                    }
-                    
-                    if (isCurrentFY) {
-                        if (record.stone_fault) {
-                            currentYearStoneFault.breaking_amount += breakingAmount;
-                            currentYearStoneFault.org_plan_value += orgPlanValue;
-                            currentYearStoneFault.count++;
-                        } else if (record.worker_fault) {
-                            currentYearWorkerFault.breaking_amount += breakingAmount;
-                            currentYearWorkerFault.org_plan_value += orgPlanValue;
-                            currentYearWorkerFault.count++;
-                        } else {
-                            currentYearWorkerFault.breaking_amount += breakingAmount;
-                            currentYearWorkerFault.org_plan_value += orgPlanValue;
-                            currentYearWorkerFault.count++;
-                        }
-                    }
-                }
-                
-                // Fetch worker-specific stats
-                frappe.call({
-                    method: "frappe.client.get",
-                    args: {
-                        doctype: "Stone Breaking Report",
-                        name: record.name
-                    },
-                    callback: function(r) {
-                        if (r.message && r.message.article_workers) {
-                            const recordOrgPlanValue = flt(r.message.org_plan_value) || 0;
-                            r.message.article_workers.forEach(worker => {
-                                const code = worker.employee_code;
-                                if (!workerStats[code]) {
-                                    workerStats[code] = {
-                                        employee_code: code,
-                                        month: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0, count: 0 },
-                                        ytd: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0, count: 0 }
-                                    };
-                                }
-                                // Month
-                                if (isSameDepartment && isCurrentMonth) {
-                                    workerStats[code].month.breaking_amount += flt(worker.breaking_amount) || 0;
-                                    workerStats[code].month.org_plan_value += recordOrgPlanValue;
-                                    workerStats[code].month.count++;
-                                }
-                                // YTD
-                                if (isSameDepartment && isCurrentFY) {
-                                    workerStats[code].ytd.breaking_amount += flt(worker.breaking_amount) || 0;
-                                    workerStats[code].ytd.org_plan_value += recordOrgPlanValue;
-                                    workerStats[code].ytd.count++;
-                                }
-                            });
-                        }
-                        processedRecords++;
-                        // Once all records processed, calculate percentages and display
-                        if (processedRecords === totalRecordsToProcess) {
-                            finalizeSummaryCalculations(
-                                frm,
-                                currentMonthStoneFault,
-                                currentMonthWorkerFault,
-                                currentYearStoneFault,
-                                currentYearWorkerFault,
-                                workerStats,
-                                monthStartDate,
-                                fyStartDate
-                            );
-                        }
-                    }
-                });
-            });
+
+            const summary = response.message;
+
+            // Include the current (possibly unsaved) document
+            includeCurrentDocument(frm, summary);
+
+            // Store and display
+            frm.breaking_summary_totals = summary;
+            display_breaking_summary(frm);
         }
     });
-}
-
-function finalizeSummaryCalculations(
-    frm,
-    currentMonthStoneFault,
-    currentMonthWorkerFault,
-    currentYearStoneFault,
-    currentYearWorkerFault,
-    workerStats,
-    monthStartDate,
-    fyStartDate
-) {
-    // Include current document data before finalizing
-    includeCurrentDocument(
-        frm,
-        currentMonthStoneFault,
-        currentMonthWorkerFault,
-        currentYearStoneFault,
-        currentYearWorkerFault,
-        workerStats,
-        monthStartDate,
-        fyStartDate
-    );
-
-    // Also update per-worker month/YTD stats for workers in the current document
-    if (frm.doc.article_workers && frm.doc.article_workers.length > 0) {
-        const today = frappe.datetime.get_today();
-        const currentMonth = frappe.datetime.str_to_obj(today).getMonth() + 1;
-        const currentYear = frappe.datetime.str_to_obj(today).getFullYear();
-        const fyStartMonth = 4; // April
-        const fyStartYear = currentMonth >= fyStartMonth ? currentYear : currentYear - 1;
-        const fyStartDate = `${fyStartYear}-${String(fyStartMonth).padStart(2, '0')}-01`;
-        const monthStartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
-        const isCurrentMonth = frm.doc.creation >= monthStartDate || !frm.doc.creation;
-        const isCurrentFY = frm.doc.creation >= fyStartDate || !frm.doc.creation;
-        frm.doc.article_workers.forEach(worker => {
-            const code = worker.employee_code;
-            if (!workerStats[code]) {
-                workerStats[code] = {
-                    employee_code: code,
-                    month: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0, count: 0 },
-                    ytd: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0, count: 0 }
-                };
-            }
-            // Always include in month and YTD if on current doc
-            if (isCurrentMonth) {
-                workerStats[code].month.breaking_amount += flt(worker.breaking_amount) || 0;
-                workerStats[code].month.org_plan_value += flt(frm.doc.org_plan_value) || 0;
-                workerStats[code].month.count++;
-            }
-            if (isCurrentFY) {
-                workerStats[code].ytd.breaking_amount += flt(worker.breaking_amount) || 0;
-                workerStats[code].ytd.org_plan_value += flt(frm.doc.org_plan_value) || 0;
-                workerStats[code].ytd.count++;
-            }
-        });
-    }
-    
-    // Calculate percentages for summaries
-    const calculatePercentage = (summary) => {
-        if (summary.org_plan_value > 0) {
-            summary.breaking_percentage = (summary.breaking_amount / summary.org_plan_value) * 100;
-        }
-    };
-    
-    calculatePercentage(currentMonthStoneFault);
-    calculatePercentage(currentMonthWorkerFault);
-    calculatePercentage(currentYearStoneFault);
-    calculatePercentage(currentYearWorkerFault);
-    
-    // Calculate percentages for workers (month and ytd)
-    Object.values(workerStats).forEach(worker => {
-        if (worker.month.org_plan_value > 0) {
-            worker.month.breaking_percentage = (worker.month.breaking_amount / worker.month.org_plan_value) * 100;
-        }
-        if (worker.ytd.org_plan_value > 0) {
-            worker.ytd.breaking_percentage = (worker.ytd.breaking_amount / worker.ytd.org_plan_value) * 100;
-        }
-    });
-    
-    console.log('=== DEBUG: Final Summaries (after current doc) ===');
-    console.log('Month Stone Fault:', currentMonthStoneFault);
-    console.log('Month Worker Fault:', currentMonthWorkerFault);
-    console.log('Year Stone Fault:', currentYearStoneFault);
-    console.log('Year Worker Fault:', currentYearWorkerFault);
-    console.log('Worker Stats:', workerStats);
-    
-    // Store results in frm for access in display logic
-    frm.breaking_summary_totals = {
-        currentMonth: {
-            stoneFault: currentMonthStoneFault,
-            workerFault: currentMonthWorkerFault
-        },
-        currentYear: {
-            stoneFault: currentYearStoneFault,
-            workerFault: currentYearWorkerFault
-        },
-        workers: workerStats,
-        dates: {
-            monthStartDate: monthStartDate,
-            fyStartDate: fyStartDate
-        }
-    };
-    
-    // Display the summary
-    display_breaking_summary(frm);
 }
 
 // ============================================================================
