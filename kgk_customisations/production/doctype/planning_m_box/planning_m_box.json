@@ -17,6 +17,7 @@
   {
    "fieldname": "working_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Working Date"
   },
   {
@@ -51,7 +52,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-20 11:29:30.471647",
+ "modified": "2026-02-27 14:24:50.803011",
  "modified_by": "Administrator",
  "module": "Production",
  "name": "Planning M-Box",

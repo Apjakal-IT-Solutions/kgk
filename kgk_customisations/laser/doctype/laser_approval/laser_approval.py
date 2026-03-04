@@ -7,18 +7,11 @@ from frappe.utils import today
 from kgk_customisations.file_management.external_file_utils import (
 	get_video_paths_from_db,
 	get_packet_scan_paths_from_db,
-	serve_file_from_path,
-	convert_unc_to_mount
+	serve_file_from_path
 )
 
 
 class LaserApproval(Document):
-	# On document load, if org_lot_id is set, attempt to fetch video paths and packet scans
-	def onload(self):
-		if self.org_lot_id:
-			self.get_video_indexes()
-			self.get_packet_scans()	
-			
 	def validate(self):
 		"""Runs on every save - populate video paths from external database"""
 		if self.org_lot_id:
@@ -65,12 +58,12 @@ class LaserApproval(Document):
 					'status': 'No'  # Default status
 				})
 			
-			if self.is_new():
-				frappe.msgprint(
-					f'Added {len(users)} users to the document',
-					title='Users Prepopulated',
-					indicator='green'
-				)
+			# if self.is_new():
+			# 	frappe.msgprint(
+			# 		f'Added {len(users)} users to the document',
+			# 		title='Users Prepopulated',
+			# 	indicator='green'
+			# )
 	
 	def get_video_indexes(self):
 		"""Query external SQLite database and populate video path fields based on org_lot_id"""
@@ -96,25 +89,25 @@ class LaserApproval(Document):
 			paths_found += 1
 		
 		# Show appropriate message to user
-		if paths_found > 0:
-			frappe.msgprint(
-				f'Found {paths_found} video path(s) from external database',
-				title='Video Paths Loaded',
-				indicator='green'
-			)
-		elif any(video_paths.values()):
-			# Paths were found in DB but couldn't be mounted
-			frappe.msgprint(
-				f'An error occured and has been logged for review by system Administrator.',
-				title='Server Error',
-				indicator='orange'
-			)
-		else:
-			frappe.msgprint(
-				f'No matching records found in database for Lot ID: {self.org_lot_id}',
-				title='No Database Records',
-				indicator='orange'
-			)
+		# if paths_found > 0:
+		# 	frappe.msgprint(
+		# 		f'Found {paths_found} video path(s) from external database',
+		# 		title='Video Paths Loaded',
+		# 		indicator='green'
+		# 	)
+		# elif any(video_paths.values()):
+		# 	# Paths were found in DB but couldn't be mounted
+		# 	frappe.msgprint(
+		# 		f'An error occured and has been logged for review by system Administrator.',
+		# 		title='Server Error',
+		# 		indicator='orange'
+		# 	)
+		# else:
+		# 	frappe.msgprint(
+		# 		f'No matching records found in database for Lot ID: {self.org_lot_id}',
+		# 		title='No Database Records',
+		# 		indicator='orange'
+		# 	)
 	
 	def get_packet_scans(self):
 		"""Query external SQLite database and populate packet scan paths based on org_lot_id"""
@@ -134,18 +127,17 @@ class LaserApproval(Document):
 					'image_path': scan_path
 				})
 			
-			frappe.msgprint(
-				f'Found {len(scan_paths)} packet scan(s) from external database',
-				title='Packet Scans Loaded',
-				indicator='green'
-			)
-		else:
-			frappe.msgprint(
-				f'No packet scans found in database for Lot ID: {self.org_lot_id}',
-				title='No Scan Records',
-				indicator='orange'
-			)
-
+			# frappe.msgprint(
+			# 	f'Found {len(scan_paths)} packet scan(s) from external database',
+			# 	title='Packet Scans Loaded',
+			# 	indicator='green'
+			# )
+		# else:
+		# 	frappe.msgprint(
+		# 		f'No packet scans found in database for Lot ID: {self.org_lot_id}',
+		# 		title='No Scan Records',
+		# 		indicator='orange'
+		# 	)
 
 @frappe.whitelist()
 def refresh_user_list(docname):
@@ -174,6 +166,42 @@ def refresh_user_list(docname):
 	
 	return {'message': 'No users found'}
 
+@frappe.whitelist()
+def refresh_resources(docname):
+	"""Refresh video paths and packet scan links from the external database.
+	Only updates resource fields, leaving all other document data untouched."""
+	doc = frappe.get_doc('Laser Approval', docname)
+
+	if not doc.org_lot_id:
+		frappe.throw('No Lot ID set on this document. Cannot refresh resources.')
+
+	old_paths = {
+		'rough_video': doc.rough_video,
+		'polish_video': doc.polish_video,
+		'tension_video': doc.tension_video,
+		'packet_scans_count': len(doc.packet_scans) if doc.packet_scans else 0
+	}
+
+	doc.get_video_indexes()
+	doc.get_packet_scans()
+
+	changes = []
+	if doc.rough_video != old_paths['rough_video']:
+		changes.append('Rough Video')
+	if doc.polish_video != old_paths['polish_video']:
+		changes.append('Polish Video')
+	if doc.tension_video != old_paths['tension_video']:
+		changes.append('Tension Video')
+	new_scan_count = len(doc.packet_scans) if doc.packet_scans else 0
+	if new_scan_count != old_paths['packet_scans_count']:
+		changes.append(f'Packet Scans ({old_paths["packet_scans_count"]} → {new_scan_count})')
+
+	if changes:
+		doc.save(ignore_permissions=True)
+		return {'message': f'Updated: {", ".join(changes)}', 'updated': True}
+	else:
+		return {'message': 'All resource paths are already up to date.', 'updated': False}
+
 
 @frappe.whitelist()
 def serve_video_file(docname, video_type):
@@ -195,12 +223,6 @@ def serve_video_file(docname, video_type):
 	
 	if not file_path:
 		frappe.throw(f"No {video_type} video path found for this document")
-	
-	# SAFETY: Convert path in case document has old mount location stored
-	file_path = convert_unc_to_mount(file_path)
-	
-	if not file_path:
-		frappe.throw(f"Could not convert path to current mount location")
 	
 	# Use the global file serving function
 	return serve_file_from_path(file_path, inline=True)
@@ -224,12 +246,6 @@ def serve_packet_scan_file(docname, row_id):
 	
 	if not file_path:
 		frappe.throw(f"No packet scan found with ID: {row_id}")
-	
-	# SAFETY: Convert path in case document has old mount location stored
-	file_path = convert_unc_to_mount(file_path)
-	
-	if not file_path:
-		frappe.throw(f"Could not convert path to current mount location")
 	
 	# Use the global file serving function
 	return serve_file_from_path(file_path, inline=True)

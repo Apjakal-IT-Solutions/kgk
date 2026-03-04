@@ -28,6 +28,27 @@ frappe.ui.form.on("Laser Approval", {
 					}
 				);
 			}, __('Actions'));
+
+			frm.add_custom_button(__('Refresh Resources'), function() {
+				frappe.call({
+					method: 'kgk_customisations.laser.doctype.laser_approval.laser_approval.refresh_resources',
+					args: { docname: frm.doc.name },
+					freeze: true,
+					freeze_message: __('Refreshing video and scan paths...'),
+					callback: function(r) {
+						if (r.message) {
+							frappe.msgprint({
+								message: r.message.message,
+								title: r.message.updated ? __('Resources Updated') : __('No Changes'),
+								indicator: r.message.updated ? 'green' : 'blue'
+							});
+							if (r.message.updated) {
+								frm.reload_doc();
+							}
+						}
+					}
+				});
+			}, __('Actions'));
 		}
 		
 		// Highlight sections and fields
@@ -266,12 +287,12 @@ function prepopulate_users(frm, clear_existing = false) {
 				});
 				
 				frm.refresh_field('document_users');
-				frappe.show_alert({
-					message: __('Added {0} users to the list', [r.message.length]),
-					indicator: 'green'
-				}, 5);
+				// frappe.show_alert({
+				// 	message: __('Added {0} users to the list', [r.message.length]),
+				// 	indicator: 'green'
+				// }, 5);
 			} else {
-				frappe.msgprint(__('No users found in Laser Approval User Item'));
+				// frappe.msgprint(__('No users found in Laser Approval User Item'));
 			}
 		}
 	});
@@ -284,10 +305,10 @@ function open_video_file(docname, video_type, file_type) {
 	// Open in new tab - video will play in browser
 	window.open(url, '_blank');
 
-	frappe.show_alert({
-		message: __('Opening {0}...', [file_type]),
-		indicator: 'blue'
-	}, 2);
+	// frappe.show_alert({
+	// 	message: __('Opening {0}...', [file_type]),
+	// 	indicator: 'blue'
+	// }, 2);
 }
 
 function open_packet_scan_file(docname, row_id) {
@@ -297,8 +318,8 @@ function open_packet_scan_file(docname, row_id) {
 	// Open in new tab - file will display in browser (PDF, image, etc.)
 	window.open(url, '_blank');
 
-	frappe.show_alert({
-		message: __('Opening packet scan file...'),
-		indicator: 'blue'
-	}, 2);
+	// frappe.show_alert({
+	// 	message: __('Opening packet scan file...'),
+	// 	indicator: 'blue'
+	// }, 2);
 }
