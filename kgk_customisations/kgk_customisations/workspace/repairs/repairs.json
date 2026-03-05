@@ -52,7 +52,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-02-17 10:51:35.757690",
+ "modified": "2026-03-05 11:33:37.557659",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Repairs",
@@ -61,8 +61,15 @@
  "parent_page": "Production",
  "public": 1,
  "quick_lists": [],
- "roles": [],
- "sequence_id": 5.0,
+ "roles": [
+  {
+   "role": "Fulfillment User"
+  },
+  {
+   "role": "Report Manager"
+  }
+ ],
+ "sequence_id": 12.0,
  "shortcuts": [
   {
    "color": "Grey",

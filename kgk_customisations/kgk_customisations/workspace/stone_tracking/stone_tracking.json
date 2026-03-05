@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"OgvxnYs-T6\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Data Entries</span>\",\"col\":12}},{\"id\":\"ncwsLA4IEi\",\"type\":\"card\",\"data\":{\"card_name\":\"Lot Management\",\"col\":4}},{\"id\":\"M4kz5k7MaR\",\"type\":\"card\",\"data\":{\"card_name\":\"Stone Management\",\"col\":4}},{\"id\":\"4vQnjDd9v1\",\"type\":\"card\",\"data\":{\"card_name\":\"Rough Stone Predictions\",\"col\":4}},{\"id\":\"tsmxk9ypBY\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports</b></span>\",\"col\":12}},{\"id\":\"jjZpM0I67Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Stone Prediction Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"OgvxnYs-T6\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Data Entries</span>\",\"col\":12}},{\"id\":\"M4kz5k7MaR\",\"type\":\"card\",\"data\":{\"card_name\":\"Stone Management\",\"col\":4}},{\"id\":\"4vQnjDd9v1\",\"type\":\"card\",\"data\":{\"card_name\":\"Rough Stone Predictions\",\"col\":4}},{\"id\":\"tsmxk9ypBY\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports</b></span>\",\"col\":12}},{\"id\":\"jjZpM0I67Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Stone Prediction Reports\",\"col\":4}}]",
  "creation": "2025-10-06 16:32:06.996865",
  "custom_blocks": [],
  "docstatus": 0,
@@ -79,28 +79,9 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Lot Management",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Lot Searcher",
-   "link_count": 0,
-   "link_to": "lot_searcher",
-   "link_type": "Page",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2026-02-17 10:51:35.849352",
+ "modified": "2026-03-05 11:53:17.472821",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Stone Tracking",
@@ -123,7 +104,7 @@
    "role": "ICT Admin"
   }
  ],
- "sequence_id": 8.0,
+ "sequence_id": 13.0,
  "shortcuts": [],
  "title": "Stone Tracking"
 }
