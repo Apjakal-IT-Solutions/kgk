@@ -72,6 +72,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "CTS TOTAL",
+   "no_copy": 1,
    "non_negative": 1,
    "precision": "2",
    "reqd": 1
@@ -91,7 +92,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-20 11:24:11.301985",
+ "modified": "2026-03-05 16:15:04.595372",
  "modified_by": "Administrator",
  "module": "Laser",
  "name": "Laser Stock Position",

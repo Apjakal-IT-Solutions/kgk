@@ -68,6 +68,7 @@
    "fieldname": "round_actual",
    "fieldtype": "Float",
    "label": "Actual",
+   "no_copy": 1,
    "non_negative": 1,
    "options": "Department",
    "precision": "2",
@@ -97,6 +98,7 @@
    "fieldname": "fancy_actual",
    "fieldtype": "Float",
    "label": "Actual",
+   "no_copy": 1,
    "non_negative": 1,
    "precision": "2",
    "reqd": 1
@@ -136,6 +138,7 @@
    "fieldname": "fancy_reason",
    "fieldtype": "Link",
    "label": "Reason",
+   "no_copy": 1,
    "options": "Reason"
   },
   {
@@ -153,7 +156,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-20 11:28:33.122426",
+ "modified": "2026-03-05 16:13:47.310187",
  "modified_by": "Administrator",
  "module": "Production",
  "name": "Planning Main",

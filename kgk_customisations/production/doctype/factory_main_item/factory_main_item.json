@@ -63,6 +63,7 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Actual",
+   "no_copy": 1,
    "non_negative": 1,
    "precision": "2",
    "reqd": 1
@@ -77,6 +78,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Reason",
+   "no_copy": 1,
    "options": "Reason"
   }
  ],
@@ -84,7 +86,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-20 11:21:17.382782",
+ "modified": "2026-03-05 16:12:59.402890",
  "modified_by": "Administrator",
  "module": "Production",
  "name": "Factory Main Item",

@@ -2,6 +2,17 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Factory Entry", {
+	onload(frm) {
+		if (frm.is_new() && frm.doc.factory_entry_item_table && frm.doc.factory_entry_item_table.length > 0) {
+			// Re-fetch employee-driven fields for each child row when duplicating
+			frm.doc.factory_entry_item_table.forEach(row => {
+				if (row.employee) {
+					frm.script_manager.trigger('employee', row.doctype, row.name);
+				}
+			});
+		}
+	},
+
 	refresh(frm) {
 		// get employees from employee targets based on selected section
 		if (frm.doc.section) {
