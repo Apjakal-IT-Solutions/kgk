@@ -8,7 +8,165 @@ from datetime import date
 
 
 class StoneBreakingReport(Document):
-	pass
+	def before_print(self, print_settings=None):
+		try:
+			self.breaking_report_html = self._build_breaking_report_html()
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "StoneBreakingReport.before_print")
+			self.breaking_report_html = "<p style='color:red'>Breaking summary could not be computed.</p>"
+
+	def _build_breaking_report_html(self):
+		from datetime import date as date_cls
+
+		summary = get_breaking_summary(department=self.department, current_doc_name=self.name)
+		if not summary:
+			summary = {
+				"currentMonth": {"stoneFault": {}, "workerFault": {}},
+				"currentYear": {"stoneFault": {}, "workerFault": {}},
+				"workers": {},
+			}
+
+		ba = flt(self.breaking_amount)
+		opv = flt(self.org_plan_value)
+
+		if ba and opv:
+			doc_date = getdate(self.date) if self.date else getdate(today())
+			today_date = getdate(today())
+			current_month_start = date_cls(today_date.year, today_date.month, 1)
+			fy_start_year = today_date.year if today_date.month >= 4 else today_date.year - 1
+			fy_start_date = date_cls(fy_start_year, 4, 1)
+			is_month = doc_date >= current_month_start
+			is_fy = doc_date >= fy_start_date
+			bucket = "stoneFault" if self.stone_fault else "workerFault"
+
+			for period_key, condition in [("currentMonth", is_month), ("currentYear", is_fy)]:
+				if condition:
+					b = summary[period_key][bucket]
+					b["breaking_amount"] = flt(b.get("breaking_amount", 0)) + ba
+					b["org_plan_value"] = flt(b.get("org_plan_value", 0)) + opv
+
+			for worker in self.article_workers or []:
+				code = worker.employee_code
+				if not code:
+					continue
+				if code not in summary["workers"]:
+					summary["workers"][code] = {
+						"employee_code": code,
+						"worker_name": worker.worker_name or "",
+						"month": {"breaking_amount": 0, "org_plan_value": 0, "breaking_percentage": 0},
+						"ytd": {"breaking_amount": 0, "org_plan_value": 0, "breaking_percentage": 0},
+					}
+				w_ba = flt(worker.breaking_amount)
+				if is_month:
+					summary["workers"][code]["month"]["breaking_amount"] += w_ba
+					summary["workers"][code]["month"]["org_plan_value"] += opv
+				if is_fy:
+					summary["workers"][code]["ytd"]["breaking_amount"] += w_ba
+					summary["workers"][code]["ytd"]["org_plan_value"] += opv
+
+			def calc_pct(b):
+				opv_val = flt(b.get("org_plan_value", 0))
+				b["breaking_percentage"] = (flt(b.get("breaking_amount", 0)) / opv_val * 100) if opv_val else 0
+
+			for period in ["currentMonth", "currentYear"]:
+				for fault in ["stoneFault", "workerFault"]:
+					calc_pct(summary[period][fault])
+			for w in summary["workers"].values():
+				calc_pct(w["month"])
+				calc_pct(w["ytd"])
+
+		return self._render_summary_html(summary)
+
+	def _render_summary_html(self, summary):
+		def fmt(v):
+			return f"{flt(v):.2f}"
+
+		def fmt_pct(v):
+			return f"{flt(v):.2f}%"
+
+		dept = self.department or "Dept."
+		cm = summary.get("currentMonth", {})
+		cy = summary.get("currentYear", {})
+
+		def summary_rows(label, period):
+			stone = period.get("stoneFault", {})
+			worker = period.get("workerFault", {})
+			total_ba = flt(stone.get("breaking_amount", 0)) + flt(worker.get("breaking_amount", 0))
+			total_opv = flt(stone.get("org_plan_value", 0)) + flt(worker.get("org_plan_value", 0))
+			total_pct = (total_ba / total_opv * 100) if total_opv else 0
+			return f"""
+		<tr style="border-bottom: 1px solid #ebeff2;">
+			<td style="padding: 10px; color: #444; vertical-align: top;">
+				<div style="font-weight: bold; margin-bottom: 5px;">{label}</div>
+				<div>Stone</div><div>Worker</div><div>Total</div>
+			</td>
+			<td style="padding: 10px; color: #444; vertical-align: top;">
+				<div style="height: 22px;"></div>
+				<div>{fmt(stone.get("breaking_amount", 0))}</div>
+				<div>{fmt(worker.get("breaking_amount", 0))}</div>
+				<div>{fmt(total_ba)}</div>
+			</td>
+			<td style="padding: 10px; color: #444; vertical-align: top;">
+				<div style="height: 22px;"></div>
+				<div>{fmt(stone.get("org_plan_value", 0))}</div>
+				<div>{fmt(worker.get("org_plan_value", 0))}</div>
+				<div>{fmt(total_opv)}</div>
+			</td>
+			<td style="padding: 10px; color: #444; vertical-align: top;">
+				<div style="height: 22px;"></div>
+				<div>{fmt_pct(stone.get("breaking_percentage", 0))}</div>
+				<div>{fmt_pct(worker.get("breaking_percentage", 0))}</div>
+				<div>{fmt_pct(total_pct)}</div>
+			</td>
+		</tr>"""
+
+		workers = summary.get("workers", {})
+		current_codes = [w.employee_code for w in (self.article_workers or []) if w.employee_code]
+
+		def worker_section(period_key, label):
+			rows = f"""<tr style="border-bottom: 1px solid #ebeff2;">
+			<td colspan="4" style="padding: 10px; color: #444; font-weight: bold;">{label}</td>
+		</tr>"""
+			has_any = False
+			for code in current_codes:
+				w = workers.get(code)
+				if not w:
+					continue
+				has_any = True
+				period = w.get(period_key, {})
+				name_label = f"{w.get('worker_name', '')} ({code})" if w.get("worker_name") else code
+				rows += f"""<tr style="border-bottom: 1px solid #ebeff2;">
+				<td style="padding: 10px 10px 10px 20px; color: #444;">{name_label}</td>
+				<td style="padding: 10px; color: #444;">{fmt(period.get("breaking_amount", 0))}</td>
+				<td style="padding: 10px; color: #444;">{fmt(period.get("org_plan_value", 0))}</td>
+				<td style="padding: 10px; color: #444;">{fmt_pct(period.get("breaking_percentage", 0))}</td>
+			</tr>"""
+			if not has_any:
+				rows += """<tr><td colspan="4" style="padding: 10px; text-align: center; color: #999;">No worker data available</td></tr>"""
+			return rows
+
+		return f"""<table style="width: 100%; border-collapse: collapse; margin: 10px 0; font-family: sans-serif;">
+	<thead>
+		<tr style="background-color: #f8f9fa; border-bottom: 2px solid #d1d8dd;">
+			<th style="padding: 12px; text-align: left; color: #800000;">{dept}</th>
+			<th style="padding: 12px; text-align: left; color: #800000;">Breaking amnt.</th>
+			<th style="padding: 12px; text-align: left; color: #800000;">Org amnt.</th>
+			<th style="padding: 12px; text-align: left; color: #800000;">Breaking %</th>
+		</tr>
+	</thead>
+	<tbody>
+		{summary_rows("Month", cm)}
+		{summary_rows("Year To Date", cy)}
+		<tr style="background-color: #f8f9fa; border-bottom: 2px solid #d1d8dd;">
+			<th style="padding: 10px; color: #800000;">Employee</th>
+			<th style="padding: 10px; color: #800000;">Breaking Amnt.</th>
+			<th style="padding: 10px; color: #800000;">Org Amnt.</th>
+			<th style="padding: 10px; color: #800000;">Breaking %</th>
+		</tr>
+		{worker_section("month", "Month")}
+		{worker_section("ytd", "Year To Date")}
+	</tbody>
+</table>"""
 
 
 @frappe.whitelist()

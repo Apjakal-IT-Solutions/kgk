@@ -31,7 +31,8 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Actual",
-   "precision": "2"
+   "precision": "2",
+   "width": "1"
   },
   {
    "fieldname": "column_break_knyd",
@@ -52,14 +53,15 @@
    "fieldname": "factory_code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Factory Code"
+   "label": "Factory Code",
+   "width": "2"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-09 10:40:24.926969",
+ "modified": "2026-03-09 12:22:56.101204",
  "modified_by": "Administrator",
  "module": "Production",
  "name": "Factory Entry Additional Process",

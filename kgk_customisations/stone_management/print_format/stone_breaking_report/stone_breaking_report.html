@@ -1,0 +1,62 @@
+<style>.sbr-table{width:100%;border-collapse:collapse;margin:10px 0;font-family:sans-serif;font-size:13px}.sbr-table th{padding:10px 12px;text-align:left;color:#800000;background:#f8f9fa;border-bottom:2px solid #d1d8dd}.sbr-table td{padding:8px 12px;color:#444;border-bottom:1px solid #ebeff2}.sbr-label{color:#888;font-size:11px;margin-bottom:2px}.sbr-value{font-weight:600;font-size:13px}h3.sbr-section{color:#800000;border-bottom:1px solid #d1d8dd;padding-bottom:4px;margin:18px 0 8px;font-size:12px;letter-spacing:.5px;text-transform:uppercase}</style>
+<h2 style='text-align:center;color:#800000;margin-bottom:4px'>Stone Breaking Report</h2>
+<p style='text-align:center;color:#888;font-size:12px;margin-top:0'>{{ doc.name }}</p>
+
+<table class='sbr-table'>
+  <tr>
+    <td><div class='sbr-label'>ORG Lot ID</div><div class='sbr-value'>{{ doc.org_lot_id or '' }}</div></td>
+    <td><div class='sbr-label'>Polish Lot ID</div><div class='sbr-value'>{{ doc.polish_lot_id or '' }}</div></td>
+    <td><div class='sbr-label'>Date</div><div class='sbr-value'>{{ doc.date or '' }}</div></td>
+    <td><div class='sbr-label'>Serial Number</div><div class='sbr-value'>{{ doc.serial_number or '' }}</div></td>
+  </tr>
+  <tr>
+    <td><div class='sbr-label'>Department</div><div class='sbr-value'>{{ doc.department or '' }}</div></td>
+    <td><div class='sbr-label'>Reported By</div><div class='sbr-value'>{{ doc.reported_by or '' }}</div></td>
+    <td><div class='sbr-label'>Tension Type</div><div class='sbr-value'>{{ (doc.tension_type_data_field or '').upper() }}</div></td>
+    <td></td>
+  </tr>
+</table>
+
+<h3 class='sbr-section'>Article Detail</h3>
+<table class='sbr-table'>
+  <tr><th>ORG Plan Value</th><th>Revised Value</th><th>Breaking Amnt.</th><th>Breaking %</th></tr>
+  <tr>
+    <td>{{ '%.2f'|format(doc.org_plan_value or 0) }}</td>
+    <td>{{ '%.2f'|format(doc.revised_value or 0) }}</td>
+    <td>{{ '%.2f'|format(doc.breaking_amount or 0) }}</td>
+    <td>{{ '%.2f'|format(doc.breaking_percent or 0) }}%</td>
+  </tr>
+</table>
+
+<h3 class='sbr-section'>Worker Information</h3>
+<table class='sbr-table'>
+  <tr><th>Worker Name</th><th>Employee Code</th><th>Worker Type</th><th>Breaking Amnt.</th></tr>
+  {% for row in doc.article_workers %}
+  <tr>
+    <td>{{ row.worker_name or '' }}</td>
+    <td>{{ row.employee_code or '' }}</td>
+    <td>{{ row.worker_type or '' }}</td>
+    <td>{{ '%.2f'|format(row.breaking_amount or 0) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% if doc.supervisor_comment %}
+<p><strong>Supervisor Comment:</strong> {{ doc.supervisor_comment }}</p>
+{% endif %}
+
+<h3 class='sbr-section'>Breaking Summary</h3>
+{{ doc.breaking_report_html | safe }}
+
+<h3 class='sbr-section'>Approval</h3>
+<table class='sbr-table'>
+  <tr>
+    <td><div class='sbr-label'>Approval Date</div><div class='sbr-value'>{{ doc.approval_date or '' }}</div></td>
+    <td><div class='sbr-label'>Result</div><div class='sbr-value'>{{ doc.result or '' }}</div></td>
+    <td><div class='sbr-label'>Stone Fault</div><div class='sbr-value'>{{ 'Yes' if doc.stone_fault else 'No' }}</div></td>
+    <td><div class='sbr-label'>Worker Fault</div><div class='sbr-value'>{{ 'Yes' if doc.worker_fault else 'No' }}</div></td>
+  </tr>
+  {% if doc.remark %}
+  <tr><td colspan='4'><div class='sbr-label'>Remark</div><div class='sbr-value'>{{ doc.remark }}</div></td></tr>
+  {% endif %}
+</table>

@@ -86,7 +86,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-20 11:19:43.325622",
+ "modified": "2026-03-09 14:36:20.197811",
  "modified_by": "Administrator",
  "module": "Production",
  "name": "Factory Entry",
@@ -106,6 +106,7 @@
    "write": 1
   },
   {
+   "amend": 1,
    "cancel": 1,
    "create": 1,
    "delete": 1,
