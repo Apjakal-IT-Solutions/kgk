@@ -9,7 +9,9 @@
   "working_date",
   "column_break_ixcz",
   "section_break_rltk",
-  "table_qmsd",
+  "primary_process_table",
+  "additional_process_section",
+  "additional_process_table",
   "section_break_esw0",
   "amended_from"
  ],
@@ -17,7 +19,6 @@
   {
    "fieldname": "working_date",
    "fieldtype": "Date",
-   "in_list_view": 1,
    "label": "Working Date"
   },
   {
@@ -26,12 +27,8 @@
   },
   {
    "fieldname": "section_break_rltk",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "table_qmsd",
-   "fieldtype": "Table",
-   "options": "Planning M-Box Item"
+   "fieldtype": "Section Break",
+   "label": "Primary Processes"
   },
   {
    "fieldname": "section_break_esw0",
@@ -46,13 +43,28 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "additional_process_section",
+   "fieldtype": "Section Break",
+   "label": "Additional Process"
+  },
+  {
+   "fieldname": "primary_process_table",
+   "fieldtype": "Table",
+   "options": "Planning M-Box Item"
+  },
+  {
+   "fieldname": "additional_process_table",
+   "fieldtype": "Table",
+   "options": "Planning M-Box Additional Process Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-27 14:24:50.803011",
+ "modified": "2026-03-09 10:10:31.393088",
  "modified_by": "Administrator",
  "module": "Production",
  "name": "Planning M-Box",

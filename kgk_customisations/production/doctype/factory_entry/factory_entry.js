@@ -129,7 +129,7 @@ frappe.ui.form.on("Factory Entry Additional Process", {
 	additional_process_item_table_remove: function(frm) {
 		apply_additional_process_highlighting(frm);
 	},
-	parent_row_idx: function(frm) {
+	factory_code: function(frm) {
 		apply_additional_process_highlighting(frm);
 	}
 });
@@ -142,20 +142,20 @@ function apply_additional_process_highlighting(frm) {
 		let grid = frm.fields_dict.factory_entry_item_table.grid;
 		if (!grid.grid_rows) return;
 		
-		// Get all parent_row_idx values that have additional processes
+		// Get all factory_codes that have additional processes
 		let rows_with_additional = new Set();
 		if (frm.doc.additional_process_item_table) {
 			frm.doc.additional_process_item_table.forEach(process => {
-				if (process.parent_row_idx) {
-					rows_with_additional.add(process.parent_row_idx);
+				if (process.factory_code) {
+					rows_with_additional.add(process.factory_code);
 				}
 			});
 		}
 		
 		// Apply highlighting to each grid row
 		grid.grid_rows.forEach(grid_row => {
-			if (grid_row.doc && grid_row.doc.idx) {
-				if (rows_with_additional.has(grid_row.doc.idx)) {
+			if (grid_row.doc && grid_row.doc.employee_code) {
+				if (rows_with_additional.has(grid_row.doc.employee_code)) {
 					// Add highlight - light blue background with left border
 					grid_row.wrapper.css({
 						'border': '3px solid #2490ef',

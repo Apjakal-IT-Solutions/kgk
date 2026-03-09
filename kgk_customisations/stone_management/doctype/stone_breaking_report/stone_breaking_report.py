@@ -147,3 +147,6 @@ def get_breaking_summary(department, current_doc_name=None):
 		},
 		"workers": worker_stats,
 	}
+
+	
+

@@ -1,17 +1,17 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-11-24 09:15:05.159744",
+ "creation": "2026-03-09 09:47:31.097123",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "factory_process",
-  "column_break_oflj",
+  "column_break_utob",
   "actual",
-  "column_break_knyd",
-  "process_reason",
-  "column_break_bwec",
+  "column_break_umkw",
+  "reason",
+  "column_break_bhus",
   "factory_code"
  ],
  "fields": [
@@ -19,33 +19,32 @@
    "fieldname": "factory_process",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Factory Process",
+   "label": "Process",
    "options": "Factory Process"
   },
   {
-   "fieldname": "column_break_oflj",
+   "fieldname": "column_break_utob",
    "fieldtype": "Column Break"
   },
   {
    "fieldname": "actual",
-   "fieldtype": "Float",
+   "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Actual",
-   "precision": "2"
+   "label": "Actual"
   },
   {
-   "fieldname": "column_break_knyd",
+   "fieldname": "column_break_umkw",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "process_reason",
+   "fieldname": "reason",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Process Reason",
+   "label": "Reason",
    "options": "Reason"
   },
   {
-   "fieldname": "column_break_bwec",
+   "fieldname": "column_break_bhus",
    "fieldtype": "Column Break"
   },
   {
@@ -59,13 +58,14 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-09 10:40:24.926969",
+ "modified": "2026-03-09 09:55:34.389186",
  "modified_by": "Administrator",
  "module": "Production",
- "name": "Factory Entry Additional Process",
+ "name": "Planning M-Box Additional Process Item",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
