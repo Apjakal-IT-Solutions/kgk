@@ -17,6 +17,7 @@
   "tension_type",
   "remarks",
   "plan_change_type",
+  "sawing_from",
   "column_break_nvwi",
   "org_plan_value",
   "revised_value",
@@ -92,8 +93,7 @@
    "in_standard_filter": 1,
    "label": "ORG Lot ID",
    "no_copy": 1,
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "fieldname": "polish_lot_id",
@@ -194,6 +194,7 @@
    "options": "Laser Approval User"
   },
   {
+   "default": "0",
    "fieldname": "micron_safe",
    "fieldtype": "Data",
    "label": "Micron Safe"
@@ -356,13 +357,19 @@
    "label": "Checked",
    "permlevel": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "sawing_from",
+   "fieldtype": "Select",
+   "label": "Sawing From",
+   "options": "\nWater Jet\nQuazer"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-25 08:42:46.296017",
+ "modified": "2026-03-10 15:57:38.104400",
  "modified_by": "Administrator",
  "module": "Laser",
  "name": "Laser Approval",
