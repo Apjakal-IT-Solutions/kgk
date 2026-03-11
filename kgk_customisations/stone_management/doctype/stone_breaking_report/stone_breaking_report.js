@@ -28,6 +28,11 @@ function syncRadioButtonWithValue(frm) {
 // HELPER FUNCTIONS
 // ============================================================================
 
+function getBaseLotId(name) {
+    // Strip -b, -c, …, -z, -aa, -ab, … suffix to get the original lot ID
+    return (name || '').replace(/-[a-z]+$/, '');
+}
+
 function formatNumber(value) {
     return (value || 0).toFixed(2);
 }
@@ -219,17 +224,31 @@ function includeCurrentDocument(frm, summary) {
     const isCurrentFY = docDate >= fyStartDate;
 
     const bucket = frm.doc.stone_fault ? 'stoneFault' : 'workerFault';
+    const baseLot = getBaseLotId(frm.doc.name);
+
+    // Retrieve counted lot sets from server response
+    const countedLots = summary.counted_lots || {};
+    const seenYear = new Set(countedLots.year || []);
+    const seenMonth = new Set(countedLots.month || []);
+    const workerSeenYear = countedLots.worker_year || {};
+    const workerSeenMonth = countedLots.worker_month || {};
+
+    // Add to year summary — org_plan_value only if lot not already counted
+    if (isCurrentFY) {
+        summary.currentYear[bucket].breaking_amount += breakingAmount;
+        if (!seenYear.has(baseLot)) {
+            seenYear.add(baseLot);
+            summary.currentYear[bucket].org_plan_value += orgPlanValue;
+        }
+    }
 
     // Add to month summary
     if (isCurrentMonth) {
         summary.currentMonth[bucket].breaking_amount += breakingAmount;
-        summary.currentMonth[bucket].org_plan_value += orgPlanValue;
-    }
-
-    // Add to year summary
-    if (isCurrentFY) {
-        summary.currentYear[bucket].breaking_amount += breakingAmount;
-        summary.currentYear[bucket].org_plan_value += orgPlanValue;
+        if (!seenMonth.has(baseLot)) {
+            seenMonth.add(baseLot);
+            summary.currentMonth[bucket].org_plan_value += orgPlanValue;
+        }
     }
 
     // Add current document's workers to worker stats
@@ -245,13 +264,21 @@ function includeCurrentDocument(frm, summary) {
                     ytd: { breaking_amount: 0, org_plan_value: 0, breaking_percentage: 0 }
                 };
             }
-            if (isCurrentMonth) {
-                summary.workers[code].month.breaking_amount += flt(worker.breaking_amount) || 0;
-                summary.workers[code].month.org_plan_value += orgPlanValue;
-            }
+            // Per-worker lot dedup
+            const wSeenYear = new Set(workerSeenYear[code] || []);
+            const wSeenMonth = new Set(workerSeenMonth[code] || []);
+
             if (isCurrentFY) {
                 summary.workers[code].ytd.breaking_amount += flt(worker.breaking_amount) || 0;
-                summary.workers[code].ytd.org_plan_value += orgPlanValue;
+                if (!wSeenYear.has(baseLot)) {
+                    summary.workers[code].ytd.org_plan_value += orgPlanValue;
+                }
+            }
+            if (isCurrentMonth) {
+                summary.workers[code].month.breaking_amount += flt(worker.breaking_amount) || 0;
+                if (!wSeenMonth.has(baseLot)) {
+                    summary.workers[code].month.org_plan_value += orgPlanValue;
+                }
             }
         });
     }
