@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "creation": "2026-03-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "cash_counter",
+  "bank_counter",
+  "cash_2_counter",
+  "bank_2_counter",
+  "je_counter"
+ ],
+ "fields": [
+  {
+   "fieldname": "cash_counter",
+   "fieldtype": "Int",
+   "label": "Cash Counter (25-n)",
+   "default": "0"
+  },
+  {
+   "fieldname": "bank_counter",
+   "fieldtype": "Int",
+   "label": "Bank Counter (Bn)",
+   "default": "0"
+  },
+  {
+   "fieldname": "cash_2_counter",
+   "fieldtype": "Int",
+   "label": "Cash-2 Counter (C2-25-n)",
+   "default": "0"
+  },
+  {
+   "fieldname": "bank_2_counter",
+   "fieldtype": "Int",
+   "label": "Bank-2 Counter (B2-n)",
+   "default": "0"
+  },
+  {
+   "fieldname": "je_counter",
+   "fieldtype": "Int",
+   "label": "JE Counter (JEn)",
+   "default": "0"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-03-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Finance Management",
+ "name": "Cash Voucher Series",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "write": 1,
+   "role": "Administrator"
+  },
+  {
+   "read": 1,
+   "write": 1,
+   "role": "Cash Super User"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

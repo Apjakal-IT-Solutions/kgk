@@ -11,4 +11,6 @@ kgk_customisations.kgk_customisations.patches.migrate_india_planning_working_dat
 kgk_customisations.kgk_customisations.patches.make_laser_stock_position_submittable
 kgk_customisations.patches.v1_0.rename_laser_approval_records
 # kgk_customisations.kgk_customisations.patches.v1_0.fix_invoice_date_swap  # Already executed manually
+kgk_customisations.patches.v1_0.seed_cash_voucher_series
+kgk_customisations.patches.v1_0.resync_cash_voucher_series
 # kgk_customisations.kgk_customisations.patches.v1_0.add_invoice_processing_composite_key  # Handled by Python validation
