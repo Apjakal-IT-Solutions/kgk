@@ -67,74 +67,53 @@ function recalculate_breaking_amount(frm) {
 
 
 function updateWorkerTables(wrapper, monthWorkers, ytdWorkers) {
-    // Build a single grouped table: Month sub-header + month worker rows, then YTD sub-header + YTD worker rows
-    let html = '';
+    // Single worker per report: full rebuild of header + two data rows on every call
+    const monthEntry = (monthWorkers && Object.keys(monthWorkers).length > 0)
+        ? Object.values(monthWorkers)[0] : null;
+    const ytdEntry = (ytdWorkers && Object.keys(ytdWorkers).length > 0)
+        ? Object.values(ytdWorkers)[0] : null;
+    const workerObj = monthEntry || ytdEntry;
 
-    // --- Month section ---
-    const hasMonthWorkers = monthWorkers && Object.keys(monthWorkers).length > 0;
-    html += `<tr class="worker-section-row worker-subheader" style="border-bottom: 1px solid #ebeff2;">
-        <td colspan="4" style="padding: 10px; color: #444; font-weight: bold;">Month</td>
-    </tr>`;
-    if (hasMonthWorkers) {
-        Object.values(monthWorkers).forEach(worker => {
-            let label = worker.worker_name
-                ? `${worker.worker_name} (${worker.employee_code || ''})`
-                : (worker.employee_code || 'N/A');
-            html += `
-                <tr class="worker-section-row" style="border-bottom: 1px solid #ebeff2;">
-                    <td style="padding: 10px 10px 10px 20px; color: #444;">${label}</td>
-                    <td style="padding: 10px; color: #444;">${formatNumber(worker.breaking_amount)}</td>
-                    <td style="padding: 10px; color: #444;">${formatNumber(worker.org_plan_value)}</td>
-                    <td style="padding: 10px; color: #444;">${formatPercent(worker.breaking_percentage)}</td>
-                </tr>`;
-        });
-    } else {
-        html += `<tr class="worker-section-row">
-            <td colspan="4" style="padding: 10px 10px 10px 20px; text-align: center; color: #999;">No worker data available for Month</td>
-        </tr>`;
-    }
-
-    // --- Year To Date section ---
-    const hasYtdWorkers = ytdWorkers && Object.keys(ytdWorkers).length > 0;
-    html += `<tr class="worker-section-row worker-subheader" style="border-bottom: 1px solid #ebeff2;">
-        <td colspan="4" style="padding: 10px; color: #444; font-weight: bold;">Year To Date</td>
-    </tr>`;
-    if (hasYtdWorkers) {
-        Object.values(ytdWorkers).forEach(worker => {
-            let label = worker.worker_name
-                ? `${worker.worker_name} (${worker.employee_code || ''})`
-                : (worker.employee_code || 'N/A');
-            html += `
-                <tr class="worker-section-row" style="border-bottom: 1px solid #ebeff2;">
-                    <td style="padding: 10px 10px 10px 20px; color: #444;">${label}</td>
-                    <td style="padding: 10px; color: #444;">${formatNumber(worker.breaking_amount)}</td>
-                    <td style="padding: 10px; color: #444;">${formatNumber(worker.org_plan_value)}</td>
-                    <td style="padding: 10px; color: #444;">${formatPercent(worker.breaking_percentage)}</td>
-                </tr>`;
-        });
-    } else {
-        html += `<tr class="worker-section-row">
-            <td colspan="4" style="padding: 10px 10px 10px 20px; text-align: center; color: #999;">No worker data available for YTD</td>
-        </tr>`;
-    }
-
-    // Clean up: remove all previously inserted worker section rows
-    wrapper.find('.worker-section-row').remove();
-    // Remove old-style placeholders/headers if still present from legacy template
-    wrapper.find('#worker_table_placeholder_month, #worker_table_placeholder_ytd').remove();
+    // Remove all previously rendered worker rows (header + data)
+    wrapper.find('.worker-header-row, .worker-section-row').remove();
+    wrapper.find('#worker_table_placeholder, #worker_table_placeholder_month, #worker_table_placeholder_ytd').remove();
     wrapper.find('.worker-data-row-month, .worker-data-row-ytd, .worker-data-row').remove();
 
-    const placeholder = wrapper.find('#worker_table_placeholder');
-    if (placeholder.length) {
-        placeholder.replaceWith(html);
+    let nameLabel = 'Employee';
+    if (workerObj) {
+        nameLabel = workerObj.worker_name
+            ? `${workerObj.worker_name} (${workerObj.employee_code || ''})`
+            : (workerObj.employee_code || 'Employee');
+    }
+
+    let html = `<tr class="worker-header-row" style="background-color: #f8f9fa; border-bottom: 2px solid #d1d8dd;">
+        <th style="padding: 10px; color: #800000;">${nameLabel}</th>
+        <th style="padding: 10px; color: #800000;">Breaking Amnt.</th>
+        <th style="padding: 10px; color: #800000;">Org Amnt.</th>
+        <th style="padding: 10px; color: #800000;">Breaking %</th>
+    </tr>`;
+
+    if (!workerObj) {
+        html += `<tr class="worker-section-row">
+            <td colspan="4" style="padding: 10px; text-align: center; color: #999;">No worker data available</td>
+        </tr>`;
     } else {
-        // Append after the Employee header row
-        const headerRow = wrapper.find('th').filter(function() {
-            return $(this).text().trim() === 'Employee';
-        }).closest('tr').last();
-        if (headerRow.length) {
-            headerRow.after(html);
+        function periodRow(label, entry) {
+            return `<tr class="worker-section-row" style="border-bottom: 1px solid #ebeff2;">
+                <td style="padding: 10px; color: #444; font-weight: bold;">${label}</td>
+                <td style="padding: 10px; color: #444;">${formatNumber(entry ? entry.breaking_amount : 0)}</td>
+                <td style="padding: 10px; color: #444;">${formatNumber(entry ? entry.org_plan_value : 0)}</td>
+                <td style="padding: 10px; color: #444;">${formatPercent(entry ? entry.breaking_percentage : 0)}</td>
+            </tr>`;
         }
+        html += periodRow('Month', monthEntry) + periodRow('Year To Date', ytdEntry);
+    }
+
+    const sentinel = wrapper.find('#worker_section_sentinel');
+    if (sentinel.length) {
+        sentinel.after(html);
+    } else {
+        wrapper.find('tbody').append(html);
     }
 }
 

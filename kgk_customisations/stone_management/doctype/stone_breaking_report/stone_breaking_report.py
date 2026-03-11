@@ -9,8 +9,12 @@ from datetime import date
 
 
 def get_base_lot_id(name):
-	"""Strip the -b, -c, …, -z, -aa, -ab, … suffix to get the original lot ID."""
-	return re.sub(r'-[a-z]+$', '', name)
+	"""Strip amendment (-1, -2, …) and/or sibling (-b, -c, …) suffixes to get the original lot ID.
+	Examples: ABC123-b-1 → ABC123, ABC123-1 → ABC123, ABC123-b → ABC123
+	"""
+	name = re.sub(r'-\d+$', '', name)    # strip amendment suffix first
+	name = re.sub(r'-[a-z]+$', '', name) # then strip sibling suffix
+	return name
 
 
 def _next_suffix(existing_suffixes):
@@ -165,56 +169,62 @@ class StoneBreakingReport(Document):
 			total_ba = flt(stone.get("breaking_amount", 0)) + flt(worker.get("breaking_amount", 0))
 			total_opv = flt(stone.get("org_plan_value", 0)) + flt(worker.get("org_plan_value", 0))
 			total_pct = (total_ba / total_opv * 100) if total_opv else 0
+			total_style = "font-weight: bold; background-color: #f0f0f0; margin: 0 -10px; padding: 2px 10px;"
 			return f"""
 		<tr style="border-bottom: 1px solid #ebeff2;">
 			<td style="padding: 10px; color: #444; vertical-align: top;">
 				<div style="font-weight: bold; margin-bottom: 5px;">{label}</div>
-				<div>Stone</div><div>Worker</div><div>Total</div>
+				<div>Stone</div><div>Worker</div>
+				<div style="{total_style}">Total</div>
 			</td>
 			<td style="padding: 10px; color: #444; vertical-align: top;">
 				<div style="height: 22px;"></div>
 				<div>{fmt(stone.get("breaking_amount", 0))}</div>
 				<div>{fmt(worker.get("breaking_amount", 0))}</div>
-				<div>{fmt(total_ba)}</div>
+				<div style="{total_style}">{fmt(total_ba)}</div>
 			</td>
 			<td style="padding: 10px; color: #444; vertical-align: top;">
 				<div style="height: 22px;"></div>
 				<div>{fmt(stone.get("org_plan_value", 0))}</div>
 				<div>{fmt(worker.get("org_plan_value", 0))}</div>
-				<div>{fmt(total_opv)}</div>
+				<div style="{total_style}">{fmt(total_opv)}</div>
 			</td>
 			<td style="padding: 10px; color: #444; vertical-align: top;">
 				<div style="height: 22px;"></div>
 				<div>{fmt_pct(stone.get("breaking_percentage", 0))}</div>
 				<div>{fmt_pct(worker.get("breaking_percentage", 0))}</div>
-				<div>{fmt_pct(total_pct)}</div>
+				<div style="{total_style}">{fmt_pct(total_pct)}</div>
 			</td>
 		</tr>"""
 
 		workers = summary.get("workers", {})
 		current_codes = [w.employee_code for w in (self.article_workers or []) if w.employee_code]
 
-		def worker_section(period_key, label):
-			rows = f"""<tr style="border-bottom: 1px solid #ebeff2;">
-			<td colspan="4" style="padding: 10px; color: #444; font-weight: bold;">{label}</td>
-		</tr>"""
-			has_any = False
+		def worker_block():
+			w = None
+			name_label = "Employee"
 			for code in current_codes:
 				w = workers.get(code)
-				if not w:
-					continue
-				has_any = True
+				if w:
+					name_label = f"{w.get('worker_name', '')} ({code})" if w.get("worker_name") else code
+					break
+			header = f"""<tr style="background-color: #f8f9fa; border-bottom: 2px solid #d1d8dd;">
+			<th style="padding: 10px; color: #800000;">{name_label}</th>
+			<th style="padding: 10px; color: #800000;">Breaking Amnt.</th>
+			<th style="padding: 10px; color: #800000;">Org Amnt.</th>
+			<th style="padding: 10px; color: #800000;">Breaking %</th>
+		</tr>"""
+			if not w:
+				return header + """<tr><td colspan="4" style="padding: 10px; text-align: center; color: #999;">No worker data available</td></tr>"""
+			def period_row(label, period_key):
 				period = w.get(period_key, {})
-				name_label = f"{w.get('worker_name', '')} ({code})" if w.get("worker_name") else code
-				rows += f"""<tr style="border-bottom: 1px solid #ebeff2;">
-				<td style="padding: 10px 10px 10px 20px; color: #444;">{name_label}</td>
-				<td style="padding: 10px; color: #444;">{fmt(period.get("breaking_amount", 0))}</td>
-				<td style="padding: 10px; color: #444;">{fmt(period.get("org_plan_value", 0))}</td>
-				<td style="padding: 10px; color: #444;">{fmt_pct(period.get("breaking_percentage", 0))}</td>
-			</tr>"""
-			if not has_any:
-				rows += """<tr><td colspan="4" style="padding: 10px; text-align: center; color: #999;">No worker data available</td></tr>"""
-			return rows
+				return f"""<tr style="border-bottom: 1px solid #ebeff2;">
+			<td style="padding: 10px; color: #444; font-weight: bold;">{label}</td>
+			<td style="padding: 10px; color: #444;">{fmt(period.get("breaking_amount", 0))}</td>
+			<td style="padding: 10px; color: #444;">{fmt(period.get("org_plan_value", 0))}</td>
+			<td style="padding: 10px; color: #444;">{fmt_pct(period.get("breaking_percentage", 0))}</td>
+		</tr>"""
+			return header + period_row("Month", "month") + period_row("Year To Date", "ytd")
 
 		return f"""<table style="width: 100%; border-collapse: collapse; margin: 10px 0; font-family: sans-serif;">
 	<thead>
@@ -228,14 +238,7 @@ class StoneBreakingReport(Document):
 	<tbody>
 		{summary_rows("Month", cm)}
 		{summary_rows("Year To Date", cy)}
-		<tr style="background-color: #f8f9fa; border-bottom: 2px solid #d1d8dd;">
-			<th style="padding: 10px; color: #800000;">Employee</th>
-			<th style="padding: 10px; color: #800000;">Breaking Amnt.</th>
-			<th style="padding: 10px; color: #800000;">Org Amnt.</th>
-			<th style="padding: 10px; color: #800000;">Breaking %</th>
-		</tr>
-		{worker_section("month", "Month")}
-		{worker_section("ytd", "Year To Date")}
+		{worker_block()}
 	</tbody>
 </table>"""
 
