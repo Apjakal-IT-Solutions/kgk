@@ -418,7 +418,6 @@ def download_merged_pdf(doc_name):
 	doc = frappe.get_doc("Cash Document", doc_name)
 
 	# --- 1. Cover sheet PDF via frappe.get_print ---
-	# Uses internal printview path — no wkhtmltopdf network access issues
 	cover_bytes = frappe.get_print(
 		doctype="Cash Document",
 		name=doc_name,
@@ -427,37 +426,53 @@ def download_merged_pdf(doc_name):
 		no_letterhead=1,
 	)
 
-	# --- Merge with pypdf ---
 	writer = PdfWriter()
+	skipped = []
 
-	def _append_pdf_bytes(data, label=""):
+	def _append_file(path, label):
+		"""Append all pages from a PDF file on disk into the writer."""
 		try:
-			reader = PdfReader(io.BytesIO(data))
-			for page in reader.pages:
-				writer.add_page(page)
-		except Exception:
-			frappe.log_error(frappe.get_traceback(), f"Cash Document PDF merge — skipped {label}")
+			with open(path, "rb") as fh:
+				reader = PdfReader(fh)
+				for page in reader.pages:
+					writer.add_page(page)
+		except FileNotFoundError:
+			skipped.append(f"{label}: file not found at {path}")
+		except Exception as exc:
+			skipped.append(f"{label}: {exc}")
 
-	_append_pdf_bytes(cover_bytes, "cover sheet")
+	# Cover sheet (in-memory bytes)
+	try:
+		reader = PdfReader(io.BytesIO(cover_bytes))
+		for page in reader.pages:
+			writer.add_page(page)
+	except Exception as exc:
+		frappe.throw(frappe._("Could not read generated cover sheet: {0}").format(exc))
 
-	# --- 2. Main file ---
+	# --- 2. Main file — derive path directly from the /edox/ URL ---
 	if doc.main_file and doc.main_file.startswith("/edox/"):
-		main_path = os.path.join(_MOUNT_BASE, doc.name, doc.file_name or (doc.name + ".pdf"))
-		if os.path.isfile(main_path):
-			with open(main_path, "rb") as f:
-				_append_pdf_bytes(f.read(), f"main file {main_path}")
+		rel = doc.main_file[len("/edox/"):]          # e.g. "B1/B1.pdf"
+		main_path = os.path.join(_MOUNT_BASE, rel)   # /mnt/share/.../B1/B1.pdf
+		_append_file(main_path, f"main file ({doc.main_file})")
 
 	# --- 3. Supporting files ---
 	for row in doc.supporting_files:
-		url = row.get("file_attachment") or ""
+		url = row.file_attachment or ""
 		if not url.startswith("/edox/"):
 			continue
-		# Resolve mount path from URL: /edox/{dir}/{filename} → MOUNT_BASE/{dir}/{filename}
 		rel = url[len("/edox/"):]
 		supp_path = os.path.join(_MOUNT_BASE, rel)
-		if os.path.isfile(supp_path):
-			with open(supp_path, "rb") as f:
-				_append_pdf_bytes(f.read(), f"supporting {supp_path}")
+		_append_file(supp_path, f"supporting {row.file_suffix or ''} ({url})")
+
+	# Log any skipped files for the user to see (non-fatal)
+	if skipped:
+		frappe.log_error("\n".join(skipped), f"download_merged_pdf: {doc_name} — skipped files")
+		frappe.msgprint(
+			frappe._("Some attachments could not be included (logged to Error Log):<br>")
+			+ "<br>".join(skipped),
+			alert=True,
+			indicator="orange",
+		)
 
 	# --- 4. Stream result ---
 	output_buf = io.BytesIO()
