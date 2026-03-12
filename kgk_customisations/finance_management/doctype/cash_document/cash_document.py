@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Apjakal IT Solutions and contributors
 # For license information, please see license.txt
 
+import io
 import os
 import shutil
 import frappe
@@ -399,6 +400,75 @@ def import_je_details(file_url):
 		"xls_rows":  len(xls_index),
 	}
 
+
+@frappe.whitelist()
+def download_merged_pdf(doc_name):
+	"""Generate a merged PDF: cover sheet (print format) + main file + supporting files.
+
+	Returns the PDF as a file download response.
+	Steps:
+	  1. Render the 'Cash Document Print' print format HTML → PDF bytes (wkhtmltopdf)
+	  2. Read the main PDF from the e-dox mount (if set)
+	  3. Read each supporting _A/_B/… PDF from the mount
+	  4. Merge all into one PDF with pypdf
+	  5. Stream back as a file download
+	"""
+	from pypdf import PdfWriter, PdfReader
+	from frappe.utils.pdf import get_pdf
+	from frappe.www.printview import get_rendered_template
+
+	doc = frappe.get_doc("Cash Document", doc_name)
+
+	# --- 1. Cover sheet PDF ---
+	html = get_rendered_template(
+		doc=doc,
+		name=doc_name,
+		print_format="Cash Document Print",
+		meta=frappe.get_meta("Cash Document"),
+		no_letterhead=1,
+	)
+	cover_bytes = get_pdf(html)
+
+	# --- Merge with pypdf ---
+	writer = PdfWriter()
+
+	def _append_pdf_bytes(data, label=""):
+		try:
+			reader = PdfReader(io.BytesIO(data))
+			for page in reader.pages:
+				writer.add_page(page)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), f"Cash Document PDF merge — skipped {label}")
+
+	_append_pdf_bytes(cover_bytes, "cover sheet")
+
+	# --- 2. Main file ---
+	if doc.main_file and doc.main_file.startswith("/edox/"):
+		main_path = os.path.join(_MOUNT_BASE, doc.name, doc.file_name or (doc.name + ".pdf"))
+		if os.path.isfile(main_path):
+			with open(main_path, "rb") as f:
+				_append_pdf_bytes(f.read(), f"main file {main_path}")
+
+	# --- 3. Supporting files ---
+	for row in doc.supporting_files:
+		url = row.get("file_attachment") or ""
+		if not url.startswith("/edox/"):
+			continue
+		# Resolve mount path from URL: /edox/{dir}/{filename} → MOUNT_BASE/{dir}/{filename}
+		rel = url[len("/edox/"):]
+		supp_path = os.path.join(_MOUNT_BASE, rel)
+		if os.path.isfile(supp_path):
+			with open(supp_path, "rb") as f:
+				_append_pdf_bytes(f.read(), f"supporting {supp_path}")
+
+	# --- 4. Stream result ---
+	output_buf = io.BytesIO()
+	writer.write(output_buf)
+	pdf_bytes = output_buf.getvalue()
+
+	frappe.local.response.filename = f"{doc_name}.pdf"
+	frappe.local.response.filecontent = pdf_bytes
+	frappe.local.response.type = "download"
 
 
 # Internal helpers

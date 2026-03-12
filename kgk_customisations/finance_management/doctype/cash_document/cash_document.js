@@ -72,12 +72,17 @@ if (frm.doc.main_file) {
 	});
 }
 
-const roles = new Set(frappe.user_roles);
+// Download PDF — merged cover sheet + all attached PDFs
+frm.add_custom_button(__("Download PDF"), function () {
+	const url = `/api/method/kgk_customisations.finance_management.doctype.cash_document.cash_document.download_merged_pdf`
+		+ `?doc_name=${encodeURIComponent(frm.doc.name)}`;
+	window.open(url, "_blank");
+});
 const isSuperUser  = roles.has("Cash Super User") || roles.has("Administrator");
 const isAccountant = roles.has("Cash Accountant") || isSuperUser;
 const isChecker    = roles.has("Cash Checker")    || isSuperUser;
 
-// Finalise (status -> final) — draft only
+const roles = new Set(frappe.user_roles);
 if (isAccountant && frm.doc.docstatus === 0 && frm.doc.status !== "final") {
 frm.add_custom_button(__("Finalise"), function () {
 frappe.confirm(
