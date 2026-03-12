@@ -281,9 +281,7 @@ def resync_counters():
 def import_je_details(file_url):
 	"""Read an uploaded XLS/XLSX Fantasy Export file and populate Transaction
 	Details fields on all Cash Documents that have a JEID set.
-	The uploaded Frappe File doc is deleted after processing.
-	Restricted to Cash Super User."""
-	_require_role(["Cash Super User", "Administrator"])
+	The uploaded Frappe File doc is deleted after processing."""
 
 	# Resolve the uploaded file
 	file_docs = frappe.get_all(
@@ -400,120 +398,7 @@ def import_je_details(file_url):
 		"not_found": not_found,
 		"xls_rows":  len(xls_index),
 	}
-	"""Read the Fantasy Export XLS/XLSX and populate Transaction Details fields on
-	all Cash Documents that have a JEID set. Restricted to Cash Super User."""
-	_require_role(["Cash Super User", "Administrator"])
 
-	if not os.path.isfile(_FANTASY_XLS):
-		frappe.throw(frappe._("Fantasy Export file not found at: {0}").format(_FANTASY_XLS))
-
-	ext = os.path.splitext(_FANTASY_XLS)[1].lower()
-
-	def _iter_rows():
-		"""Yield raw row value lists from the spreadsheet, skipping the header."""
-		if ext == ".xlsx":
-			import openpyxl
-			wb = openpyxl.load_workbook(_FANTASY_XLS, read_only=True, data_only=True)
-			sh = wb.active
-			first = True
-			for row in sh.iter_rows(values_only=True):
-				if first:
-					first = False
-					continue
-				yield list(row)
-			wb.close()
-		else:
-			try:
-				import xlrd
-			except ImportError:
-				frappe.throw(frappe._("xlrd is required for .xls files. Install with: pip install xlrd"))
-			wb = xlrd.open_workbook(_FANTASY_XLS)
-			sh = wb.sheets()[0]
-			dm = wb.datemode
-
-			def _xls_date(val):
-				if not val:
-					return None
-				try:
-					return xlrd.xldate_as_datetime(val, dm).date().isoformat()
-				except Exception:
-					return None
-
-			for i in range(1, sh.nrows):
-				yield sh.row_values(i)
-
-	def _to_date(val):
-		"""Convert a cell value to an ISO date string regardless of source format."""
-		if val is None or val == "":
-			return None
-		if hasattr(val, "isoformat"):  # openpyxl returns datetime/date objects
-			return val.date().isoformat() if hasattr(val, "date") else val.isoformat()
-		# xlrd returns floats — handled inline via _xls_date; if a string slips through, pass it
-		if isinstance(val, str):
-			return val.strip() or None
-		# xlrd float date — need xlrd available
-		try:
-			import xlrd
-			return xlrd.xldate_as_datetime(val, 0).date().isoformat()
-		except Exception:
-			return None
-
-	# Build {jeid: field_dict} — one entry per JEID (first data row wins).
-	# Group header rows have a non-empty value in col 0; data rows have col 0 empty/None.
-	xls_index = {}
-	for row in _iter_rows():
-		if row[0]:  # group header — skip
-			continue
-		jeid = str(row[3]).strip() if row[3] else ""
-		if not jeid or jeid in xls_index:
-			continue
-		xls_index[jeid] = {
-			"account_id":          str(int(row[1])) if row[1] else "",
-			"contra_account_id":   str(int(row[2])) if row[2] else "",
-			"je_doc_date":         _to_date(row[4]),
-			"je_line_date":        _to_date(row[5]),
-			"account_name":        str(row[6]).strip() if row[6] else "",
-			"contra_account_name": str(row[7]).strip() if row[7] else "",
-			"je_details":          str(row[8]).strip() if row[8] else "",
-			"je_currency":         str(row[9]).strip() if row[9] else "",
-			"main_debit":          row[10] or 0,
-			"main_credit":         row[11] or 0,
-			"sec_debit":           row[13] or 0,
-			"sec_credit":          row[14] or 0,
-			"je_audit":            str(row[16]).strip() if row[16] else "",
-			"je_supplier":         str(row[18]).strip() if row[18] else "",
-			"je_user":             str(row[19]).strip() if row[19] else "",
-		}
-
-	# Find all Cash Documents with a JEID set
-	docs = frappe.db.sql(
-		"SELECT name, jeid FROM `tabCash Document` WHERE jeid IS NOT NULL AND jeid != ''",
-		as_dict=True,
-	)
-
-	matched = []
-	not_found = []
-
-	for doc in docs:
-		jeid = str(doc["jeid"]).strip()
-		if jeid not in xls_index:
-			not_found.append(doc["name"])
-			continue
-		frappe.db.set_value(
-			"Cash Document", doc["name"],
-			xls_index[jeid],
-			update_modified=False,
-		)
-		matched.append(doc["name"])
-
-	if matched:
-		frappe.db.commit()
-
-	return {
-		"matched":   len(matched),
-		"not_found": not_found,
-		"xls_rows":  len(xls_index),
-	}
 
 
 # Internal helpers
