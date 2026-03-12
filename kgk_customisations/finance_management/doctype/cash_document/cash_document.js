@@ -176,7 +176,7 @@ onload(listview) {
 	const roles = new Set(frappe.user_roles);
 	if (!roles.has("Cash Super User") && !roles.has("Administrator")) return;
 
-	listview.page.add_action_item(__("Import JE Details"), function () {
+	listview.page.add_inner_button(__("Import JE Details"), function () {
 		const d = new frappe.ui.Dialog({
 			title: __("Import JE Details"),
 			fields: [
