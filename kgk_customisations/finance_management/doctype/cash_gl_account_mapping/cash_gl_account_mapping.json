@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-03-12 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "third_party_name",
+  "cash_company",
+  "erpnext_account"
+ ],
+ "fields": [
+  {
+   "description": "Exact account name as it appears in the JE import (account_name or contra_account_name field)",
+   "fieldname": "third_party_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Third-Party Account Name",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "description": "Company value from Cash Document (e.g. Diamonds, Jewellery, Agro)",
+   "fieldname": "cash_company",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cash Company",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "erpnext_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "ERPNext Account",
+   "options": "Account",
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-03-12 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Finance Management",
+ "name": "Cash GL Account Mapping",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Super User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Accountant",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Cash Checker",
+   "share": 1
+  }
+ ],
+ "search_fields": "third_party_name,cash_company",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

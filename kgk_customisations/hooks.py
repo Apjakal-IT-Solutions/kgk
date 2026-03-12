@@ -262,10 +262,7 @@ fixtures = [
 			["parent", "in", ["Page", "Data Import Log"]],
 			["role", "in", ["Fulfillment User", "Report Manager"]]
 		]
-	}
+	},
+	# GL account mappings — exported/imported with bench migrate
+	{"doctype": "Cash GL Account Mapping"},
 ]
-
-# Installation hooks
-# ------------------
-# after_install = "kgk_customisations.kgk_customisations.setup.cash_management_setup.execute"
-

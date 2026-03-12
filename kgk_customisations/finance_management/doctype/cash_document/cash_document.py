@@ -246,10 +246,132 @@ def finalise(doc_name):
 
 
 @frappe.whitelist()
+def _create_journal_entry(doc):
+	"""Validate JE data and post a submitted ERPNext Journal Entry for a Cash Document.
+
+	Called from finalise2(). Resolves GL accounts via Cash GL Account Mapping,
+	handles multi-currency, and writes the JE name back to doc.je_ref.
+	"""
+	# ── 1. Pre-condition guards ───────────────────────────────────────────
+	if doc.company == "Unknown":
+		frappe.throw(frappe._("Company is 'Unknown' — resolve the company before finalising."))
+
+	if doc.je_ref:
+		frappe.throw(
+			frappe._("A Journal Entry ({0}) is already linked to this document.").format(doc.je_ref)
+		)
+
+	if not doc.jeid:
+		frappe.throw(
+			frappe._("Transaction Details not imported (JE ID is missing). Import JE details first.")
+		)
+
+	for fname, label in (("account_name", "Account Name"), ("contra_account_name", "Contra Account Name"), ("je_currency", "Currency")):
+		if not (doc.get(fname) or "").strip():
+			frappe.throw(
+				frappe._("{0} is missing. Import JE details before finalising.").format(label)
+			)
+
+	txn_amount = (doc.main_debit or 0) + (doc.main_credit or 0)
+	if txn_amount <= 0:
+		frappe.throw(frappe._("Transaction amount is zero. Import JE details before finalising."))
+
+	# ── 2. Resolve GL accounts ────────────────────────────────────────────
+	def _resolve(third_party_name):
+		account = frappe.db.get_value(
+			"Cash GL Account Mapping",
+			{"third_party_name": third_party_name, "cash_company": doc.company},
+			"erpnext_account",
+		)
+		if not account:
+			frappe.throw(
+				frappe._(
+					"No GL account mapping found for '{0}' (Company: {1}). "
+					"Add it in Cash GL Account Mapping before finalising."
+				).format(third_party_name, doc.company)
+			)
+		return account
+
+	debit_account  = _resolve(doc.account_name)
+	credit_account = _resolve(doc.contra_account_name)
+
+	# ── 3. Derive ERPNext company from the mapped account ─────────────────
+	erpnext_company = frappe.db.get_value("Account", debit_account, "company")
+	credit_company  = frappe.db.get_value("Account", credit_account, "company")
+	if erpnext_company != credit_company:
+		frappe.throw(
+			frappe._(
+				"GL mapping error: '{0}' belongs to {1} but '{2}' belongs to {3}. "
+				"Both accounts must be in the same company."
+			).format(debit_account, erpnext_company, credit_account, credit_company)
+		)
+
+	company_currency  = frappe.db.get_value("Company", erpnext_company, "default_currency")
+	is_multi_currency = (doc.je_currency or "").strip().upper() != (company_currency or "").strip().upper()
+
+	# ── 4. Determine debit / credit sides and amounts ─────────────────────
+	# main_debit/credit is in je_currency; sec_debit/credit is in company base currency.
+	# If both are set (shouldn't happen), main_debit takes precedence.
+	if (doc.main_debit or 0) > 0:
+		debit_side  = debit_account
+		credit_side = credit_account
+		txn_amt  = doc.main_debit
+		base_amt = doc.sec_debit or doc.main_debit
+	else:
+		debit_side  = credit_account
+		credit_side = debit_account
+		txn_amt  = doc.main_credit
+		base_amt = doc.sec_credit or doc.main_credit
+
+	exchange_rate = round(base_amt / txn_amt, 9) if txn_amt else 1.0
+	cost_center   = frappe.db.get_value("Company", erpnext_company, "cost_center")
+
+	# ── 5. Build and submit the Journal Entry ─────────────────────────────
+	je = frappe.get_doc({
+		"doctype":       "Journal Entry",
+		"voucher_type":  "Journal Entry",
+		"company":       erpnext_company,
+		"posting_date":  doc.je_doc_date or doc.date,
+		"cheque_no":     doc.jeid,
+		"cheque_date":   doc.je_doc_date or doc.date,
+		"user_remark":   ((doc.je_details or "") + " [Cash Doc: " + doc.name + "]").strip(),
+		"multi_currency": 1 if is_multi_currency else 0,
+		"accounts": [
+			{
+				"account":                      debit_side,
+				"account_currency":             doc.je_currency,
+				"exchange_rate":                exchange_rate,
+				"debit_in_account_currency":    txn_amt,
+				"debit":                        base_amt,
+				"credit_in_account_currency":   0,
+				"credit":                       0,
+				"cost_center":                  cost_center,
+			},
+			{
+				"account":                      credit_side,
+				"account_currency":             doc.je_currency,
+				"exchange_rate":                exchange_rate,
+				"debit_in_account_currency":    0,
+				"debit":                        0,
+				"credit_in_account_currency":   txn_amt,
+				"credit":                       base_amt,
+				"cost_center":                  cost_center,
+			},
+		],
+	})
+	je.insert(ignore_permissions=True)
+	je.submit()
+
+	# ── 6. Write JE name back to Cash Document ────────────────────────────
+	frappe.db.set_value("Cash Document", doc.name, "je_ref", je.name, update_modified=False)
+	return je.name
+
+
 def finalise2(doc_name):
 	"""Set final_status2 to final2. Restricted to Cash Checker / Cash Super User.
 
 	Requires Status 1 to already be 'final' — enforces the two-step approval sequence.
+	Validates and posts an ERPNext Journal Entry before marking the document final.
 	"""
 	_require_role(["Cash Checker", "Cash Super User", "Administrator"])
 	doc = frappe.get_doc("Cash Document", doc_name)
@@ -259,6 +381,9 @@ def finalise2(doc_name):
 		frappe.throw(frappe._("Status 1 must be finalised before Status 2 can be set."))
 	if doc.final_status2 == "final2":
 		frappe.throw(frappe._("Document is already finalised (Status 2)."))
+
+	_create_journal_entry(doc)  # validates data completeness and posts the JE
+
 	frappe.db.set_value("Cash Document", doc_name, "final_status2", "final2")
 	return "final2"
 
@@ -281,11 +406,22 @@ def unfinalise(doc_name):
 
 @frappe.whitelist()
 def unfinalise2(doc_name):
-	"""Reset final_status2 back to pending2. Restricted to Cash Super User."""
+	"""Reset final_status2 back to pending2 and cancel the linked Journal Entry.
+
+	Restricted to Cash Super User.
+	"""
 	_require_role(["Cash Super User", "Administrator"])
 	doc = frappe.get_doc("Cash Document", doc_name)
 	if doc.final_status2 != "final2":
 		frappe.throw(frappe._("Status 2 is not finalised."))
+
+	# Cancel the linked JE before resetting the status
+	if doc.je_ref:
+		je = frappe.get_doc("Journal Entry", doc.je_ref)
+		if je.docstatus == 1:
+			je.cancel()
+		frappe.db.set_value("Cash Document", doc_name, "je_ref", None, update_modified=False)
+
 	frappe.db.set_value("Cash Document", doc_name, "final_status2", "pending2")
 	return "pending2"
 
