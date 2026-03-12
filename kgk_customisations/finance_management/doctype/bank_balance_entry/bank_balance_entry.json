@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "hash",
+ "autoname": "format:BBE-{###}-{YY}",
  "creation": "2026-03-11 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -28,7 +28,7 @@
    "reqd": 1
   },
   {
-   "description": "Compound key – e.g. ZAR@ABSA (bank) or Diamonds_USD (checker cash)",
+   "description": "Compound key \u2013 e.g. ZAR@ABSA (bank) or Diamonds_USD (checker cash)",
    "fieldname": "company",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -63,11 +63,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-11 00:00:00.000000",
+ "modified": "2026-03-12 15:46:08.153166",
  "modified_by": "Administrator",
  "module": "Finance Management",
  "name": "Bank Balance Entry",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -115,6 +115,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "date",
  "sort_order": "DESC",
  "states": [],

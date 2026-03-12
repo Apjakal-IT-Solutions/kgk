@@ -4,144 +4,97 @@
 import frappe
 from frappe.utils import flt
 
-_CATEGORIES = ["Diamonds", "Jewellery", "Agro"]
+_COMPANIES  = ["Diamonds", "Jewellery", "Agro"]
 _CURRENCIES = ["USD", "ZAR", "BWP"]
-_COMBOS = [(cat, cur) for cat in _CATEGORIES for cur in _CURRENCIES]
 
 
 def execute(filters=None):
-	if not filters:
-		filters = {}
+	filters = filters or {}
 	columns = _get_columns()
-	data = _get_data(filters)
+	data    = _get_data(filters)
 	return columns, data
 
 
 def _get_columns():
-	columns = [
-		{
-			"fieldname": "date",
-			"label": "Date",
-			"fieldtype": "Date",
-			"width": 100,
-		}
+	return [
+		{"fieldname": "date",       "label": "Date",       "fieldtype": "Date",     "width": 110},
+		{"fieldname": "basic",      "label": "Cebo",       "fieldtype": "Currency", "width": 140},
+		{"fieldname": "accountant", "label": "Lore",       "fieldtype": "Currency", "width": 140},
+		{"fieldname": "checker",    "label": "Harsh",      "fieldtype": "Currency", "width": 140},
+		{"fieldname": "tally",      "label": "Match",      "fieldtype": "Int",      "hidden": 1},
 	]
-	for i, (cat, cur) in enumerate(_COMBOS):
-		label = "{} {}".format(cat, cur)
-		columns += [
-			{
-				"fieldname": "group_{}_basic".format(i),
-				"label": "{} Cebo".format(label),
-				"fieldtype": "Currency",
-				"width": 100,
-			},
-			{
-				"fieldname": "group_{}_accountant".format(i),
-				"label": "{} Lore".format(label),
-				"fieldtype": "Currency",
-				"width": 100,
-			},
-			{
-				"fieldname": "group_{}_checker".format(i),
-				"label": "{} Harsh".format(label),
-				"fieldtype": "Currency",
-				"width": 100,
-			},
-		]
-	# Hidden tally columns used by JS formatter (1=match, 0=mismatch)
-	for i in range(len(_COMBOS)):
-		columns.append(
-			{
-				"fieldname": "tally_{}".format(i),
-				"label": "Tally {}".format(i),
-				"fieldtype": "Int",
-				"hidden": 1,
-			}
-		)
-	return columns
 
 
 def _get_data(filters):
 	date_from = filters.get("date_from")
-	date_to = filters.get("date_to")
-	if not date_from or not date_to:
+	date_to   = filters.get("date_to")
+	company   = filters.get("company")
+	currency  = filters.get("currency")
+
+	if not date_from or not date_to or not company or not currency:
 		return []
 
-	# Cash Checker (without Super User) sees only their own BankBasicEntry rows
+	comp_key = "{}_{}".format(company, currency)
+
+	# Restricted checkers see only their own Bank Balance Entry rows
 	user_roles = frappe.get_roles(frappe.session.user)
-	is_checker = (
+	is_restricted_checker = (
 		"Cash Checker" in user_roles
 		and "Cash Super User" not in user_roles
 		and frappe.session.user != "Administrator"
 	)
 	current_user = frappe.session.user
 
-	# Collect all dates that have Cash data or cash-type BankBasicEntry rows
-	cash_dates = frappe.db.sql(
+	# Collect dates that have any data for this company+currency
+	cb_dates = frappe.db.sql(
 		"SELECT DISTINCT date FROM `tabCash Balance`"
-		" WHERE balance_type = 'Cash' AND date BETWEEN %s AND %s",
-		[date_from, date_to],
+		" WHERE company = %s AND balance_type = 'Cash' AND date BETWEEN %s AND %s",
+		[comp_key, date_from, date_to],
 	)
 	bb_dates = frappe.db.sql(
 		"SELECT DISTINCT date FROM `tabBank Balance Entry`"
-		" WHERE company LIKE %s AND date BETWEEN %s AND %s",
-		["%\\_%", date_from, date_to],
+		" WHERE company = %s AND date BETWEEN %s AND %s",
+		[comp_key, date_from, date_to],
 	)
-	all_dates = sorted(
-		set(row[0] for row in cash_dates) | set(row[0] for row in bb_dates)
-	)
+	all_dates = sorted(set(r[0] for r in cb_dates) | set(r[0] for r in bb_dates))
 
 	data = []
 	for date in all_dates:
 		date_str = str(date)
 
-		# Cash Balance rows for this date
-		bal_rows = frappe.db.get_all(
+		rec = frappe.db.get_value(
 			"Cash Balance",
-			filters={"date": date_str, "balance_type": "Cash"},
-			fields=["company", "basic", "accountant"],
+			{"date": date_str, "company": comp_key, "balance_type": "Cash"},
+			["basic", "accountant"],
+			as_dict=True,
 		)
-		bal_map = {r.company: r for r in bal_rows}
+		basic      = flt(rec.basic)      if rec else 0.0
+		accountant = flt(rec.accountant) if rec else 0.0
 
-		# Checker values from Bank Balance Entry (company contains "_" for cash)
-		if is_checker:
-			bb_rows = frappe.db.get_all(
+		if is_restricted_checker:
+			bb = frappe.db.get_value(
 				"Bank Balance Entry",
-				filters={"date": date_str, "username": current_user},
-				fields=["company", "balance"],
+				{"date": date_str, "company": comp_key, "username": current_user},
+				"balance",
 			)
-			checker_map = {r.company: flt(r.balance) for r in bb_rows}
+			checker = flt(bb)
 		else:
-			bb_rows = frappe.db.sql(
-				"SELECT company, SUM(balance) AS total"
-				" FROM `tabBank Balance Entry`"
-				" WHERE date = %s AND company LIKE %s"
-				" GROUP BY company",
-				[date_str, "%\\_%"],
-				as_dict=True,
+			agg = frappe.db.sql(
+				"SELECT SUM(balance) FROM `tabBank Balance Entry`"
+				" WHERE date = %s AND company = %s",
+				[date_str, comp_key],
 			)
-			checker_map = {r.company: flt(r.total) for r in bb_rows}
+			checker = flt(agg[0][0]) if agg else 0.0
 
-		row = {"date": date_str}
-		nonzero = False
+		tally = 1 if abs((basic + accountant) - checker) < 1e-6 else 0
 
-		for i, (cat, cur) in enumerate(_COMBOS):
-			comp_key = "{}_{}".format(cat, cur)
-			rec = bal_map.get(comp_key)
-			basic = flt(rec.basic) if rec else 0.0
-			accountant = flt(rec.accountant) if rec else 0.0
-			checker = checker_map.get(comp_key, 0.0)
-			tally = 1 if abs((basic + accountant) - checker) < 1e-6 else 0
-
-			row["group_{}_basic".format(i)] = basic
-			row["group_{}_accountant".format(i)] = accountant
-			row["group_{}_checker".format(i)] = checker
-			row["tally_{}".format(i)] = tally
-
-			if abs(basic) > 1e-6 or abs(accountant) > 1e-6 or abs(checker) > 1e-6:
-				nonzero = True
-
-		if nonzero:
-			data.append(row)
+		if abs(basic) > 1e-6 or abs(accountant) > 1e-6 or abs(checker) > 1e-6:
+			data.append({
+				"date":       date_str,
+				"basic":      basic,
+				"accountant": accountant,
+				"checker":    checker,
+				"tally":      tally,
+			})
 
 	return data

@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:GL-###",
+ "autoname": "format:GL-{###}",
  "creation": "2026-03-12 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -38,7 +38,7 @@
   }
  ],
  "links": [],
- "modified": "2026-03-12 15:07:11.875220",
+ "modified": "2026-03-12 15:46:51.494317",
  "modified_by": "Administrator",
  "module": "Finance Management",
  "name": "Cash GL Account Mapping",

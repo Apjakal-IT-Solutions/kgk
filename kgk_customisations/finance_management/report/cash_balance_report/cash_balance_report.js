@@ -16,6 +16,20 @@ frappe.query_reports["Cash Balance Report"] = {
 			"fieldtype": "Date",
 			"default": frappe.datetime.get_today(),
 			"reqd": 1
+		},
+		{
+			"fieldname": "company",
+			"label": __("Company"),
+			"fieldtype": "Select",
+			"options": "\nDiamonds\nJewellery\nAgro",
+			"reqd": 1
+		},
+		{
+			"fieldname": "currency",
+			"label": __("Currency"),
+			"fieldtype": "Select",
+			"options": "\nUSD\nZAR\nBWP",
+			"reqd": 1
 		}
 	],
 
@@ -23,14 +37,9 @@ frappe.query_reports["Cash Balance Report"] = {
 		value = default_formatter(value, row, column, data);
 		if (!data) return value;
 
-		// Color all three cells (basic, accountant, checker) in each group
-		// based on the hidden tally_{i} column (1=green, 0=red)
 		var fn = column.fieldname;
-		var match = fn.match(/^group_(\d+)_(basic|accountant|checker)$/);
-		if (match) {
-			var idx = match[1];
-			var tally = data["tally_" + idx];
-			var color = tally ? "lightgreen" : "lightcoral";
+		if (["basic", "accountant", "checker"].indexOf(fn) !== -1) {
+			var color = data.tally ? "lightgreen" : "lightcoral";
 			return "<span style='background:" + color + ";padding:2px 6px;display:block;text-align:right'>"
 				+ value + "</span>";
 		}
