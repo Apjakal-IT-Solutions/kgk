@@ -565,9 +565,6 @@ def import_je_details(file_url):
 			"je_user":             str(row[19]).strip() if row[19] else "",
 		}
 
-	# Done reading — delete the uploaded file immediately
-	file_doc.delete(ignore_permissions=True)
-
 	# Find all Cash Documents with a JEID set
 	docs = frappe.db.sql(
 		"SELECT name, jeid FROM `tabCash Document` WHERE jeid IS NOT NULL AND jeid != ''",
@@ -582,15 +579,37 @@ def import_je_details(file_url):
 		if jeid not in xls_index:
 			not_found.append(doc["name"])
 			continue
-		frappe.db.set_value(
-			"Cash Document", doc["name"],
-			xls_index[jeid],
-			update_modified=False,
+		row = xls_index[jeid]
+		# Use explicit SQL UPDATE to avoid silent failures from the ORM's
+		# query-builder path when batching mixed field types (Date, Currency, Data).
+		frappe.db.sql(
+			"""UPDATE `tabCash Document` SET
+				account_id          = %(account_id)s,
+				contra_account_id   = %(contra_account_id)s,
+				je_doc_date         = %(je_doc_date)s,
+				je_line_date        = %(je_line_date)s,
+				account_name        = %(account_name)s,
+				contra_account_name = %(contra_account_name)s,
+				je_details          = %(je_details)s,
+				je_currency         = %(je_currency)s,
+				main_debit          = %(main_debit)s,
+				main_credit         = %(main_credit)s,
+				sec_debit           = %(sec_debit)s,
+				sec_credit          = %(sec_credit)s,
+				je_audit            = %(je_audit)s,
+				je_supplier         = %(je_supplier)s,
+				je_user             = %(je_user)s
+			WHERE name = %(name)s""",
+			{**row, "name": doc["name"]},
 		)
 		matched.append(doc["name"])
 
 	if matched:
 		frappe.db.commit()
+
+	# Delete the uploaded file only after data is safely committed
+	file_doc.delete(ignore_permissions=True)
+	frappe.db.commit()
 
 	return {
 		"matched":   len(matched),
