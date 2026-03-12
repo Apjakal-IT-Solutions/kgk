@@ -407,27 +407,25 @@ def download_merged_pdf(doc_name):
 
 	Returns the PDF as a file download response.
 	Steps:
-	  1. Render the 'Cash Document Print' print format HTML → PDF bytes (wkhtmltopdf)
+	  1. Render 'Cash Document Print' → PDF bytes via frappe.get_print (server-side HTML, no network needed)
 	  2. Read the main PDF from the e-dox mount (if set)
 	  3. Read each supporting _A/_B/… PDF from the mount
 	  4. Merge all into one PDF with pypdf
 	  5. Stream back as a file download
 	"""
 	from pypdf import PdfWriter, PdfReader
-	from frappe.utils.pdf import get_pdf
-	from frappe.www.printview import get_rendered_template
 
 	doc = frappe.get_doc("Cash Document", doc_name)
 
-	# --- 1. Cover sheet PDF ---
-	html = get_rendered_template(
-		doc=doc,
+	# --- 1. Cover sheet PDF via frappe.get_print ---
+	# Uses internal printview path — no wkhtmltopdf network access issues
+	cover_bytes = frappe.get_print(
+		doctype="Cash Document",
 		name=doc_name,
 		print_format="Cash Document Print",
-		meta=frappe.get_meta("Cash Document"),
+		as_pdf=True,
 		no_letterhead=1,
 	)
-	cover_bytes = get_pdf(html)
 
 	# --- Merge with pypdf ---
 	writer = PdfWriter()
