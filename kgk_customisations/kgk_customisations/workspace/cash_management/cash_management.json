@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"b5h_5AjGhY\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Cash Management</span>\",\"col\":12}},{\"id\":\"xFgmEEogfj\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}},{\"id\":\"ySAr0M-tPd\",\"type\":\"card\",\"data\":{\"card_name\":\"Shortcuts\",\"col\":4}}]",
+ "content": "[{\"id\":\"b5h_5AjGhY\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Cash Management</span>\",\"col\":12}},{\"id\":\"ySAr0M-tPd\",\"type\":\"card\",\"data\":{\"card_name\":\"Cash Processing\",\"col\":4}},{\"id\":\"xFgmEEogfj\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}},{\"id\":\"r2z5s6ENGS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Settings\",\"col\":3}}]",
  "creation": "2025-09-16 10:52:53.795817",
  "custom_blocks": [],
  "docstatus": 0,
@@ -14,49 +14,10 @@
  "label": "Cash Management",
  "links": [
   {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Reports",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cash Document Report",
-   "link_count": 0,
-   "link_to": "Cash Document Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Missing Cash Documents Report",
-   "link_count": 0,
-   "link_to": "Missing Cash Documents Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cash Flow",
-   "link_count": 0,
-   "link_to": "Cash Flow",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
    "description": "Shortcuts to cash functionalities",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Shortcuts",
+   "label": "Cash Processing",
    "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
@@ -75,9 +36,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Daily Cash Balance",
+   "label": "Cash Balance",
    "link_count": 0,
-   "link_to": "Daily Cash Balance",
+   "link_to": "Cash Balance",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -85,15 +46,45 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Cash Management Settings",
+   "label": "Bank Balance Entry",
    "link_count": 0,
-   "link_to": "Cash Management Settings",
+   "link_to": "Bank Balance Entry",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Balance Report",
+   "link_count": 0,
+   "link_to": "Cash Balance Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bank Balance Report",
+   "link_count": 0,
+   "link_to": "Bank Balance Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Bank Balance Entry",
+   "type": "Link"
   }
  ],
- "modified": "2026-03-05 11:33:37.248517",
+ "modified": "2026-03-11 14:35:30.625378",
  "modified_by": "Administrator",
  "module": "Kgk Customisations",
  "name": "Cash Management",
@@ -120,6 +111,14 @@
   }
  ],
  "sequence_id": 4.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Settings",
+   "link_to": "Cash Voucher Series",
+   "type": "DocType"
+  }
+ ],
  "title": "Cash Management"
 }

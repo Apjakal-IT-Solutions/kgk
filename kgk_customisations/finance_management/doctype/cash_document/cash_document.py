@@ -1,9 +1,13 @@
 # Copyright (c) 2026, Apjakal IT Solutions and contributors
 # For license information, please see license.txt
 
+import os
+import shutil
 import frappe
 from frappe.model.document import Document
 from frappe.utils import now_datetime, getdate, cint
+
+_MOUNT_BASE = "/mnt/share/e-dox/Documents"
 
 # Counter field names in the Cash Voucher Series Single DocType
 _COUNTER_MAP = {
@@ -72,11 +76,110 @@ class CashDocument(Document):
 			self.year = getdate(self.date).year
 		if not self.created_by:
 			self.created_by = frappe.session.user
-		# file_name is always <unique_number>.pdf — never entered manually
-		if self.name:
+		# Set default file_name only when no file is being uploaded at creation time.
+		# If main_file is already set (upload at creation), after_save will set the
+		# real filename after copying to the mount.
+		if self.name and not self.main_file:
 			self.file_name = self.name + ".pdf"
 
+	def after_save(self):
+		self._move_file_to_mount()
+		self._sync_supporting_file_attachments()
+
+	def _sync_supporting_file_attachments(self):
+		"""Ensure every supporting file row that has a file_attachment URL also
+		has a corresponding Frappe File record linked to the *parent* Cash Document
+		(not the child row), so it appears in the sidebar attachment list."""
+		if not self.supporting_files:
+			return
+
+		existing_urls = {
+			r.file_url
+			for r in frappe.get_all(
+				"File",
+				filters={
+					"attached_to_doctype": "Cash Document",
+					"attached_to_name": self.name,
+				},
+				fields=["file_url"],
+			)
+		}
+
+		for row in self.supporting_files:
+			url = row.get("file_attachment")
+			if not url or url in existing_urls:
+				continue
+			fname = row.get("file_name") or url.rsplit("/", 1)[-1]
+			frappe.db.sql(
+				"""INSERT INTO `tabFile`
+				    (name, file_name, file_url, attached_to_doctype, attached_to_name,
+				     is_private, creation, modified, owner, modified_by, docstatus)
+				   VALUES (%s, %s, %s, 'Cash Document', %s, 0,
+				           NOW(), NOW(), %s, %s, 0)""",
+				(
+					frappe.generate_hash(length=10),
+					fname, url, self.name,
+					frappe.session.user, frappe.session.user,
+				),
+			)
+			existing_urls.add(url)
+
+	def _move_file_to_mount(self):
+		"""If main_file points to a Frappe-local file, copy it to the shared
+		network mount and update main_file / file_name to the /edox/ URL."""
+		if not self.main_file:
+			return
+		# Already on the mount — nothing to do.
+		if self.main_file.startswith("/edox/"):
+			return
+		# Only handle Frappe-managed file URLs.
+		if not (self.main_file.startswith("/files/") or self.main_file.startswith("/private/files/")):
+			return
+
+		try:
+			file_docs = frappe.get_all(
+				"File",
+				filters={
+					"file_url": self.main_file,
+					"attached_to_doctype": "Cash Document",
+					"attached_to_name": self.name,
+				},
+				fields=["name", "file_name"],
+			)
+			if not file_docs:
+				return
+
+			file_doc = frappe.get_doc("File", file_docs[0].name)
+
+			# Always store as {doc.name}.pdf on the mount to match legacy naming.
+			filename = self.name + ".pdf"
+			dest_dir = os.path.join(_MOUNT_BASE, self.name)
+			dest_path = os.path.join(dest_dir, filename)
+			os.makedirs(dest_dir, exist_ok=True)
+
+			# Copy directly from Frappe's on-disk location — no memory buffering.
+			shutil.copy2(file_doc.get_full_path(), dest_path)
+
+			edox_url = f"/edox/{self.name}/{filename}"
+			frappe.db.set_value("Cash Document", self.name, {
+				"main_file": edox_url,
+				"file_name": filename,
+			})
+			self.main_file = edox_url
+			self.file_name = filename
+
+			# Remove the Frappe-stored copy — canonical location is now the mount.
+			file_doc.delete(ignore_permissions=True)
+
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "Cash Document — file move to mount failed")
+
 	def validate(self):
+		# Prevent file attachment if main_type has not been chosen yet.
+		# (The attachment widget saves immediately, before the user fills other fields.)
+		if self.main_file and self.main_file.startswith(("/files/", "/private/files/")) and not self.main_type:
+			frappe.throw(frappe._("Please set the Document Type before attaching a file."))
+
 		if self.main_type:
 			valid = _VALID_SUB_TYPES.get(self.main_type, set())
 			sub = self.sub_type or ""
@@ -172,6 +275,245 @@ def resync_counters():
 		resync_counters as _resync,
 	)
 	return _resync()
+
+
+@frappe.whitelist()
+def import_je_details(file_url):
+	"""Read an uploaded XLS/XLSX Fantasy Export file and populate Transaction
+	Details fields on all Cash Documents that have a JEID set.
+	The uploaded Frappe File doc is deleted after processing.
+	Restricted to Cash Super User."""
+	_require_role(["Cash Super User", "Administrator"])
+
+	# Resolve the uploaded file
+	file_docs = frappe.get_all(
+		"File",
+		filters={"file_url": file_url},
+		fields=["name", "file_name"],
+		limit=1,
+	)
+	if not file_docs:
+		frappe.throw(frappe._("Uploaded file not found: {0}").format(file_url))
+
+	file_doc = frappe.get_doc("File", file_docs[0].name)
+	ext = os.path.splitext(file_doc.file_name)[1].lower()
+
+	if ext not in (".xls", ".xlsx"):
+		frappe.throw(frappe._("Only .xls and .xlsx files are supported."))
+
+	disk_path = file_doc.get_full_path()
+
+	def _iter_rows():
+		"""Yield raw row value lists from the spreadsheet, skipping the header."""
+		if ext == ".xlsx":
+			import openpyxl
+			wb = openpyxl.load_workbook(disk_path, read_only=True, data_only=True)
+			sh = wb.active
+			first = True
+			for row in sh.iter_rows(values_only=True):
+				if first:
+					first = False
+					continue
+				yield list(row)
+			wb.close()
+		else:
+			try:
+				import xlrd
+			except ImportError:
+				frappe.throw(frappe._("xlrd is required for .xls files. Install with: pip install xlrd"))
+			wb = xlrd.open_workbook(disk_path)
+			sh = wb.sheets()[0]
+			for i in range(1, sh.nrows):
+				yield sh.row_values(i)
+
+	def _to_date(val):
+		"""Convert a cell value to an ISO date string regardless of source format."""
+		if val is None or val == "":
+			return None
+		if hasattr(val, "isoformat"):  # openpyxl returns date/datetime objects
+			return val.date().isoformat() if hasattr(val, "date") else val.isoformat()
+		if isinstance(val, str):
+			return val.strip() or None
+		try:  # xlrd float serial date
+			import xlrd
+			wb2 = xlrd.open_workbook(disk_path)
+			return xlrd.xldate_as_datetime(val, wb2.datemode).date().isoformat()
+		except Exception:
+			return None
+
+	# Build {jeid: field_dict} — one entry per JEID (first data row wins).
+	# Group header rows have a non-empty value in col 0; data rows have col 0 empty/None.
+	xls_index = {}
+	for row in _iter_rows():
+		if row[0]:  # group header — skip
+			continue
+		jeid = str(row[3]).strip() if row[3] else ""
+		if not jeid or jeid in xls_index:
+			continue
+		xls_index[jeid] = {
+			"account_id":          str(int(row[1])) if row[1] else "",
+			"contra_account_id":   str(int(row[2])) if row[2] else "",
+			"je_doc_date":         _to_date(row[4]),
+			"je_line_date":        _to_date(row[5]),
+			"account_name":        str(row[6]).strip() if row[6] else "",
+			"contra_account_name": str(row[7]).strip() if row[7] else "",
+			"je_details":          str(row[8]).strip() if row[8] else "",
+			"je_currency":         str(row[9]).strip() if row[9] else "",
+			"main_debit":          row[10] or 0,
+			"main_credit":         row[11] or 0,
+			"sec_debit":           row[13] or 0,
+			"sec_credit":          row[14] or 0,
+			"je_audit":            str(row[16]).strip() if row[16] else "",
+			"je_supplier":         str(row[18]).strip() if row[18] else "",
+			"je_user":             str(row[19]).strip() if row[19] else "",
+		}
+
+	# Done reading — delete the uploaded file immediately
+	file_doc.delete(ignore_permissions=True)
+
+	# Find all Cash Documents with a JEID set
+	docs = frappe.db.sql(
+		"SELECT name, jeid FROM `tabCash Document` WHERE jeid IS NOT NULL AND jeid != ''",
+		as_dict=True,
+	)
+
+	matched = []
+	not_found = []
+
+	for doc in docs:
+		jeid = str(doc["jeid"]).strip()
+		if jeid not in xls_index:
+			not_found.append(doc["name"])
+			continue
+		frappe.db.set_value(
+			"Cash Document", doc["name"],
+			xls_index[jeid],
+			update_modified=False,
+		)
+		matched.append(doc["name"])
+
+	if matched:
+		frappe.db.commit()
+
+	return {
+		"matched":   len(matched),
+		"not_found": not_found,
+		"xls_rows":  len(xls_index),
+	}
+	"""Read the Fantasy Export XLS/XLSX and populate Transaction Details fields on
+	all Cash Documents that have a JEID set. Restricted to Cash Super User."""
+	_require_role(["Cash Super User", "Administrator"])
+
+	if not os.path.isfile(_FANTASY_XLS):
+		frappe.throw(frappe._("Fantasy Export file not found at: {0}").format(_FANTASY_XLS))
+
+	ext = os.path.splitext(_FANTASY_XLS)[1].lower()
+
+	def _iter_rows():
+		"""Yield raw row value lists from the spreadsheet, skipping the header."""
+		if ext == ".xlsx":
+			import openpyxl
+			wb = openpyxl.load_workbook(_FANTASY_XLS, read_only=True, data_only=True)
+			sh = wb.active
+			first = True
+			for row in sh.iter_rows(values_only=True):
+				if first:
+					first = False
+					continue
+				yield list(row)
+			wb.close()
+		else:
+			try:
+				import xlrd
+			except ImportError:
+				frappe.throw(frappe._("xlrd is required for .xls files. Install with: pip install xlrd"))
+			wb = xlrd.open_workbook(_FANTASY_XLS)
+			sh = wb.sheets()[0]
+			dm = wb.datemode
+
+			def _xls_date(val):
+				if not val:
+					return None
+				try:
+					return xlrd.xldate_as_datetime(val, dm).date().isoformat()
+				except Exception:
+					return None
+
+			for i in range(1, sh.nrows):
+				yield sh.row_values(i)
+
+	def _to_date(val):
+		"""Convert a cell value to an ISO date string regardless of source format."""
+		if val is None or val == "":
+			return None
+		if hasattr(val, "isoformat"):  # openpyxl returns datetime/date objects
+			return val.date().isoformat() if hasattr(val, "date") else val.isoformat()
+		# xlrd returns floats — handled inline via _xls_date; if a string slips through, pass it
+		if isinstance(val, str):
+			return val.strip() or None
+		# xlrd float date — need xlrd available
+		try:
+			import xlrd
+			return xlrd.xldate_as_datetime(val, 0).date().isoformat()
+		except Exception:
+			return None
+
+	# Build {jeid: field_dict} — one entry per JEID (first data row wins).
+	# Group header rows have a non-empty value in col 0; data rows have col 0 empty/None.
+	xls_index = {}
+	for row in _iter_rows():
+		if row[0]:  # group header — skip
+			continue
+		jeid = str(row[3]).strip() if row[3] else ""
+		if not jeid or jeid in xls_index:
+			continue
+		xls_index[jeid] = {
+			"account_id":          str(int(row[1])) if row[1] else "",
+			"contra_account_id":   str(int(row[2])) if row[2] else "",
+			"je_doc_date":         _to_date(row[4]),
+			"je_line_date":        _to_date(row[5]),
+			"account_name":        str(row[6]).strip() if row[6] else "",
+			"contra_account_name": str(row[7]).strip() if row[7] else "",
+			"je_details":          str(row[8]).strip() if row[8] else "",
+			"je_currency":         str(row[9]).strip() if row[9] else "",
+			"main_debit":          row[10] or 0,
+			"main_credit":         row[11] or 0,
+			"sec_debit":           row[13] or 0,
+			"sec_credit":          row[14] or 0,
+			"je_audit":            str(row[16]).strip() if row[16] else "",
+			"je_supplier":         str(row[18]).strip() if row[18] else "",
+			"je_user":             str(row[19]).strip() if row[19] else "",
+		}
+
+	# Find all Cash Documents with a JEID set
+	docs = frappe.db.sql(
+		"SELECT name, jeid FROM `tabCash Document` WHERE jeid IS NOT NULL AND jeid != ''",
+		as_dict=True,
+	)
+
+	matched = []
+	not_found = []
+
+	for doc in docs:
+		jeid = str(doc["jeid"]).strip()
+		if jeid not in xls_index:
+			not_found.append(doc["name"])
+			continue
+		frappe.db.set_value(
+			"Cash Document", doc["name"],
+			xls_index[jeid],
+			update_modified=False,
+		)
+		matched.append(doc["name"])
+
+	if matched:
+		frappe.db.commit()
+
+	return {
+		"matched":   len(matched),
+		"not_found": not_found,
+		"xls_rows":  len(xls_index),
+	}
 
 
 # Internal helpers
