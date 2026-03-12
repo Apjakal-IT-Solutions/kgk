@@ -480,7 +480,16 @@ def resync_counters():
 def import_je_details(file_url):
 	"""Read an uploaded XLS/XLSX Fantasy Export file and populate Transaction
 	Details fields on all Cash Documents that have a JEID set.
-	The uploaded Frappe File doc is deleted after processing."""
+	The uploaded Frappe File doc is deleted after processing.
+
+	Large-volume safeguards:
+	  - openpyxl read_only streaming for .xlsx — workbook is never fully in memory
+	  - xlrd datemode captured once (not per cell) to avoid O(n) file re-opens
+	  - UPDATEs committed in chunks of CHUNK_SIZE to cap transaction size and
+	    allow partial saves if the worker times out
+	  - not_found list capped in the HTTP response; full list written to Error Log
+	"""
+	CHUNK_SIZE = 500  # commit every N matched rows
 
 	# Resolve the uploaded file
 	file_docs = frappe.get_all(
@@ -500,6 +509,15 @@ def import_je_details(file_url):
 
 	disk_path = file_doc.get_full_path()
 
+	# Capture xlrd datemode once so _to_date doesn't re-open the file per cell
+	_xlrd_datemode = None
+	if ext == ".xls":
+		try:
+			import xlrd as _xlrd
+			_xlrd_datemode = _xlrd.open_workbook(disk_path).datemode
+		except ImportError:
+			frappe.throw(frappe._("xlrd is required for .xls files. Install with: pip install xlrd"))
+
 	def _iter_rows():
 		"""Yield raw row value lists from the spreadsheet, skipping the header."""
 		if ext == ".xlsx":
@@ -514,10 +532,7 @@ def import_je_details(file_url):
 				yield list(row)
 			wb.close()
 		else:
-			try:
-				import xlrd
-			except ImportError:
-				frappe.throw(frappe._("xlrd is required for .xls files. Install with: pip install xlrd"))
+			import xlrd
 			wb = xlrd.open_workbook(disk_path)
 			sh = wb.sheets()[0]
 			for i in range(1, sh.nrows):
@@ -531,10 +546,9 @@ def import_je_details(file_url):
 			return val.date().isoformat() if hasattr(val, "date") else val.isoformat()
 		if isinstance(val, str):
 			return val.strip() or None
-		try:  # xlrd float serial date
+		try:  # xlrd float serial — use pre-captured datemode, never re-open the file
 			import xlrd
-			wb2 = xlrd.open_workbook(disk_path)
-			return xlrd.xldate_as_datetime(val, wb2.datemode).date().isoformat()
+			return xlrd.xldate_as_datetime(val, _xlrd_datemode).date().isoformat()
 		except Exception:
 			return None
 
@@ -573,6 +587,7 @@ def import_je_details(file_url):
 
 	matched = []
 	not_found = []
+	chunk_count = 0
 
 	for doc in docs:
 		jeid = str(doc["jeid"]).strip()
@@ -580,8 +595,6 @@ def import_je_details(file_url):
 			not_found.append(doc["name"])
 			continue
 		row = xls_index[jeid]
-		# Use explicit SQL UPDATE to avoid silent failures from the ORM's
-		# query-builder path when batching mixed field types (Date, Currency, Data).
 		frappe.db.sql(
 			"""UPDATE `tabCash Document` SET
 				account_id          = %(account_id)s,
@@ -603,18 +616,30 @@ def import_je_details(file_url):
 			{**row, "name": doc["name"]},
 		)
 		matched.append(doc["name"])
+		chunk_count += 1
+		if chunk_count % CHUNK_SIZE == 0:
+			frappe.db.commit()  # commit each chunk — caps transaction size
 
-	if matched:
-		frappe.db.commit()
+	if chunk_count % CHUNK_SIZE != 0:
+		frappe.db.commit()  # commit the final partial chunk
+
+	# Write not_found to Error Log if large, so the HTTP response stays small
+	NOT_FOUND_RESPONSE_LIMIT = 50
+	if len(not_found) > NOT_FOUND_RESPONSE_LIMIT:
+		frappe.log_error(
+			title="JE Import — unmatched Cash Documents",
+			message="\n".join(not_found),
+		)
 
 	# Delete the uploaded file only after data is safely committed
 	file_doc.delete(ignore_permissions=True)
 	frappe.db.commit()
 
 	return {
-		"matched":   len(matched),
-		"not_found": not_found,
-		"xls_rows":  len(xls_index),
+		"matched":       len(matched),
+		"not_found":     not_found[:NOT_FOUND_RESPONSE_LIMIT],
+		"not_found_total": len(not_found),
+		"xls_rows":      len(xls_index),
 	}
 
 
