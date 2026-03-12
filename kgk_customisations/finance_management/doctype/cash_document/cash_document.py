@@ -10,6 +10,27 @@ from frappe.utils import now_datetime, getdate, cint
 
 _MOUNT_BASE = "/mnt/share/e-dox/Documents"
 
+
+def _url_to_path(url):
+	"""Resolve any file URL stored in a Cash Document field to an absolute path.
+
+	Handles three origins:
+	  /edox/...          → network mount (legacy migrated documents)
+	  /private/files/... → Frappe private upload (new documents)
+	  /files/...         → Frappe public upload (new documents)
+
+	Returns None if the URL does not match a known scheme.
+	"""
+	if not url:
+		return None
+	if url.startswith("/edox/"):
+		return os.path.join(_MOUNT_BASE, url[len("/edox/"):])
+	if url.startswith("/private/files/"):
+		return frappe.get_site_path("private", "files", url[len("/private/files/"):])
+	if url.startswith("/files/"):
+		return frappe.get_site_path("public", "files", url[len("/files/"):])
+	return None
+
 # Counter field names in the Cash Voucher Series Single DocType
 _COUNTER_MAP = {
 	"Cash":   "cash_counter",
@@ -127,7 +148,14 @@ class CashDocument(Document):
 
 	def _move_file_to_mount(self):
 		"""If main_file points to a Frappe-local file, copy it to the shared
-		network mount and update main_file / file_name to the /edox/ URL."""
+		network mount and update main_file / file_name to the /edox/ URL.
+
+		Frappe uploads the file in a separate request before the document is
+		saved, so at after_save time the File record's attached_to_name may
+		not yet be committed.  We therefore resolve the disk path directly
+		from the URL (via _url_to_path) instead of relying on a File-record
+		lookup by attached_to_name.
+		"""
 		if not self.main_file:
 			return
 		# Already on the mount — nothing to do.
@@ -138,39 +166,41 @@ class CashDocument(Document):
 			return
 
 		try:
-			file_docs = frappe.get_all(
-				"File",
-				filters={
-					"file_url": self.main_file,
-					"attached_to_doctype": "Cash Document",
-					"attached_to_name": self.name,
-				},
-				fields=["name", "file_name"],
-			)
-			if not file_docs:
+			src_path = _url_to_path(self.main_file)
+			if not src_path or not os.path.exists(src_path):
+				frappe.log_error(
+					f"Source not found: {src_path!r} (main_file={self.main_file!r})",
+					"Cash Document — file move to mount failed",
+				)
 				return
-
-			file_doc = frappe.get_doc("File", file_docs[0].name)
 
 			# Always store as {doc.name}.pdf on the mount to match legacy naming.
 			filename = self.name + ".pdf"
 			dest_dir = os.path.join(_MOUNT_BASE, self.name)
 			dest_path = os.path.join(dest_dir, filename)
 			os.makedirs(dest_dir, exist_ok=True)
+			shutil.copy2(src_path, dest_path)
 
-			# Copy directly from Frappe's on-disk location — no memory buffering.
-			shutil.copy2(file_doc.get_full_path(), dest_path)
-
+			original_url = self.main_file   # capture before we overwrite self.main_file
 			edox_url = f"/edox/{self.name}/{filename}"
 			frappe.db.set_value("Cash Document", self.name, {
 				"main_file": edox_url,
 				"file_name": filename,
-			})
+			}, update_modified=False)
 			self.main_file = edox_url
 			self.file_name = filename
 
-			# Remove the Frappe-stored copy — canonical location is now the mount.
-			file_doc.delete(ignore_permissions=True)
+			# Update the Frappe File record URL so the sidebar points to /edox/.
+			# Look up by file_url only — attached_to_name may not be committed yet.
+			frappe.db.sql(
+				"UPDATE `tabFile` SET file_url=%s, file_name=%s WHERE file_url=%s",
+				(edox_url, filename, original_url),
+			)
+			# Remove the local copy — canonical location is now the mount.
+			try:
+				os.remove(src_path)
+			except OSError:
+				pass
 
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), "Cash Document — file move to mount failed")
@@ -217,15 +247,47 @@ def finalise(doc_name):
 
 @frappe.whitelist()
 def finalise2(doc_name):
-	"""Set final_status2 to final2. Restricted to Cash Checker / Cash Super User."""
+	"""Set final_status2 to final2. Restricted to Cash Checker / Cash Super User.
+
+	Requires Status 1 to already be 'final' — enforces the two-step approval sequence.
+	"""
 	_require_role(["Cash Checker", "Cash Super User", "Administrator"])
 	doc = frappe.get_doc("Cash Document", doc_name)
 	if doc.docstatus != 0:
 		frappe.throw(frappe._("Finalise 2 is only allowed on draft (pre-submit) documents."))
+	if doc.status != "final":
+		frappe.throw(frappe._("Status 1 must be finalised before Status 2 can be set."))
 	if doc.final_status2 == "final2":
 		frappe.throw(frappe._("Document is already finalised (Status 2)."))
 	frappe.db.set_value("Cash Document", doc_name, "final_status2", "final2")
 	return "final2"
+
+
+@frappe.whitelist()
+def unfinalise(doc_name):
+	"""Reset status back to pending. Restricted to Cash Super User.
+
+	Blocked if Status 2 is already final — must unfinalise Status 2 first.
+	"""
+	_require_role(["Cash Super User", "Administrator"])
+	doc = frappe.get_doc("Cash Document", doc_name)
+	if doc.status != "final":
+		frappe.throw(frappe._("Document is not finalised."))
+	if doc.final_status2 == "final2":
+		frappe.throw(frappe._("Status 2 is already final — unfinalise Status 2 first."))
+	frappe.db.set_value("Cash Document", doc_name, "status", "pending")
+	return "pending"
+
+
+@frappe.whitelist()
+def unfinalise2(doc_name):
+	"""Reset final_status2 back to pending2. Restricted to Cash Super User."""
+	_require_role(["Cash Super User", "Administrator"])
+	doc = frappe.get_doc("Cash Document", doc_name)
+	if doc.final_status2 != "final2":
+		frappe.throw(frappe._("Status 2 is not finalised."))
+	frappe.db.set_value("Cash Document", doc_name, "final_status2", "pending2")
+	return "pending2"
 
 
 @frappe.whitelist()
@@ -430,18 +492,25 @@ def download_merged_pdf(doc_name):
 	skipped = []
 
 	def _append_file(path, label):
-		"""Append all pages from a PDF file on disk into the writer."""
+		"""Append all pages from a PDF file on disk into the writer.
+
+		Read the entire file into a BytesIO buffer first so that the
+		PdfReader always has access to the stream even after the OS file
+		handle is closed — pypdf defers content-stream reads until
+		writer.write(), so a closed file handle causes silent data loss.
+		"""
 		try:
 			with open(path, "rb") as fh:
-				reader = PdfReader(fh)
-				for page in reader.pages:
-					writer.add_page(page)
+				buf = io.BytesIO(fh.read())          # fully buffer in memory
+			reader = PdfReader(buf)                  # reader holds BytesIO, stays open
+			for page in reader.pages:
+				writer.add_page(page)
 		except FileNotFoundError:
 			skipped.append(f"{label}: file not found at {path}")
 		except Exception as exc:
 			skipped.append(f"{label}: {exc}")
 
-	# Cover sheet (in-memory bytes)
+	# Cover sheet (in-memory bytes — already a BytesIO-compatible source)
 	try:
 		reader = PdfReader(io.BytesIO(cover_bytes))
 		for page in reader.pages:
@@ -449,20 +518,24 @@ def download_merged_pdf(doc_name):
 	except Exception as exc:
 		frappe.throw(frappe._("Could not read generated cover sheet: {0}").format(exc))
 
-	# --- 2. Main file — derive path directly from the /edox/ URL ---
-	if doc.main_file and doc.main_file.startswith("/edox/"):
-		rel = doc.main_file[len("/edox/"):]          # e.g. "B1/B1.pdf"
-		main_path = os.path.join(_MOUNT_BASE, rel)   # /mnt/share/.../B1/B1.pdf
-		_append_file(main_path, f"main file ({doc.main_file})")
+	# --- 2. Main file ---
+	if doc.main_file:
+		main_path = _url_to_path(doc.main_file)
+		if main_path:
+			_append_file(main_path, f"main file ({doc.main_file})")
+		else:
+			skipped.append(f"main file: unrecognised URL scheme ({doc.main_file!r})")
 
 	# --- 3. Supporting files ---
 	for row in doc.supporting_files:
 		url = row.file_attachment or ""
-		if not url.startswith("/edox/"):
+		if not url:
 			continue
-		rel = url[len("/edox/"):]
-		supp_path = os.path.join(_MOUNT_BASE, rel)
-		_append_file(supp_path, f"supporting {row.file_suffix or ''} ({url})")
+		supp_path = _url_to_path(url)
+		if supp_path:
+			_append_file(supp_path, f"supporting {row.file_suffix or ''} ({url})")
+		else:
+			skipped.append(f"supporting {row.file_suffix or ''}: unrecognised URL scheme ({url!r})")
 
 	# Log any skipped files for the user to see (non-fatal)
 	if skipped:
@@ -479,9 +552,16 @@ def download_merged_pdf(doc_name):
 	writer.write(output_buf)
 	pdf_bytes = output_buf.getvalue()
 
+	# Log page count for diagnostics
+	frappe.log_error(
+		f"pages={len(writer.pages)}, size={len(pdf_bytes)}, skipped={skipped}",
+		f"download_merged_pdf OK: {doc_name}",
+	)
+
+	# Use type="pdf" to match Frappe's own print download path (as_pdf handler)
 	frappe.local.response.filename = f"{doc_name}.pdf"
 	frappe.local.response.filecontent = pdf_bytes
-	frappe.local.response.type = "download"
+	frappe.local.response.type = "pdf"
 
 
 # Internal helpers

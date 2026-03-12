@@ -78,44 +78,62 @@ frm.add_custom_button(__("Download PDF"), function () {
 		+ `?doc_name=${encodeURIComponent(frm.doc.name)}`;
 	window.open(url, "_blank");
 });
+
+const roles = new Set(frappe.user_roles);
 const isSuperUser  = roles.has("Cash Super User") || roles.has("Administrator");
 const isAccountant = roles.has("Cash Accountant") || isSuperUser;
 const isChecker    = roles.has("Cash Checker")    || isSuperUser;
 
-const roles = new Set(frappe.user_roles);
+// ── Finalise (Status 1) ───────────────────────────────────────────────────
 if (isAccountant && frm.doc.docstatus === 0 && frm.doc.status !== "final") {
-frm.add_custom_button(__("Finalise"), function () {
-frappe.confirm(
-__("Mark this document as <b>final</b>?"),
-() => {
-frappe.call({
-method: "kgk_customisations.finance_management.doctype.cash_document.cash_document.finalise",
-args: { doc_name: frm.doc.name },
-callback(r) {
-if (!r.exc) frm.reload_doc();
-},
-});
-}
-);
-}, __("Actions"));
+	frm.add_custom_button(__("Finalise"), function () {
+		frappe.confirm(__("Mark this document as <b>final</b>?"), () => {
+			frappe.call({
+				method: "kgk_customisations.finance_management.doctype.cash_document.cash_document.finalise",
+				args: { doc_name: frm.doc.name },
+				callback(r) { if (!r.exc) frm.reload_doc(); },
+			});
+		});
+	}, __("Actions"));
 }
 
-		// Finalise 2 (final_status2 -> final2) — draft only
-		if (isChecker && frm.doc.docstatus === 0 && frm.doc.final_status2 !== "final2") {
-frm.add_custom_button(__("Finalise 2"), function () {
-frappe.confirm(
-__("Mark Status 2 as <b>final2</b>?"),
-() => {
-frappe.call({
-method: "kgk_customisations.finance_management.doctype.cash_document.cash_document.finalise2",
-args: { doc_name: frm.doc.name },
-callback(r) {
-if (!r.exc) frm.reload_doc();
-},
-});
+// ── Unfinalise (Status 1 → pending) — Super User only, blocked if Status 2 is final
+if (isSuperUser && frm.doc.docstatus === 0 && frm.doc.status === "final" && frm.doc.final_status2 !== "final2") {
+	frm.add_custom_button(__("Unfinalise"), function () {
+		frappe.confirm(__("Reset Status 1 back to <b>pending</b>?"), () => {
+			frappe.call({
+				method: "kgk_customisations.finance_management.doctype.cash_document.cash_document.unfinalise",
+				args: { doc_name: frm.doc.name },
+				callback(r) { if (!r.exc) frm.reload_doc(); },
+			});
+		});
+	}, __("Actions"));
 }
-);
-}, __("Actions"));
+
+// ── Finalise 2 — only available after Status 1 is final ──────────────────
+if (isChecker && frm.doc.docstatus === 0 && frm.doc.status === "final" && frm.doc.final_status2 !== "final2") {
+	frm.add_custom_button(__("Finalise 2"), function () {
+		frappe.confirm(__("Mark Status 2 as <b>final2</b>?"), () => {
+			frappe.call({
+				method: "kgk_customisations.finance_management.doctype.cash_document.cash_document.finalise2",
+				args: { doc_name: frm.doc.name },
+				callback(r) { if (!r.exc) frm.reload_doc(); },
+			});
+		});
+	}, __("Actions"));
+}
+
+// ── Unfinalise 2 (Status 2 → pending2) — Super User only ─────────────────
+if (isSuperUser && frm.doc.docstatus === 0 && frm.doc.final_status2 === "final2") {
+	frm.add_custom_button(__("Unfinalise 2"), function () {
+		frappe.confirm(__("Reset Status 2 back to <b>pending2</b>?"), () => {
+			frappe.call({
+				method: "kgk_customisations.finance_management.doctype.cash_document.cash_document.unfinalise2",
+				args: { doc_name: frm.doc.name },
+				callback(r) { if (!r.exc) frm.reload_doc(); },
+			});
+		});
+	}, __("Actions"));
 }
 
 // Add Flag
