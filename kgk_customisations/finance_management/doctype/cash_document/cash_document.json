@@ -327,15 +327,14 @@
    "fieldname": "je_ref",
    "fieldtype": "Link",
    "label": "Journal Entry",
-   "options": "Journal Entry",
-   "read_only": 1,
    "no_copy": 1,
-   "in_list_view": 0
+   "options": "Journal Entry",
+   "read_only": 1
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-12 14:42:01.832494",
+ "modified": "2026-03-12 16:06:27.029605",
  "modified_by": "Administrator",
  "module": "Finance Management",
  "name": "Cash Document",
@@ -343,6 +342,8 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -352,11 +353,13 @@
    "report": 1,
    "role": "Administrator",
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -364,6 +367,7 @@
    "report": 1,
    "role": "Cash Super User",
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {

@@ -22,10 +22,15 @@ frappe.listview_settings["Cash Document"] = {
 						args: { file_url: values.export_file },
 						callback(r) {
 							if (r.exc) return;
-							const { matched, not_found, xls_rows } = r.message;
-							let msg = `<b>${matched}</b> document(s) updated from ${xls_rows} XLS entr${xls_rows === 1 ? "y" : "ies"}.`;
+							const { matched, not_found, not_found_total, xls_jeid_rows, xls_invoice_rows } = r.message;
+							const totalXls = (xls_jeid_rows || 0) + (xls_invoice_rows || 0);
+							let msg = `<b>${matched}</b> document(s) updated`
+								+ ` (${xls_jeid_rows} matched by JEID, ${xls_invoice_rows} by Invoice #`
+								+ ` from ${totalXls} XLS data row${totalXls === 1 ? "" : "s"}).`;
 							if (not_found.length) {
-								msg += `<br><br><b>${not_found.length}</b> JE ID(s) had no match in the file:<br>`
+								const extra = not_found_total > not_found.length
+									? ` <i>(showing ${not_found.length} of ${not_found_total} — full list in Error Log)</i>` : "";
+								msg += `<br><br><b>${not_found_total}</b> document(s) had no match in the file:${extra}<br>`
 									+ not_found.map(n => `&nbsp;&bull; ${n}`).join("<br>");
 							}
 							frappe.msgprint({ title: __("Import Complete"), message: msg, indicator: "green" });

@@ -479,7 +479,11 @@ def resync_counters():
 @frappe.whitelist()
 def import_je_details(file_url):
 	"""Read an uploaded XLS/XLSX Fantasy Export file and populate Transaction
-	Details fields on all Cash Documents that have a JEID set.
+	Details fields on all Cash Documents. Matching priority:
+	  1. JEID (col 3 in file) matched against Cash Document jeid field.
+	  2. Invoice # (col 17 in file) matched against Cash Document file_name
+	     (extension stripped), for legacy records where JEID is absent.
+	  3. If both are absent in the file row, the row is skipped.
 	The uploaded Frappe File doc is deleted after processing.
 
 	Large-volume safeguards:
@@ -552,16 +556,23 @@ def import_je_details(file_url):
 		except Exception:
 			return None
 
-	# Build {jeid: field_dict} — one entry per JEID (first data row wins).
-	# Group header rows have a non-empty value in col 0; data rows have col 0 empty/None.
-	xls_index = {}
+	# Build lookup indices — one entry per key (first data row wins).
+	# jeid_index   : keyed by JEID (col 3) for rows where JEID is present.
+	# invoice_index: keyed by Invoice # (col 17) for ANY row that has one,
+	#                including rows that also have a JEID. This allows legacy
+	#                Cash Documents (no jeid set) to be matched by file name,
+	#                then have the JEID written back from the XLS row.
+	#                Each entry carries '_jeid' so it can be saved on the doc.
+	# Group header rows (col 0 non-empty) are skipped in both cases.
+	# Cols 12 and 15 are running totals (derived) and are not stored.
+	jeid_index    = {}
+	invoice_index = {}
 	for row in _iter_rows():
 		if row[0]:  # group header — skip
 			continue
-		jeid = str(row[3]).strip() if row[3] else ""
-		if not jeid or jeid in xls_index:
-			continue
-		xls_index[jeid] = {
+		jeid        = str(row[3]).strip()  if row[3]                     else ""
+		invoice_num = str(row[17]).strip() if len(row) > 17 and row[17] else ""
+		fields = {
 			"account_id":          str(int(row[1])) if row[1] else "",
 			"contra_account_id":   str(int(row[2])) if row[2] else "",
 			"je_doc_date":         _to_date(row[4]),
@@ -575,13 +586,24 @@ def import_je_details(file_url):
 			"sec_debit":           row[13] or 0,
 			"sec_credit":          row[14] or 0,
 			"je_audit":            str(row[16]).strip() if row[16] else "",
-			"je_supplier":         str(row[18]).strip() if row[18] else "",
-			"je_user":             str(row[19]).strip() if row[19] else "",
+			"je_supplier":         str(row[18]).strip() if len(row) > 18 and row[18] else "",
+			"je_user":             str(row[19]).strip() if len(row) > 19 and row[19] else "",
 		}
+		if jeid:
+			if jeid not in jeid_index:
+				jeid_index[jeid] = fields
+		if invoice_num:
+			if invoice_num not in invoice_index:
+				# Store the JEID alongside so it can be written back to the doc
+				invoice_index[invoice_num] = {**fields, "_jeid": jeid}
+		if not jeid and not invoice_num:
+			pass  # both absent — row is unidentifiable, skip
 
-	# Find all Cash Documents with a JEID set
+	# Find all Cash Documents that have either a JEID or a file name to match against
 	docs = frappe.db.sql(
-		"SELECT name, jeid FROM `tabCash Document` WHERE jeid IS NOT NULL AND jeid != ''",
+		"""SELECT name, jeid, file_name FROM `tabCash Document`
+		   WHERE (jeid IS NOT NULL AND jeid != '')
+		      OR (file_name IS NOT NULL AND file_name != '')""",
 		as_dict=True,
 	)
 
@@ -590,11 +612,24 @@ def import_je_details(file_url):
 	chunk_count = 0
 
 	for doc in docs:
-		jeid = str(doc["jeid"]).strip()
-		if jeid not in xls_index:
+		jeid      = str(doc["jeid"]).strip()      if doc.get("jeid")      else ""
+		file_name = str(doc["file_name"]).strip() if doc.get("file_name") else ""
+		via_invoice = False
+
+		# Priority 1: match by JEID
+		if jeid and jeid in jeid_index:
+			row = jeid_index[jeid]
+		# Priority 2: match Invoice # against file_name (extension stripped)
+		elif file_name:
+			lookup_key = os.path.splitext(file_name)[0]
+			if lookup_key not in invoice_index:
+				not_found.append(doc["name"])
+				continue
+			row = invoice_index[lookup_key]
+			via_invoice = True
+		else:
 			not_found.append(doc["name"])
 			continue
-		row = xls_index[jeid]
 		frappe.db.sql(
 			"""UPDATE `tabCash Document` SET
 				account_id          = %(account_id)s,
@@ -615,6 +650,13 @@ def import_je_details(file_url):
 			WHERE name = %(name)s""",
 			{**row, "name": doc["name"]},
 		)
+		# When matched via Invoice #, write the JEID from the XLS row back to
+		# the document so it is populated for future reference.
+		if via_invoice and row.get("_jeid"):
+			frappe.db.sql(
+				"UPDATE `tabCash Document` SET jeid = %(jeid)s WHERE name = %(name)s",
+				{"jeid": row["_jeid"], "name": doc["name"]},
+			)
 		matched.append(doc["name"])
 		chunk_count += 1
 		if chunk_count % CHUNK_SIZE == 0:
@@ -636,10 +678,11 @@ def import_je_details(file_url):
 	frappe.db.commit()
 
 	return {
-		"matched":       len(matched),
-		"not_found":     not_found[:NOT_FOUND_RESPONSE_LIMIT],
+		"matched":         len(matched),
+		"not_found":       not_found[:NOT_FOUND_RESPONSE_LIMIT],
 		"not_found_total": len(not_found),
-		"xls_rows":      len(xls_index),
+		"xls_jeid_rows":   len(jeid_index),
+		"xls_invoice_rows": len(invoice_index),
 	}
 
 
