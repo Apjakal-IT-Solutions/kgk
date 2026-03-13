@@ -14,25 +14,25 @@ def get_notification_config():
                 "conditions": [
                     {
                         "document_type": "Cash Document",
-                        "subject": "New Cash Document: {document_number}",
+                        "subject": "New Transaction Dossier: {document_number}",
                         "condition": "doc.status == 'Draft'",
-                        "message": "A new cash document has been created and needs review.",
+                        "message": "A new transaction dossier has been created and needs review.",
                         "recipients": ["role:Cash Checker", "role:Cash Accountant"],
                         "channel": "email"
                     },
                     {
                         "document_type": "Cash Document", 
-                        "subject": "Cash Document Approved: {document_number}",
+                        "subject": "Transaction Dossier Approved: {document_number}",
                         "condition": "doc.status == 'Approved'",
-                        "message": "Cash document has been approved and is ready for processing.",
+                        "message": "Transaction dossier has been approved and is ready for processing.",
                         "recipients": ["role:Cash Accountant", "role:Cash Super User"],
                         "channel": "system"
                     },
                     {
                         "document_type": "Cash Document",
-                        "subject": "Cash Document Rejected: {document_number}",
+                        "subject": "Transaction Dossier Rejected: {document_number}",
                         "condition": "doc.status == 'Rejected'",
-                        "message": "Cash document has been rejected. Please review and make necessary changes.",
+                        "message": "Transaction dossier has been rejected. Please review and make necessary changes.",
                         "recipients": ["eval:doc.created_by_user"],
                         "channel": "email"
                     }
