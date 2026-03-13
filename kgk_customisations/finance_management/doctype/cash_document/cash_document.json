@@ -332,6 +332,7 @@
    "read_only": 1
   }
  ],
+ "default_print_format": "Cash Document Print",
  "is_submittable": 1,
  "links": [],
  "modified": "2026-03-12 16:06:27.029605",

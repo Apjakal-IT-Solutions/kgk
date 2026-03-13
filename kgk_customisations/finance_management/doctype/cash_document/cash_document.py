@@ -483,7 +483,9 @@ def import_je_details(file_url):
 	  1. JEID (col 3 in file) matched against Cash Document jeid field.
 	  2. Invoice # (col 17 in file) matched against Cash Document file_name
 	     (extension stripped), for legacy records where JEID is absent.
-	  3. If both are absent in the file row, the row is skipped.
+	  3. migration_reference matched against JEID first, then Invoice #
+	     (controlled fallback for migrated legacy records).
+	  4. If all keys are absent/unmatched, the record is skipped.
 	The uploaded Frappe File doc is deleted after processing.
 
 	Large-volume safeguards:
@@ -599,11 +601,12 @@ def import_je_details(file_url):
 		if not jeid and not invoice_num:
 			pass  # both absent — row is unidentifiable, skip
 
-	# Find all Cash Documents that have either a JEID or a file name to match against
+	# Find all Cash Documents that have at least one lookup key to match against
 	docs = frappe.db.sql(
-		"""SELECT name, jeid, file_name FROM `tabCash Document`
+		"""SELECT name, jeid, file_name, migration_reference FROM `tabCash Document`
 		   WHERE (jeid IS NOT NULL AND jeid != '')
-		      OR (file_name IS NOT NULL AND file_name != '')""",
+		      OR (file_name IS NOT NULL AND file_name != '')
+		      OR (migration_reference IS NOT NULL AND migration_reference != '')""",
 		as_dict=True,
 	)
 
@@ -612,21 +615,43 @@ def import_je_details(file_url):
 	chunk_count = 0
 
 	for doc in docs:
-		jeid      = str(doc["jeid"]).strip()      if doc.get("jeid")      else ""
+		jeid = str(doc["jeid"]).strip() if doc.get("jeid") else ""
 		file_name = str(doc["file_name"]).strip() if doc.get("file_name") else ""
-		via_invoice = False
+		migration_ref = str(doc["migration_reference"]).strip() if doc.get("migration_reference") else ""
+		recovered_jeid = ""
 
 		# Priority 1: match by JEID
 		if jeid and jeid in jeid_index:
 			row = jeid_index[jeid]
+			recovered_jeid = jeid
 		# Priority 2: match Invoice # against file_name (extension stripped)
 		elif file_name:
 			lookup_key = os.path.splitext(file_name)[0]
-			if lookup_key not in invoice_index:
+			if lookup_key in invoice_index:
+				row = invoice_index[lookup_key]
+				recovered_jeid = row.get("_jeid") or ""
+			else:
+				# Priority 3: migration_reference fallback (first JEID, then Invoice #)
+				if migration_ref and migration_ref in jeid_index:
+					row = jeid_index[migration_ref]
+					recovered_jeid = migration_ref
+				elif migration_ref and migration_ref in invoice_index:
+					row = invoice_index[migration_ref]
+					recovered_jeid = row.get("_jeid") or ""
+				else:
+					not_found.append(doc["name"])
+					continue
+		# Priority 3 fallback when file_name is unavailable
+		elif migration_ref:
+			if migration_ref in jeid_index:
+				row = jeid_index[migration_ref]
+				recovered_jeid = migration_ref
+			elif migration_ref in invoice_index:
+				row = invoice_index[migration_ref]
+				recovered_jeid = row.get("_jeid") or ""
+			else:
 				not_found.append(doc["name"])
 				continue
-			row = invoice_index[lookup_key]
-			via_invoice = True
 		else:
 			not_found.append(doc["name"])
 			continue
@@ -650,12 +675,11 @@ def import_je_details(file_url):
 			WHERE name = %(name)s""",
 			{**row, "name": doc["name"]},
 		)
-		# When matched via Invoice #, write the JEID from the XLS row back to
-		# the document so it is populated for future reference.
-		if via_invoice and row.get("_jeid"):
+		# Backfill JEID when the document JEID is blank and XLS provides one.
+		if not jeid and recovered_jeid:
 			frappe.db.sql(
 				"UPDATE `tabCash Document` SET jeid = %(jeid)s WHERE name = %(name)s",
-				{"jeid": row["_jeid"], "name": doc["name"]},
+				{"jeid": recovered_jeid, "name": doc["name"]},
 			)
 		matched.append(doc["name"])
 		chunk_count += 1
