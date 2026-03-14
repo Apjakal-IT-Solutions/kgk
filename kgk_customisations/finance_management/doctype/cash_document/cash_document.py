@@ -229,6 +229,9 @@ class CashDocument(Document):
 		if self.date:
 			self.year = getdate(self.date).year
 
+		# Ensure file is copied to mount if main_file is set/changed
+		self._move_file_to_mount()
+
 
 # Whitelisted server functions
 

@@ -113,9 +113,9 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-12 15:49:05.310231",
+ "modified": "2026-03-13 14:46:54.516427",
  "modified_by": "Administrator",
- "module": "Kgk Customisations",
+ "module": "Finance Management",
  "name": "Cash Management",
  "number_cards": [],
  "owner": "Administrator",
@@ -131,6 +131,15 @@
   },
   {
    "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Cash Accountant"
+  },
+  {
+   "role": "Cash Basic User"
   },
   {
    "role": "Accounts User"

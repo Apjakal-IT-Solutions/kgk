@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.utils import flt
+from kgk_customisations.finance_management.doctype.cash_balance.cash_balance import _load_aggregates
 
 _COMPANIES  = ["Diamonds", "Jewellery", "Agro"]
 _CURRENCIES = ["USD", "ZAR", "BWP"]
@@ -46,30 +47,26 @@ def _get_data(filters):
 	current_user = frappe.session.user
 
 	# Collect dates that have any data for this company+currency
-	cb_dates = frappe.db.sql(
-		"SELECT DISTINCT date FROM `tabCash Balance`"
-		" WHERE company = %s AND balance_type = 'Cash' AND date BETWEEN %s AND %s",
-		[comp_key, date_from, date_to],
-	)
+	agg = _load_aggregates(date_from=date_from, date_to=date_to, balance_type="Cash")
+	cb_dates = [
+		(d,)
+		for (d, bt, key), vals in agg.items()
+		if bt == "Cash" and key == comp_key and (abs(flt(vals.get("basic"))) > 1e-6 or abs(flt(vals.get("accountant"))) > 1e-6)
+	]
 	bb_dates = frappe.db.sql(
 		"SELECT DISTINCT date FROM `tabBank Balance Entry`"
 		" WHERE company = %s AND date BETWEEN %s AND %s",
 		[comp_key, date_from, date_to],
 	)
-	all_dates = sorted(set(r[0] for r in cb_dates) | set(r[0] for r in bb_dates))
+	all_dates = sorted(set(str(r[0]) for r in cb_dates) | set(str(r[0]) for r in bb_dates))
 
 	data = []
 	for date in all_dates:
 		date_str = str(date)
 
-		rec = frappe.db.get_value(
-			"Cash Balance",
-			{"date": date_str, "company": comp_key, "balance_type": "Cash"},
-			["basic", "accountant"],
-			as_dict=True,
-		)
-		basic      = flt(rec.basic)      if rec else 0.0
-		accountant = flt(rec.accountant) if rec else 0.0
+		vals = agg.get((date_str, "Cash", comp_key), {"basic": 0.0, "accountant": 0.0})
+		basic = flt(vals.get("basic"))
+		accountant = flt(vals.get("accountant"))
 
 		if is_restricted_checker:
 			bb = frappe.db.get_value(
@@ -79,12 +76,12 @@ def _get_data(filters):
 			)
 			checker = flt(bb)
 		else:
-			agg = frappe.db.sql(
+			sum_result = frappe.db.sql(
 				"SELECT SUM(balance) FROM `tabBank Balance Entry`"
 				" WHERE date = %s AND company = %s",
 				[date_str, comp_key],
 			)
-			checker = flt(agg[0][0]) if agg else 0.0
+			checker = flt(sum_result[0][0]) if sum_result else 0.0
 
 		tally = 1 if abs((basic + accountant) - checker) < 1e-6 else 0
 

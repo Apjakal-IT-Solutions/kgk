@@ -13,7 +13,9 @@
   "section_amounts",
   "basic",
   "column_break_amounts",
-  "accountant"
+  "accountant",
+  "amnt_section",
+  "balances_table"
  ],
  "fields": [
   {
@@ -26,6 +28,7 @@
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Date",
    "reqd": 1
   },
@@ -33,6 +36,7 @@
    "fieldname": "balance_type",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Balance Type",
    "options": "Cash\nBank",
    "reqd": 1
@@ -42,12 +46,14 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Compound key \u2013 e.g. Diamonds_USD (cash) or ZAR@ABSA (bank)",
+    "description": "Legacy read-only field. Active company/account values are captured in the Amnt child table.",
    "fieldname": "company",
-   "fieldtype": "Data",
-   "in_list_view": 1,
+   "fieldtype": "Link",
    "label": "Company / Account",
-   "reqd": 1
+   "options": "Company",
+   "permlevel": 1,
+   "read_only": 1,
+    "reqd": 0
   },
   {
    "fieldname": "section_amounts",
@@ -59,7 +65,8 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Basic",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_amounts",
@@ -70,12 +77,23 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Accountant",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amnt_section",
+   "fieldtype": "Section Break",
+   "label": "Amnt"
+  },
+  {
+   "fieldname": "balances_table",
+   "fieldtype": "Table",
+   "options": "Cash Balance Item"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-12 15:47:59.258158",
+ "modified": "2026-03-13 15:43:42.241239",
  "modified_by": "Administrator",
  "module": "Finance Management",
  "name": "Cash Balance",

@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.utils import flt
+from kgk_customisations.finance_management.doctype.cash_balance.cash_balance import _load_aggregates
 
 _BANKS = ["ZAR@ABSA", "USD@ABSA", "BWP@FNB", "BWP@ABSA"]
 _ACCOUNT_NUMBERS = {
@@ -76,11 +77,8 @@ def _get_data(filters):
 	current_user = frappe.session.user
 
 	# Collect all relevant dates from both tables
-	cb_dates = frappe.db.sql(
-		"SELECT DISTINCT date FROM `tabCash Balance`"
-		" WHERE balance_type = 'Bank' AND date BETWEEN %s AND %s",
-		[date_from, date_to],
-	)
+	agg = _load_aggregates(date_from=date_from, date_to=date_to, balance_type="Bank")
+	cb_dates = [(d,) for (d, bt, key), vals in agg.items() if bt == "Bank"]
 	bb_dates = frappe.db.sql(
 		"SELECT DISTINCT date FROM `tabBank Balance Entry`"
 		" WHERE date BETWEEN %s AND %s",
@@ -94,13 +92,12 @@ def _get_data(filters):
 	for date in all_dates:
 		date_str = str(date)
 
-		# Accountant values: Cash Balance (balance_type=Bank)
-		acct_rows = frappe.db.get_all(
-			"Cash Balance",
-			filters={"date": date_str, "balance_type": "Bank"},
-			fields=["company", "accountant"],
-		)
-		acct_map = {r.company: flt(r.accountant) for r in acct_rows}
+		# Accountant values: Cash Balance child-table aggregates (legacy fallback included)
+		acct_map = {
+			company_key: flt(vals.get("accountant"))
+			for (d, bt, company_key), vals in agg.items()
+			if str(d) == date_str and bt == "Bank"
+		}
 
 		# Checker values from Bank Balance Entry
 		if is_checker:
