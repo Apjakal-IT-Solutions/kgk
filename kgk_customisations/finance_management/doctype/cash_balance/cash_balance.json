@@ -46,14 +46,13 @@
    "fieldtype": "Column Break"
   },
   {
-    "description": "Legacy read-only field. Active company/account values are captured in the Amnt child table.",
+   "description": "Legacy read-only field. Active company/account values are captured in the Amnt child table.",
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company / Account",
    "options": "Company",
    "permlevel": 1,
-   "read_only": 1,
-    "reqd": 0
+   "read_only": 1
   },
   {
    "fieldname": "section_amounts",
@@ -93,7 +92,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-13 15:43:42.241239",
+ "modified": "2026-03-14 10:18:53.161366",
  "modified_by": "Administrator",
  "module": "Finance Management",
  "name": "Cash Balance",
@@ -143,6 +142,7 @@
    "read": 1,
    "report": 1,
    "role": "Cash Basic User",
+   "select": 1,
    "share": 1,
    "write": 1
   },
