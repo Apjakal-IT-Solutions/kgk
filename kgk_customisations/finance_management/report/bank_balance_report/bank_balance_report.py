@@ -13,6 +13,13 @@ _ACCOUNT_NUMBERS = {
 	"BWP@ABSA": "1023469",
 }
 
+COMPANY_MAP = {
+				"Diamonds": "KGK Diamonds",
+				"Jewellery": "KGK Jewelry",
+				"Agro": "KGK Agro",
+				"Healthcare": "KGK Healthcare",
+}
+
 
 def execute(filters=None):
 	if not filters:
@@ -85,7 +92,7 @@ def _get_data(filters):
 		[date_from, date_to],
 	)
 	all_dates = sorted(
-		set(row[0] for row in cb_dates) | set(row[0] for row in bb_dates)
+		set(str(row[0]) for row in cb_dates) | set(str(row[0]) for row in bb_dates)
 	)
 
 	data = []
@@ -106,6 +113,7 @@ def _get_data(filters):
 				filters={"date": date_str, "username": current_user},
 				fields=["company", "balance"],
 			)
+			
 			checker_map = {r.company: flt(r.balance) for r in bb_rows}
 		else:
 			bb_rows = frappe.db.sql(

@@ -208,12 +208,29 @@ def _migrate_cash_balance(pg_cur, dry_run, reset):
             continue
 
         try:
-            child_company = company
+            child_entity = company
             child_currency = ""
             if balance_type == "Cash" and "_" in company:
-                child_company, child_currency = company.rsplit("_", 1)
+                child_entity, child_currency = company.rsplit("_", 1)
             elif balance_type == "Bank" and "@" in company:
-                child_currency, child_company = company.split("@", 1)
+                child_currency, child_entity = company.split("@", 1)
+
+            if balance_type == "Bank":
+                child_row = {
+                    "bank": child_entity,
+                    "company": "",
+                    "currency": child_currency,
+                    "basic": flt(basic),
+                    "accountant": flt(accountant),
+                }
+            else:
+                child_row = {
+                    "company": child_entity,
+                    "bank": "",
+                    "currency": child_currency,
+                    "basic": flt(basic),
+                    "accountant": flt(accountant),
+                }
 
             doc = frappe.get_doc({
                 "doctype": "Cash Balance",
@@ -222,14 +239,7 @@ def _migrate_cash_balance(pg_cur, dry_run, reset):
                 "company": company,
                 "basic": flt(basic),
                 "accountant": flt(accountant),
-                "balances_table": [
-                    {
-                        "company": child_company,
-                        "currency": child_currency,
-                        "basic": flt(basic),
-                        "accountant": flt(accountant),
-                    }
-                ],
+                "balances_table": [child_row],
             })
             doc.flags.ignore_validate = True
             doc.flags.ignore_permissions = True

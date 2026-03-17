@@ -5,6 +5,14 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt
 
+COMPANY_MAP = {
+	"Diamonds": "KGK Diamonds",
+	"Jewellery": "KGK Jewelry",
+	"Agro": "KGK Agro",
+	"Healthcare": "KGK Healthcare",
+}
+REVERSE_COMPANY_MAP = {v: k for k, v in COMPANY_MAP.items()}
+
 
 def _parse_company_key(balance_type, company_key):
 	"""Split legacy parent company key into child row company/currency.
@@ -27,21 +35,26 @@ def _parse_company_key(balance_type, company_key):
 	return key, ""
 
 
-def _build_company_key(balance_type, company, currency):
+def _build_company_key(balance_type, company, currency, bank=None):
 	company = (company or "").strip()
 	currency = (currency or "").strip()
+	bank = (bank or "").strip()
 
-	if balance_type == "Cash" and company and currency:
-		return "{}_{}".format(company, currency)
+	if balance_type == "Cash" and currency:
+		# Reverse-map full company name to short alias to preserve compound key format.
+		short = REVERSE_COMPANY_MAP.get(company, company)
+		if short:
+			return "{}_{}".format(short, currency)
 
 	if balance_type == "Bank":
-		# Accept both legacy single-key storage and split company/currency rows.
-		if "@" in company:
-			return company
-		if company and currency:
-			return "{}@{}".format(currency, company)
+		# bank field takes priority; fall back to company for legacy rows not yet migrated.
+		bank_name = bank or company
+		if "@" in bank_name:
+			return bank_name
+		if bank_name and currency:
+			return "{}@{}".format(currency, bank_name)
 
-	return company
+	return company or bank
 
 
 def _get_child_rows(parent_names):
@@ -50,7 +63,7 @@ def _get_child_rows(parent_names):
 
 	rows = frappe.db.sql(
 		"""
-		SELECT parent, company, currency, basic, accountant
+		SELECT parent, company, bank, currency, basic, accountant
 		FROM `tabCash Balance Item`
 		WHERE parenttype = 'Cash Balance' AND parent IN %(parents)s
 		ORDER BY idx ASC
@@ -93,7 +106,7 @@ def _load_aggregates(date_from=None, date_to=None, date=None, balance_type=None)
 
 		if children:
 			for child in children:
-				company_key = _build_company_key(p.balance_type, child.company, child.currency)
+				company_key = _build_company_key(p.balance_type, child.company, child.currency, child.bank)
 				if not company_key:
 					continue
 				key = (date_str, p.balance_type, company_key)
@@ -123,7 +136,7 @@ def _get_amount_rows(doc):
 def _collect_company_keys_from_doc(doc):
 	keys = []
 	for row in _get_amount_rows(doc):
-		key = _build_company_key(doc.balance_type, row.company, row.currency)
+		key = _build_company_key(doc.balance_type, row.company, row.currency, getattr(row, "bank", None))
 		if key:
 			keys.append(key)
 
@@ -145,26 +158,47 @@ def _find_target_doc_name(date, balance_type, company_key):
 		return legacy
 
 	# 2) Child-table match (new source of truth).
-	child_company, child_currency = _parse_company_key(balance_type, company_key)
-	if child_company:
-		match = frappe.db.sql(
-			"""
-			SELECT p.name
-			FROM `tabCash Balance` p
-			INNER JOIN `tabCash Balance Item` i ON i.parent = p.name
-			WHERE p.date = %(date)s
-			  AND p.balance_type = %(balance_type)s
-			  AND i.company = %(company)s
-			  AND COALESCE(i.currency, '') = %(currency)s
-			LIMIT 1
-			""",
-			{
-				"date": date,
-				"balance_type": balance_type,
-				"company": child_company,
-				"currency": child_currency or "",
-			},
-		)
+	child_entity, child_currency = _parse_company_key(balance_type, company_key)
+	if child_entity:
+		if balance_type == "Bank":
+			match = frappe.db.sql(
+				"""
+				SELECT p.name
+				FROM `tabCash Balance` p
+				INNER JOIN `tabCash Balance Item` i ON i.parent = p.name
+				WHERE p.date = %(date)s
+				  AND p.balance_type = %(balance_type)s
+				  AND COALESCE(i.bank, '') = %(bank)s
+				  AND COALESCE(i.currency, '') = %(currency)s
+				LIMIT 1
+				""",
+				{
+					"date": date,
+					"balance_type": balance_type,
+					"bank": child_entity,
+					"currency": child_currency or "",
+				},
+			)
+		else:
+			full_company = COMPANY_MAP.get(child_entity, child_entity)
+			match = frappe.db.sql(
+				"""
+				SELECT p.name
+				FROM `tabCash Balance` p
+				INNER JOIN `tabCash Balance Item` i ON i.parent = p.name
+				WHERE p.date = %(date)s
+				  AND p.balance_type = %(balance_type)s
+				  AND i.company = %(company)s
+				  AND COALESCE(i.currency, '') = %(currency)s
+				LIMIT 1
+				""",
+				{
+					"date": date,
+					"balance_type": balance_type,
+					"company": full_company,
+					"currency": child_currency or "",
+				},
+			)
 		if match:
 			return match[0][0]
 
@@ -225,7 +259,7 @@ class CashBalance(Document):
 		if other_names:
 			rows = frappe.db.sql(
 				"""
-				SELECT p.balance_type, i.company, i.currency
+				SELECT p.balance_type, i.company, i.bank, i.currency
 				FROM `tabCash Balance` p
 				INNER JOIN `tabCash Balance Item` i ON i.parent = p.name
 				WHERE p.name IN %(names)s
@@ -234,7 +268,7 @@ class CashBalance(Document):
 				as_dict=True,
 			)
 			for row in rows:
-				key = _build_company_key(row.balance_type, row.company, row.currency)
+				key = _build_company_key(row.balance_type, row.company, row.currency, row.get("bank"))
 				if key:
 					existing_keys.add(key)
 
@@ -269,8 +303,14 @@ def set_balance(date, balance_type, company, role_field, value):
 		_require_role(["Cash Accountant", "Cash Super User", "Administrator"])
 
 	existing = _find_target_doc_name(date, balance_type, company)
-	child_company, child_currency = _parse_company_key(balance_type, company)
-	legacy_parent_company = child_company if frappe.db.exists("Company", child_company) else ""
+	child_entity, child_currency = _parse_company_key(balance_type, company)
+
+	if balance_type == "Cash":
+		stored_company = COMPANY_MAP.get(child_entity, child_entity)
+		legacy_parent_company = stored_company if frappe.db.exists("Company", stored_company) else ""
+	else:
+		stored_company = ""
+		legacy_parent_company = ""
 
 	if existing:
 		doc = frappe.get_doc("Cash Balance", existing)
@@ -284,20 +324,21 @@ def set_balance(date, balance_type, company, role_field, value):
 			}
 		)
 
-	company_key = _build_company_key(balance_type, child_company, child_currency)
+	company_key = _build_company_key(balance_type, child_entity, child_currency)
 
 	match = None
 	for row in _get_amount_rows(doc):
-		row_key = _build_company_key(balance_type, row.company, row.currency)
+		row_key = _build_company_key(balance_type, row.company, row.currency, getattr(row, "bank", None))
 		if row_key == company_key:
 			match = row
 			break
 
 	if not match:
-		match = doc.append("balances_table", {
-			"company": child_company,
-			"currency": child_currency,
-		})
+		if balance_type == "Bank":
+			row_fields = {"bank": child_entity, "company": "", "currency": child_currency}
+		else:
+			row_fields = {"company": stored_company, "bank": "", "currency": child_currency}
+		match = doc.append("balances_table", row_fields)
 
 	setattr(match, role_field, flt(value))
 

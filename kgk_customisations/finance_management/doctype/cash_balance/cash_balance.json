@@ -49,9 +49,9 @@
    "description": "Legacy read-only field. Active company/account values are captured in the Amnt child table.",
    "fieldname": "company",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Company / Account",
    "options": "Company",
-   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -92,7 +92,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-14 10:18:53.161366",
+ "modified": "2026-03-17 11:53:48.808759",
  "modified_by": "Administrator",
  "module": "Finance Management",
  "name": "Cash Balance",
@@ -153,12 +153,14 @@
    "read": 1,
    "report": 1,
    "role": "Cash Checker",
-   "share": 1
+   "share": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",
  "sort_field": "date",
  "sort_order": "DESC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "track_views": 1
 }

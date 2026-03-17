@@ -14,4 +14,5 @@ kgk_customisations.patches.v1_0.rename_laser_approval_records
 kgk_customisations.patches.v1_0.seed_cash_voucher_series
 kgk_customisations.patches.v1_0.resync_cash_voucher_series
 kgk_customisations.patches.v1_0.backfill_cash_balance_child_amounts
+kgk_customisations.patches.v1_0.split_bank_company_in_cash_balance_items
 # kgk_customisations.kgk_customisations.patches.v1_0.add_invoice_processing_composite_key  # Handled by Python validation

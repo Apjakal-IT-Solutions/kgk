@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "autoname": "format:BBE-{###}-{YY}",
  "creation": "2026-03-11 00:00:00",
  "doctype": "DocType",
@@ -63,7 +64,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-12 15:46:08.153166",
+ "modified": "2026-03-17 08:01:03.600768",
  "modified_by": "Administrator",
  "module": "Finance Management",
  "name": "Bank Balance Entry",
