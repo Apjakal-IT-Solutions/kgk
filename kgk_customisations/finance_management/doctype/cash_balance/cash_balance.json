@@ -87,12 +87,13 @@
   {
    "fieldname": "balances_table",
    "fieldtype": "Table",
-   "options": "Cash Balance Item"
+   "options": "Cash Balance Item",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-17 11:53:48.808759",
+ "modified": "2026-03-17 12:28:34.821338",
  "modified_by": "Administrator",
  "module": "Finance Management",
  "name": "Cash Balance",

@@ -83,7 +83,8 @@
    "fieldname": "org_lot_id",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "ORG Lot ID"
+   "label": "ORG Lot ID",
+   "reqd": 1
   },
   {
    "fieldname": "polish_lot_id",
@@ -253,10 +254,11 @@
   }
  ],
  "grid_page_length": 50,
+ "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-10 19:00:00.000000",
+ "modified": "2026-03-17 15:01:26.789844",
  "modified_by": "Administrator",
  "module": "Stone Management",
  "name": "Stone Breaking Report",
@@ -334,5 +336,7 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_views": 1
 }

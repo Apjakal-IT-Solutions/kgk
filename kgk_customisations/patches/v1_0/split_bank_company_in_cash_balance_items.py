@@ -17,6 +17,17 @@ COMPANY_MAP = {
 
 
 def execute():
+    # Ensure the bank column exists before referencing it in SQL.
+    # DocType sync should have added it, but if this patch runs first
+    # (e.g. partial prior migration) we add it ourselves so data migration
+    # is not skipped.
+    if not frappe.db.has_column("Cash Balance Item", "bank"):
+        frappe.db.sql(
+            "ALTER TABLE `tabCash Balance Item` ADD COLUMN `bank` varchar(140) NULL DEFAULT NULL"
+        )
+        frappe.db.commit()
+        print("split_bank_company_in_cash_balance_items: added missing 'bank' column")
+
     bank_updated = 0
     cash_updated = 0
 
