@@ -13,7 +13,6 @@ COMPANY_MAP = {
 }
 REVERSE_COMPANY_MAP = {v: k for k, v in COMPANY_MAP.items()}
 
-<<<<<<< HEAD
 
 def _parse_company_key(balance_type, company_key):
 	"""Split legacy parent company key into child row company/currency.
@@ -211,8 +210,6 @@ def _find_target_doc_name(date, balance_type, company_key):
 	)
 	return candidate
 
-=======
->>>>>>> cashproject
 
 def _require_role(roles):
 	if frappe.session.user == "Administrator":

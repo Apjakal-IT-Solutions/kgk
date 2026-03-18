@@ -3,11 +3,7 @@
 
 import frappe
 from frappe.utils import flt
-<<<<<<< HEAD
-from kgk_customisations.finance_management.doctype.cash_balance.cash_balance import _load_aggregates
-=======
-from kgk_customisations.finance_management.doctype.cash_balance.cash_balance import COMPANY_MAP
->>>>>>> cashproject
+from kgk_customisations.finance_management.doctype.cash_balance.cash_balance import COMPANY_MAP, _load_aggregates
 
 _COMPANIES  = ["Diamonds", "Jewellery", "Agro"]
 _CURRENCIES = ["USD", "ZAR", "BWP"]
