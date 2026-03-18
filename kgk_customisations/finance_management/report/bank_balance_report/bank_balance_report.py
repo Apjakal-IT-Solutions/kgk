@@ -14,11 +14,20 @@ _ACCOUNT_NUMBERS = {
 }
 
 COMPANY_MAP = {
-				"Diamonds": "KGK Diamonds",
-				"Jewellery": "KGK Jewelry",
-				"Agro": "KGK Agro",
-				"Healthcare": "KGK Healthcare",
+	"Diamonds": "KGK Diamonds",
+	"Jewellery": "KGK Jewelry",
+	"Agro": "KGK Agro",
+	"Healthcare": "KGK Healthcare",
 }
+
+# SQL fragments for backward-compat: bank key lives in `account` (new) or `company` (legacy %@%)
+_BANK_KEY_EXPR = (
+	"CASE WHEN account IS NOT NULL AND account != '' THEN account ELSE company END"
+)
+_BANK_FILTER = (
+	"(account IS NOT NULL AND account != '')"
+	" OR (COALESCE(account, '') = '' AND company LIKE '%%@%%')"
+)
 
 
 def execute(filters=None):
@@ -27,32 +36,38 @@ def execute(filters=None):
 	date_from = filters.get("date_from")
 	date_to   = filters.get("date_to")
 	if date_from and date_to:
-		banks = _discover_banks(date_from, date_to)
+		banks, agg = _discover_banks(date_from, date_to)
 	else:
 		banks = list(_BANKS)
+		agg = {}
 	columns = _get_columns(banks)
-	data    = _get_data(filters, banks)
+	data    = _get_data(filters, banks, agg)
 	return columns, data
 
 
 def _discover_banks(date_from, date_to):
-	"""Return an ordered list of unique bank keys present in the date range.
+	"""Return (ordered bank key list, agg dict) for the date range.
 
-	Keys from Cash Balance (balance_type=Bank) and Bank Balance Entry.account
-	are merged. Known banks (_BANKS) appear first in declared order; additional
-	keys are appended alphabetically.
+	Keys from Cash Balance child rows (balance_type=Bank, via _load_aggregates)
+	and Bank Balance Entry (account field or legacy company field) are merged.
+	Known banks (_BANKS) appear first in declared order; extras appended alphabetically.
 	"""
-	cb_rows = frappe.db.sql(
+	agg = _load_aggregates(date_from=date_from, date_to=date_to, balance_type="Bank")
+	cb_keys = {company_key for (d, bt, company_key) in agg if bt == "Bank"}
+
+	# Also include legacy parent-level keys (no child rows) for the date range
+	legacy_rows = frappe.db.sql(
 		"SELECT DISTINCT company FROM `tabCash Balance`"
 		" WHERE balance_type = 'Bank' AND date BETWEEN %s AND %s",
 		[date_from, date_to],
 	)
-	cb_keys = {str(row[0]) for row in cb_rows if row[0]}
+	cb_keys |= {str(row[0]) for row in legacy_rows if row[0]}
 
 	bb_rows = frappe.db.sql(
-		"SELECT DISTINCT account FROM `tabBank Balance Entry`"
-		" WHERE account IS NOT NULL AND account != ''"
-		" AND date BETWEEN %s AND %s",
+		"SELECT DISTINCT {key} AS bank_key FROM `tabBank Balance Entry`"
+		" WHERE date BETWEEN %s AND %s AND ({filt})".format(
+			key=_BANK_KEY_EXPR, filt=_BANK_FILTER
+		),
 		[date_from, date_to],
 	)
 	bb_keys = {str(row[0]) for row in bb_rows if row[0]}
@@ -60,7 +75,7 @@ def _discover_banks(date_from, date_to):
 	all_keys = cb_keys | bb_keys
 	ordered = [b for b in _BANKS if b in all_keys]
 	extras  = sorted(all_keys - set(_BANKS))
-	return ordered + extras
+	return ordered + extras, agg
 
 
 def _get_columns(banks):
@@ -102,13 +117,13 @@ def _get_columns(banks):
 	return columns
 
 
-def _get_data(filters, banks):
+def _get_data(filters, banks, agg):
 	date_from = filters.get("date_from")
 	date_to = filters.get("date_to")
 	if not date_from or not date_to:
 		return []
 
-	# Cash Checker (without Super User) sees only their own BankBasicEntry rows
+	# Cash Checker (without Super User) sees only their own Bank Balance Entry rows
 	user_roles = frappe.get_roles(frappe.session.user)
 	is_checker = (
 		"Cash Checker" in user_roles
@@ -118,48 +133,62 @@ def _get_data(filters, banks):
 	current_user = frappe.session.user
 
 	# Collect all relevant dates from both tables
-	agg = _load_aggregates(date_from=date_from, date_to=date_to, balance_type="Bank")
-	cb_dates = [(d,) for (d, bt, key), vals in agg.items() if bt == "Bank"]
-	bb_dates = frappe.db.sql(
-		"SELECT DISTINCT date FROM `tabBank Balance Entry`"
-		" WHERE account IS NOT NULL AND account != ''"
-		" AND date BETWEEN %s AND %s",
+	cb_dates = {str(d) for (d, bt, key), vals in agg.items() if bt == "Bank"}
+	legacy_dates = frappe.db.sql(
+		"SELECT DISTINCT date FROM `tabCash Balance`"
+		" WHERE balance_type = 'Bank' AND date BETWEEN %s AND %s",
 		[date_from, date_to],
 	)
-	all_dates = sorted(
-		set(str(row[0]) for row in cb_dates) | set(str(row[0]) for row in bb_dates)
+	cb_dates |= {str(row[0]) for row in legacy_dates}
+	bb_dates = frappe.db.sql(
+		"SELECT DISTINCT date FROM `tabBank Balance Entry`"
+		" WHERE date BETWEEN %s AND %s AND ({filt})".format(filt=_BANK_FILTER),
+		[date_from, date_to],
 	)
+	all_dates = sorted(cb_dates | {str(row[0]) for row in bb_dates})
 
 	data = []
 	for date in all_dates:
 		date_str = str(date)
 
-		# Accountant values: Cash Balance (balance_type=Bank), company = bank key
-		acct_rows = frappe.db.get_all(
+		# Accountant values: from aggregates (child rows) + legacy parent company field
+		acct_map = {
+			company_key: flt(vals.get("accountant"))
+			for (d, bt, company_key), vals in agg.items()
+			if bt == "Bank" and str(d) == date_str
+		}
+		# Legacy fallback: parent-level records with no child rows
+		legacy_acct = frappe.db.get_all(
 			"Cash Balance",
 			filters={"date": date_str, "balance_type": "Bank"},
 			fields=["company", "accountant"],
 		)
-		acct_map = {r.company: flt(r.accountant) for r in acct_rows}
+		for r in legacy_acct:
+			if r.company and r.company not in acct_map:
+				acct_map[r.company] = flt(r.accountant)
 
-		# Checker values from Bank Balance Entry (account field)
+		# Checker values — support both new (account) and legacy (company %@%) layout
 		if is_checker:
-			bb_rows = frappe.db.get_all(
-				"Bank Balance Entry",
-				filters={"date": date_str, "username": current_user},
-				fields=["account", "balance"],
+			bb_rows = frappe.db.sql(
+				"SELECT {key} AS bank_key, balance"
+				" FROM `tabBank Balance Entry`"
+				" WHERE date = %s AND username = %s AND ({filt})".format(
+					key=_BANK_KEY_EXPR, filt=_BANK_FILTER
+				),
+				[date_str, current_user],
+				as_dict=True,
 			)
-			checker_map = {r.account: flt(r.balance) for r in bb_rows if r.account}
+			checker_map = {r.bank_key: flt(r.balance) for r in bb_rows if r.bank_key}
 		else:
 			bb_rows = frappe.db.sql(
-				"SELECT account, SUM(balance) AS total"
+				"SELECT {key} AS bank_key, SUM(balance) AS total"
 				" FROM `tabBank Balance Entry`"
-				" WHERE date = %s AND account IS NOT NULL AND account != ''"
-				" GROUP BY account",
+				" WHERE date = %s AND ({filt})"
+				" GROUP BY bank_key".format(key=_BANK_KEY_EXPR, filt=_BANK_FILTER),
 				[date_str],
 				as_dict=True,
 			)
-			checker_map = {r.account: flt(r.total) for r in bb_rows}
+			checker_map = {r.bank_key: flt(r.total) for r in bb_rows if r.bank_key}
 
 		row = {"date": date_str}
 		nonzero = False
