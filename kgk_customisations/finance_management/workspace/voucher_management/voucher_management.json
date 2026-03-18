@@ -11,7 +11,7 @@
  "idx": 0,
  "indicator_color": "",
  "is_hidden": 0,
- "label": "Cash Management",
+ "label": "Voucher Management",
  "links": [
   {
    "description": "Shortcuts to cash functionalities",
@@ -113,10 +113,10 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-13 14:46:54.516427",
+ "modified": "2026-03-18 12:09:33.811897",
  "modified_by": "Administrator",
  "module": "Finance Management",
- "name": "Cash Management",
+ "name": "Voucher Management",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
@@ -150,5 +150,5 @@
  ],
  "sequence_id": 4.0,
  "shortcuts": [],
- "title": "Cash Management"
+ "title": "Voucher Management"
 }
