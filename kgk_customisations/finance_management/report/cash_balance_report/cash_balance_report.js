@@ -112,7 +112,9 @@ frappe.query_reports["Cash Balance Report"] = {
 						const cellBg  = row[c.tally_field] ? pal.match : pal.mismatch;
 						const isFirst = ci === 0 || colGi[c.fieldname] !== colGi[valCols[ci - 1].fieldname];
 						const border  = isFirst ? "border-left:2px solid #c8d0dc;" : "";
-						return `<td style="${cbr_td()}text-align:right;background:${cellBg};${border}">${fmt(row[c.fieldname], c.fieldtype)}</td>`;
+						const val    = row[c.fieldname];
+						const bold   = val && val !== 0 ? "font-weight:bold;" : "";
+						return `<td style="${cbr_td()}text-align:right;background:${cellBg};${border}${bold}">${fmt(val, c.fieldtype)}</td>`;
 					}).join("")}
 				</tr>`;
 		});
