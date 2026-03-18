@@ -369,7 +369,8 @@
    "role": "Cash Super User",
    "share": 1,
    "submit": 1,
-   "write": 1
+   "write": 1, 
+   "select": 1
   },
   {
    "create": 1,
