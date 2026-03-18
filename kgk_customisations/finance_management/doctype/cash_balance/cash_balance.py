@@ -5,6 +5,14 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt
 
+COMPANY_MAP = {
+	"Diamonds": "KGK Diamonds",
+	"Jewellery": "KGK Jewelry",
+	"Agro": "KGK Agro",
+	"Healthcare": "KGK Healthcare",
+}
+REVERSE_COMPANY_MAP = {v: k for k, v in COMPANY_MAP.items()}
+
 
 def _require_role(roles):
 	if frappe.session.user == "Administrator":
@@ -153,10 +161,11 @@ def get_bank_balance_report(date_from, date_to):
 
 	basic_rows = frappe.db.sql(
 		"""
-		SELECT date, company, SUM(balance) AS total
+		SELECT date, account AS company, SUM(balance) AS total
 		FROM `tabBank Balance Entry`
 		WHERE date BETWEEN %s AND %s
-		GROUP BY date, company
+		  AND account IS NOT NULL AND account != ''
+		GROUP BY date, account
 		""",
 		[date_from, date_to],
 		as_dict=True,

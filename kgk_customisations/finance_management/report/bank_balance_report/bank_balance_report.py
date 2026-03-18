@@ -16,12 +16,46 @@ _ACCOUNT_NUMBERS = {
 def execute(filters=None):
 	if not filters:
 		filters = {}
-	columns = _get_columns()
-	data = _get_data(filters)
+	date_from = filters.get("date_from")
+	date_to   = filters.get("date_to")
+	if date_from and date_to:
+		banks = _discover_banks(date_from, date_to)
+	else:
+		banks = list(_BANKS)
+	columns = _get_columns(banks)
+	data    = _get_data(filters, banks)
 	return columns, data
 
 
-def _get_columns():
+def _discover_banks(date_from, date_to):
+	"""Return an ordered list of unique bank keys present in the date range.
+
+	Keys from Cash Balance (balance_type=Bank) and Bank Balance Entry.account
+	are merged. Known banks (_BANKS) appear first in declared order; additional
+	keys are appended alphabetically.
+	"""
+	cb_rows = frappe.db.sql(
+		"SELECT DISTINCT company FROM `tabCash Balance`"
+		" WHERE balance_type = 'Bank' AND date BETWEEN %s AND %s",
+		[date_from, date_to],
+	)
+	cb_keys = {str(row[0]) for row in cb_rows if row[0]}
+
+	bb_rows = frappe.db.sql(
+		"SELECT DISTINCT account FROM `tabBank Balance Entry`"
+		" WHERE account IS NOT NULL AND account != ''"
+		" AND date BETWEEN %s AND %s",
+		[date_from, date_to],
+	)
+	bb_keys = {str(row[0]) for row in bb_rows if row[0]}
+
+	all_keys = cb_keys | bb_keys
+	ordered = [b for b in _BANKS if b in all_keys]
+	extras  = sorted(all_keys - set(_BANKS))
+	return ordered + extras
+
+
+def _get_columns(banks):
 	columns = [
 		{
 			"fieldname": "date",
@@ -30,9 +64,9 @@ def _get_columns():
 			"width": 100,
 		}
 	]
-	for i, bank in enumerate(_BANKS):
-		acc_no = _ACCOUNT_NUMBERS[bank]
-		label = "{} ({})".format(bank, acc_no)
+	for i, bank in enumerate(banks):
+		acc_no = _ACCOUNT_NUMBERS.get(bank)
+		label = "{} ({})".format(bank, acc_no) if acc_no else bank
 		columns += [
 			{
 				"fieldname": "bank_{}_accountant".format(i),
@@ -48,7 +82,7 @@ def _get_columns():
 			},
 		]
 	# Hidden tally columns used by JS formatter (1=match, 0=mismatch)
-	for i in range(len(_BANKS)):
+	for i in range(len(banks)):
 		columns.append(
 			{
 				"fieldname": "tally_{}".format(i),
@@ -60,7 +94,7 @@ def _get_columns():
 	return columns
 
 
-def _get_data(filters):
+def _get_data(filters, banks):
 	date_from = filters.get("date_from")
 	date_to = filters.get("date_to")
 	if not date_from or not date_to:
@@ -83,18 +117,19 @@ def _get_data(filters):
 	)
 	bb_dates = frappe.db.sql(
 		"SELECT DISTINCT date FROM `tabBank Balance Entry`"
-		" WHERE date BETWEEN %s AND %s",
+		" WHERE account IS NOT NULL AND account != ''"
+		" AND date BETWEEN %s AND %s",
 		[date_from, date_to],
 	)
 	all_dates = sorted(
-		set(row[0] for row in cb_dates) | set(row[0] for row in bb_dates)
+		set(str(row[0]) for row in cb_dates) | set(str(row[0]) for row in bb_dates)
 	)
 
 	data = []
 	for date in all_dates:
 		date_str = str(date)
 
-		# Accountant values: Cash Balance (balance_type=Bank)
+		# Accountant values: Cash Balance (balance_type=Bank), company = bank key
 		acct_rows = frappe.db.get_all(
 			"Cash Balance",
 			filters={"date": date_str, "balance_type": "Bank"},
@@ -102,29 +137,29 @@ def _get_data(filters):
 		)
 		acct_map = {r.company: flt(r.accountant) for r in acct_rows}
 
-		# Checker values from Bank Balance Entry
+		# Checker values from Bank Balance Entry (account field)
 		if is_checker:
 			bb_rows = frappe.db.get_all(
 				"Bank Balance Entry",
 				filters={"date": date_str, "username": current_user},
-				fields=["company", "balance"],
+				fields=["account", "balance"],
 			)
-			checker_map = {r.company: flt(r.balance) for r in bb_rows}
+			checker_map = {r.account: flt(r.balance) for r in bb_rows if r.account}
 		else:
 			bb_rows = frappe.db.sql(
-				"SELECT company, SUM(balance) AS total"
+				"SELECT account, SUM(balance) AS total"
 				" FROM `tabBank Balance Entry`"
-				" WHERE date = %s"
-				" GROUP BY company",
+				" WHERE date = %s AND account IS NOT NULL AND account != ''"
+				" GROUP BY account",
 				[date_str],
 				as_dict=True,
 			)
-			checker_map = {r.company: flt(r.total) for r in bb_rows}
+			checker_map = {r.account: flt(r.total) for r in bb_rows}
 
 		row = {"date": date_str}
 		nonzero = False
 
-		for i, bank in enumerate(_BANKS):
+		for i, bank in enumerate(banks):
 			accountant = acct_map.get(bank, 0.0)
 			checker = checker_map.get(bank, 0.0)
 			tally = 1 if abs(accountant - checker) < 1e-6 else 0

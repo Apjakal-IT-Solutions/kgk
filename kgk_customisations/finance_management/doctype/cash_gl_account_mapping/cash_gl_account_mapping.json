@@ -20,11 +20,11 @@
    "search_index": 1
   },
   {
-   "description": "Company value from Cash Document (e.g. Diamonds, Jewellery, Agro)",
    "fieldname": "cash_company",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Cash Company",
+   "options": "\nDiamonds\nJewellery\nAgro\nHealthcare",
    "reqd": 1,
    "search_index": 1
   },

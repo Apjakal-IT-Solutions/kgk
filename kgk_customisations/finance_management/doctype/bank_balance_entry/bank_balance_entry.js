@@ -4,8 +4,10 @@
 frappe.ui.form.on('Bank Balance Entry', {
 	refresh(frm) {
 		if (!frm.is_new()) {
+			const acct = frm.doc.account
+				|| (frm.doc.company && frm.doc.currency ? `${frm.doc.company} / ${frm.doc.currency}` : frm.doc.company || '');
 			frm.set_intro(
-				`Date: <b>${frm.doc.date}</b> | Account: <b>${frm.doc.company}</b> | User: <b>${frm.doc.username}</b>`,
+				`Date: <b>${frm.doc.date}</b> | Account: <b>${acct}</b> | User: <b>${frm.doc.username}</b>`,
 				'blue'
 			);
 		}
