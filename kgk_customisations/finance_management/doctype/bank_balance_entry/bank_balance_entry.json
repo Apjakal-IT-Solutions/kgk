@@ -8,9 +8,12 @@
  "field_order": [
   "section_details",
   "date",
-  "company",
+  "account",
   "column_break_user",
   "username",
+  "section_company",
+  "company",
+  "currency",
   "section_balance",
   "balance"
  ],
@@ -29,12 +32,11 @@
    "reqd": 1
   },
   {
-   "description": "Compound key \u2013 e.g. ZAR@ABSA (bank) or Diamonds_USD (checker cash)",
-   "fieldname": "company",
-   "fieldtype": "Data",
+   "fieldname": "account",
+   "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Company / Account",
-   "reqd": 1
+   "label": "Account",
+   "options": "\nZAR@ABSA\nUSD@ABSA\nBWP@FNB\nBWP@ABSA"
   },
   {
    "fieldname": "column_break_user",
@@ -47,6 +49,26 @@
    "label": "Username",
    "options": "User",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_company",
+   "fieldtype": "Section Break",
+   "label": "Company (Cash Entries)"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Currency",
+   "options": "\nUSD\nZAR\nBWP"
   },
   {
    "fieldname": "section_balance",
@@ -64,7 +86,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2026-03-17 08:01:03.600768",
+=======
+ "modified": "2026-03-18 00:00:00.000000",
+>>>>>>> cashproject
  "modified_by": "Administrator",
  "module": "Finance Management",
  "name": "Bank Balance Entry",

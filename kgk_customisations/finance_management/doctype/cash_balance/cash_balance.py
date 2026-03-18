@@ -13,6 +13,7 @@ COMPANY_MAP = {
 }
 REVERSE_COMPANY_MAP = {v: k for k, v in COMPANY_MAP.items()}
 
+<<<<<<< HEAD
 
 def _parse_company_key(balance_type, company_key):
 	"""Split legacy parent company key into child row company/currency.
@@ -210,6 +211,8 @@ def _find_target_doc_name(date, balance_type, company_key):
 	)
 	return candidate
 
+=======
+>>>>>>> cashproject
 
 def _require_role(roles):
 	if frappe.session.user == "Administrator":
@@ -414,10 +417,11 @@ def get_bank_balance_report(date_from, date_to):
 
 	basic_rows = frappe.db.sql(
 		"""
-		SELECT date, company, SUM(balance) AS total
+		SELECT date, account AS company, SUM(balance) AS total
 		FROM `tabBank Balance Entry`
 		WHERE date BETWEEN %s AND %s
-		GROUP BY date, company
+		  AND account IS NOT NULL AND account != ''
+		GROUP BY date, account
 		""",
 		[date_from, date_to],
 		as_dict=True,

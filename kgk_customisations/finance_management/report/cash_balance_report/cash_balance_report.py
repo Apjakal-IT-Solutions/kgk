@@ -3,7 +3,11 @@
 
 import frappe
 from frappe.utils import flt
+<<<<<<< HEAD
 from kgk_customisations.finance_management.doctype.cash_balance.cash_balance import _load_aggregates
+=======
+from kgk_customisations.finance_management.doctype.cash_balance.cash_balance import COMPANY_MAP
+>>>>>>> cashproject
 
 _COMPANIES  = ["Diamonds", "Jewellery", "Agro"]
 _CURRENCIES = ["USD", "ZAR", "BWP"]
@@ -35,7 +39,8 @@ def _get_data(filters):
 	if not date_from or not date_to or not company or not currency:
 		return []
 
-	comp_key = "{}_{}".format(company, currency)
+	comp_key     = "{}_{}".format(company, currency)
+	full_company = COMPANY_MAP.get(company, company)
 
 	# Restricted checkers see only their own Bank Balance Entry rows
 	user_roles = frappe.get_roles(frappe.session.user)
@@ -55,8 +60,8 @@ def _get_data(filters):
 	]
 	bb_dates = frappe.db.sql(
 		"SELECT DISTINCT date FROM `tabBank Balance Entry`"
-		" WHERE company = %s AND date BETWEEN %s AND %s",
-		[comp_key, date_from, date_to],
+		" WHERE company = %s AND currency = %s AND date BETWEEN %s AND %s",
+		[full_company, currency, date_from, date_to],
 	)
 	all_dates = sorted(set(str(r[0]) for r in cb_dates) | set(str(r[0]) for r in bb_dates))
 
@@ -71,15 +76,15 @@ def _get_data(filters):
 		if is_restricted_checker:
 			bb = frappe.db.get_value(
 				"Bank Balance Entry",
-				{"date": date_str, "company": comp_key, "username": current_user},
+				{"date": date_str, "company": full_company, "currency": currency, "username": current_user},
 				"balance",
 			)
 			checker = flt(bb)
 		else:
 			sum_result = frappe.db.sql(
 				"SELECT SUM(balance) FROM `tabBank Balance Entry`"
-				" WHERE date = %s AND company = %s",
-				[date_str, comp_key],
+				" WHERE date = %s AND company = %s AND currency = %s",
+				[date_str, full_company, currency],
 			)
 			checker = flt(sum_result[0][0]) if sum_result else 0.0
 
